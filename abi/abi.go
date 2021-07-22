@@ -303,6 +303,10 @@ func (e *Event) Sig() string {
 	return buildSignature(e.Name, e.Inputs)
 }
 
+func (e *Event) DetailedSig() string {
+	return buildHumanSignature(e.Name, e.Inputs)
+}
+
 // ID returns the id of the event used during logs
 func (e *Event) ID() (res ethgo.Hash) {
 	k := acquireKeccak()
@@ -344,6 +348,14 @@ func NewError(name string) (*Error, error) {
 		return nil, err
 	}
 	return &Error{Name: name, Inputs: typ}, nil
+}
+
+func parseEventSignature(name string) (string, *Type, error) {
+	return parseEventOrErrorSignature("event", name)
+}
+
+func parseErrorSignature(name string) (string, *Type, error) {
+	return parseEventOrErrorSignature("error", name)
 }
 
 func parseEventOrErrorSignature(prefix string, name string) (string, *Type, error) {
@@ -400,6 +412,14 @@ func buildSignature(name string, typ *Type) string {
 		types[i] = strings.Replace(input.Elem.String(), "tuple", "", -1)
 	}
 	return fmt.Sprintf("%v(%v)", name, strings.Join(types, ","))
+}
+
+func buildHumanSignature(name string, typ *Type) string {
+	types := make([]string, len(typ.tuple))
+	for i, input := range typ.tuple {
+		types[i] = input.Elem.itype + " " + input.Name
+	}
+	return fmt.Sprintf("%v(%v)", name, strings.Join(types, ", "))
 }
 
 // ArgumentStr encodes a type object

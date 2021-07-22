@@ -364,3 +364,27 @@ func (a *Contract) Call(method string, block ethgo.BlockNumber, args ...interfac
 	}
 	return resp, nil
 }
+
+// Event is a solidity event
+type Event struct {
+	event *abi.Event
+}
+
+// Encode encodes an event
+func (e *Event) Encode() ethgo.Hash {
+	return e.event.ID()
+}
+
+// ParseLog parses a log
+func (e *Event) ParseLog(log *ethgo.Log) (map[string]interface{}, error) {
+	return abi.ParseLog(e.event.Inputs, log)
+}
+
+// Event returns a specific event
+func (c *Contract) Event(name string) (*Event, bool) {
+	event, ok := c.abi.Events[name]
+	if !ok {
+		return nil, false
+	}
+	return &Event{event}, true
+}

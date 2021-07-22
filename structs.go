@@ -251,6 +251,16 @@ func (a *AccessList) Copy() AccessList {
 	return aa
 }
 
+func (t *Transaction) ToCallMsg() *CallMsg {
+	return &CallMsg{
+		From:     t.From,
+		To:       t.To,
+		Data:     t.Input,
+		Value:    t.Value,
+		GasPrice: t.GasPrice,
+	}
+}
+
 type CallMsg struct {
 	From     Address
 	To       *Address
