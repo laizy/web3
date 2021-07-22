@@ -90,6 +90,16 @@ type Transaction struct {
 	TxnIndex    uint64
 }
 
+func (t *Transaction) ToCallMsg() *CallMsg {
+	return &CallMsg{
+		From:     t.From,
+		To:       t.To,
+		Data:     t.Input,
+		Value:    t.Value,
+		GasPrice: t.GasPrice,
+	}
+}
+
 type CallMsg struct {
 	From     Address
 	To       *Address

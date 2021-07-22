@@ -22,7 +22,7 @@ type ABI struct {
 }
 
 func (a *ABI) addEvent(e *Event) {
-	if len(a.Methods) == 0 {
+	if len(a.Events) == 0 {
 		a.Events = map[string]*Event{}
 	}
 	a.Events[e.Name] = e
@@ -150,6 +150,23 @@ func NewMethod(name string) (*Method, error) {
 	return m, nil
 }
 
+func MustNewMethod(sig string) *Method {
+	m, err := NewMethod(sig)
+	if err != nil {
+		panic(err)
+	}
+	return m
+}
+
+func (self *Method) EncodeIDAndInput(args ...interface{}) ([]byte, error) {
+	data, err := Encode(args, self.Inputs)
+	if err != nil {
+		return nil, err
+	}
+	data = append(self.ID(), data...)
+	return data, nil
+}
+
 var funcRegexp = regexp.MustCompile("(.*)\\((.*)\\)(.*) returns \\((.*)\\)")
 
 func parseMethodSignature(name string) (string, *Type, *Type, error) {
@@ -186,6 +203,10 @@ type Event struct {
 // Sig returns the signature of the event
 func (e *Event) Sig() string {
 	return buildSignature(e.Name, e.Inputs)
+}
+
+func (e *Event) DetailedSig() string {
+	return buildHumanSignature(e.Name, e.Inputs)
 }
 
 // ID returns the id of the event used during logs
@@ -266,6 +287,14 @@ func buildSignature(name string, typ *Type) string {
 		types[i] = input.Elem.raw
 	}
 	return fmt.Sprintf("%v(%v)", name, strings.Join(types, ","))
+}
+
+func buildHumanSignature(name string, typ *Type) string {
+	types := make([]string, len(typ.tuple))
+	for i, input := range typ.tuple {
+		types[i] = input.Elem.raw + " " + input.Name
+	}
+	return fmt.Sprintf("%v(%v)", name, strings.Join(types, ", "))
 }
 
 type argument struct {

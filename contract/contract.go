@@ -14,7 +14,7 @@ import (
 type Contract struct {
 	addr     web3.Address
 	from     *web3.Address
-	abi      *abi.ABI
+	Abi      *abi.ABI
 	provider *jsonrpc.Client
 }
 
@@ -33,7 +33,7 @@ func DeployContract(provider *jsonrpc.Client, from web3.Address, abi *abi.ABI, b
 func NewContract(addr web3.Address, abi *abi.ABI, provider *jsonrpc.Client) *Contract {
 	return &Contract{
 		addr:     addr,
-		abi:      abi,
+		Abi:      abi,
 		provider: provider,
 	}
 }
@@ -55,7 +55,7 @@ func (c *Contract) EstimateGas(method string, args ...interface{}) (uint64, erro
 
 // Call calls a method in the contract
 func (c *Contract) Call(method string, block web3.BlockNumber, args ...interface{}) (map[string]interface{}, error) {
-	m, ok := c.abi.Methods[method]
+	m, ok := c.Abi.Methods[method]
 	if !ok {
 		return nil, fmt.Errorf("method %s not found", method)
 	}
@@ -100,7 +100,7 @@ func (c *Contract) Call(method string, block web3.BlockNumber, args ...interface
 
 // Txn creates a new transaction object
 func (c *Contract) Txn(method string, args ...interface{}) *Txn {
-	m, ok := c.abi.Methods[method]
+	m, ok := c.Abi.Methods[method]
 	if !ok {
 		// TODO, return error
 		panic(fmt.Errorf("method %s not found", method))
@@ -181,25 +181,24 @@ func (t *Txn) DoAndWait() error {
 	return nil
 }
 
-// Do sends the transaction to the network
-func (t *Txn) Do() error {
+func (t *Txn) ToTransaction(nonce uint64) (*web3.Transaction, error) {
 	err := t.Validate()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// estimate gas price
 	if t.gasPrice == 0 {
 		t.gasPrice, err = t.provider.Eth().GasPrice()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 	// estimate gas limit
 	if t.gasLimit == 0 {
 		t.gasLimit, err = t.estimateGas()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -210,9 +209,21 @@ func (t *Txn) Do() error {
 		GasPrice: t.gasPrice,
 		Gas:      t.gasLimit,
 		Value:    t.value,
+		Nonce:    nonce,
 	}
 	if t.addr != nil {
 		txn.To = t.addr
+	}
+
+	return txn, nil
+}
+
+// Do sends the transaction to the network
+func (t *Txn) Do() error {
+	// send transaction
+	txn, err := t.ToTransaction(0)
+	if err != nil {
+		return err
 	}
 	t.hash, err = t.provider.Eth().SendTransaction(txn)
 	if err != nil {
@@ -299,7 +310,7 @@ func (e *Event) ParseLog(log *web3.Log) (map[string]interface{}, error) {
 
 // Event returns a specific event
 func (c *Contract) Event(name string) (*Event, bool) {
-	event, ok := c.abi.Events[name]
+	event, ok := c.Abi.Events[name]
 	if !ok {
 		return nil, false
 	}

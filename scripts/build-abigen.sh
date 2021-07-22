@@ -29,7 +29,6 @@ echo "==> Building..."
     -arch="${XC_ARCH}" \
     -osarch="!darwin/arm !darwin/arm64" \
     -output "pkg/{{.OS}}_{{.Arch}}/go-web3" \
-    -tags="${GOTAGS}" \
     .
 
 # Move all the compiled things to the $GOPATH/bin
