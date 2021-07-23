@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/umbracle/go-web3"
+	"github.com/umbracle/go-web3/utils"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -165,6 +166,13 @@ func (self *Method) EncodeIDAndInput(args ...interface{}) ([]byte, error) {
 	}
 	data = append(self.ID(), data...)
 	return data, nil
+}
+
+func (self *Method) MustEncodeIDAndInput(args ...interface{}) []byte {
+	data, err := Encode(args, self.Inputs)
+	utils.Ensure(err)
+	data = append(self.ID(), data...)
+	return data
 }
 
 var funcRegexp = regexp.MustCompile("(.*)\\((.*)\\)(.*) returns \\((.*)\\)")

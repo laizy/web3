@@ -6,29 +6,12 @@ import (
 	"fmt"
 	"sync"
 
+	web32 "github.com/umbracle/go-web3/utils"
+
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/abi"
 	"github.com/umbracle/go-web3/contract"
 )
-
-func Ensure(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func JsonString(v interface{}) string {
-	b, err := json.MarshalIndent(v, "", "  ")
-	Ensure(err)
-
-	return string(b)
-}
-
-func EnsureTrue(b bool) {
-	if !b {
-		panic("must be true")
-	}
-}
 
 type EventRegistry struct {
 	events        map[web3.Hash]*abi.Event
@@ -52,7 +35,7 @@ func (self *EventRegistry) Register(e *abi.Event) {
 		self.events = map[web3.Hash]*abi.Event{}
 	}
 	if event := self.events[e.ID()]; event != nil {
-		EnsureTrue(event.Name == e.Name)
+		web32.EnsureTrue(event.Name == e.Name)
 		return
 	}
 	self.events[e.ID()] = e
@@ -111,7 +94,7 @@ func (self *EventRegistry) DumpLog(log *web3.Log) string {
 	}
 
 	buf, err := json.MarshalIndent(decoded, "", "  ")
-	Ensure(err)
+	web32.Ensure(err)
 
 	return string(buf)
 }
