@@ -2,6 +2,7 @@ package web3
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 
 	"github.com/valyala/fastjson"
@@ -25,6 +26,15 @@ func (l *Log) MarshalJSON() ([]byte, error) {
 	o.Set("blockHash", a.NewString(l.BlockHash.String()))
 	o.Set("blockNumber", a.NewString(fmt.Sprintf("0x%x", l.BlockNumber)))
 	o.Set("address", a.NewString(l.Address.String()))
+	if l.Event != nil {
+		p := defaultPool.Get()
+		defer defaultPool.Put(p)
+		buf, _ := json.Marshal(l.Event)
+		v, err := p.Parse(string(buf))
+		if err == nil {
+			o.Set("event", v)
+		}
+	}
 	o.Set("data", a.NewString("0x"+hex.EncodeToString(l.Data)))
 
 	vv := a.NewArray()

@@ -1,21 +1,15 @@
 package registry
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/abi"
 	"github.com/umbracle/go-web3/contract"
 )
-
-var eventRegistry = &EventRegistry{events: make(map[web3.Hash]*abi.Event)}
-
-func Get() *EventRegistry {
-	return eventRegistry
-}
 
 func Ensure(err error) {
 	if err != nil {
@@ -79,21 +73,13 @@ func (self *EventRegistry) RegisterFromHumanString(eventStr string) {
 	self.Register(e)
 }
 
-func (self *EventRegistry) ParseLog(log *web3.Log) (*ParsedLog, error) {
+func (self *EventRegistry) ParseLog(log *web3.Log) (*web3.ParsedEvent, error) {
 	if len(log.Topics) == 0 {
 		return nil, errors.New("no topic found")
 	}
 	e := self.GetEvent(log.Topics[0])
 	if e == nil {
-		return &ParsedLog{
-			LogIndex: log.LogIndex,
-			Address:  log.Address.String(),
-			Sig:      log.Topics[0].String(),
-			Values: map[string]interface{}{
-				"topics": log.Topics,
-				"data":   "0x" + hex.EncodeToString(log.Data),
-			},
-		}, nil
+		return nil, fmt.Errorf("can not parse log with sig: %s", log.Topics[0].String())
 	}
 	val, err := abi.ParseLog(e.Inputs, log)
 	if err != nil {
@@ -102,12 +88,10 @@ func (self *EventRegistry) ParseLog(log *web3.Log) (*ParsedLog, error) {
 	sig := e.DetailedSig()
 	addr := log.Address.String()
 	if name := self.contractNames[log.Address]; name != "" {
-		addr += "(" + name + ")"
+		addr = name
 	}
-	return &ParsedLog{
-		Parsed:   true,
-		LogIndex: log.LogIndex,
-		Address:  addr,
+	return &web3.ParsedEvent{
+		Contract: addr,
 		Sig:      sig,
 		Values:   val,
 	}, nil
@@ -130,12 +114,4 @@ func (self *EventRegistry) DumpLog(log *web3.Log) string {
 	Ensure(err)
 
 	return string(buf)
-}
-
-type ParsedLog struct {
-	Parsed   bool
-	LogIndex uint64
-	Address  string
-	Sig      string
-	Values   map[string]interface{}
 }

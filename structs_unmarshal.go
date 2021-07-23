@@ -274,6 +274,11 @@ func (r *Log) unmarshalJSON(v *fastjson.Value) error {
 		}
 		r.Topics = append(r.Topics, t)
 	}
+	parsed, err := GetParser().ParseLog(r)
+	if err == nil {
+		r.Event = parsed
+	}
+
 	return nil
 }
 

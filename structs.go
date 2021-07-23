@@ -153,6 +153,7 @@ type Log struct {
 	Address          Address
 	Topics           []Hash
 	Data             []byte
+	Event            *ParsedEvent
 }
 
 type BlockNumber int
@@ -183,4 +184,10 @@ func EncodeBlock(block ...BlockNumber) BlockNumber {
 		return Latest
 	}
 	return block[0]
+}
+
+type ParsedEvent struct {
+	Contract string
+	Sig      string
+	Values   map[string]interface{}
 }
