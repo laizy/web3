@@ -24,10 +24,9 @@ import (
 	"github.com/umbracle/ethgo/evm/params"
 	"github.com/umbracle/ethgo/evm/storage"
 	"github.com/umbracle/ethgo/executor/remotedb"
-	"github.com/umbracle/ethgo/executor/types"
 )
 
-func applyTransaction(msg Message, statedb *storage.StateDB, tx *ethgo.Transaction, usedGas *uint64, evm *evm.EVM, feeReceiver ethgo.Address) (*types.ExecutionResult, *ethgo.Receipt, error) {
+func applyTransaction(msg Message, statedb *storage.StateDB, tx *ethgo.Transaction, usedGas *uint64, evm *evm.EVM, feeReceiver ethgo.Address) (*ethgo.ExecutionResult, *ethgo.Receipt, error) {
 	// Create a new context to be used in the EVM environment
 	txContext := NewEVMTxContext(msg)
 
@@ -74,7 +73,7 @@ func applyTransaction(msg Message, statedb *storage.StateDB, tx *ethgo.Transacti
 // and uses the input parameters for its environment. It returns the receipt
 // for the transaction, gas used and an error if the transaction failed,
 // indicating the block was invalid.
-func ApplyTransaction(config *params.ChainConfig, bc *remotedb.RemoteDB, statedb *storage.StateDB, blockHeight, timestamp uint64, tx *ethgo.Transaction, usedGas *uint64, feeReceiver ethgo.Address, cfg evm.Config, checkNonce bool) (*types.ExecutionResult, *ethgo.Receipt, error) {
+func ApplyTransaction(config *params.ChainConfig, bc *remotedb.RemoteDB, statedb *storage.StateDB, blockHeight, timestamp uint64, tx *ethgo.Transaction, usedGas *uint64, feeReceiver ethgo.Address, cfg evm.Config, checkNonce bool) (*ethgo.ExecutionResult, *ethgo.Receipt, error) {
 	// Create a new context to be used in the EVM environment
 	msg := MessageFromTx(tx, checkNonce)
 	blockContext := NewEVMBlockContext(blockHeight, timestamp, bc.GetBlockHash)

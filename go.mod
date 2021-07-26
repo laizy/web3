@@ -21,6 +21,7 @@ require (
 	github.com/valyala/fastjson v1.4.1
 	go.etcd.io/bbolt v1.3.6
 	golang.org/x/crypto v0.1.0
+	golang.org/x/sys v0.5.0
 	golang.org/x/text v0.7.0
 )
 
@@ -40,7 +41,6 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
-	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
@@ -60,7 +60,6 @@ require (
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	golang.org/x/net v0.4.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

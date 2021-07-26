@@ -15,10 +15,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package types
+package ethgo
 
 import (
-	"github.com/umbracle/ethgo"
 	"github.com/umbracle/ethgo/evm/errors"
 )
 
@@ -45,7 +44,7 @@ func (result *ExecutionResult) Return() []byte {
 	if result.Err != nil {
 		return nil
 	}
-	return ethgo.CopyBytes(result.ReturnData)
+	return CopyBytes(result.ReturnData)
 }
 
 // Revert returns the concrete revert reason if the execution is aborted by `REVERT`
@@ -54,5 +53,5 @@ func (result *ExecutionResult) Revert() []byte {
 	if result.Err != errors.ErrExecutionReverted {
 		return nil
 	}
-	return ethgo.CopyBytes(result.ReturnData)
+	return CopyBytes(result.ReturnData)
 }

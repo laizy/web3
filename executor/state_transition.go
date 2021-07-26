@@ -26,7 +26,6 @@ import (
 	"github.com/umbracle/ethgo"
 	"github.com/umbracle/ethgo/evm"
 	"github.com/umbracle/ethgo/evm/params"
-	"github.com/umbracle/ethgo/executor/types"
 )
 
 // List of evm-call-message pre-checking errors. All state transition messages will
@@ -228,7 +227,7 @@ func NewStateTransition(evm *evm.EVM, msg Message, feeReceiver ethgo.Address) *S
 // the gas used (which includes gas refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
-func ApplyMessage(evm *evm.EVM, msg Message, feeReceiver ethgo.Address) (*types.ExecutionResult, error) {
+func ApplyMessage(evm *evm.EVM, msg Message, feeReceiver ethgo.Address) (*ethgo.ExecutionResult, error) {
 	return NewStateTransition(evm, msg, feeReceiver).TransitionDb()
 }
 
@@ -282,7 +281,7 @@ func (st *StateTransition) preCheck() error {
 //
 // However if any consensus issue encountered, return the error directly with
 // nil evm execution result.
-func (st *StateTransition) TransitionDb() (*types.ExecutionResult, error) {
+func (st *StateTransition) TransitionDb() (*ethgo.ExecutionResult, error) {
 	// First check this message satisfies all consensus rules before
 	// applying the message. The rules include these clauses
 	//
@@ -332,7 +331,7 @@ func (st *StateTransition) TransitionDb() (*types.ExecutionResult, error) {
 	gAmount := new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice)
 	st.state.AddBalance(st.GasReceiver, gAmount)
 
-	return &types.ExecutionResult{
+	return &ethgo.ExecutionResult{
 		UsedGas:    st.gasUsed(),
 		Err:        vmerr,
 		ReturnData: ret,

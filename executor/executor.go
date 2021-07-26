@@ -7,7 +7,6 @@ import (
 	"github.com/umbracle/ethgo/evm/storage"
 	"github.com/umbracle/ethgo/evm/storage/overlaydb"
 	"github.com/umbracle/ethgo/executor/remotedb"
-	"github.com/umbracle/ethgo/executor/types"
 )
 
 type Executor struct {
@@ -37,7 +36,7 @@ type Eip155Context struct {
 	Coinbase  ethgo.Address
 }
 
-func (self *Executor) ExecuteTransaction(tx *ethgo.Transaction, ctx Eip155Context) (*types.ExecutionResult, *ethgo.Receipt, error) {
+func (self *Executor) ExecuteTransaction(tx *ethgo.Transaction, ctx Eip155Context) (*ethgo.ExecutionResult, *ethgo.Receipt, error) {
 	usedGas := uint64(0)
 	config := params.GetChainConfig(self.chainID)
 	statedb := storage.NewStateDB(self.cacheDB, tx.Hash, ctx.BlockHash)
