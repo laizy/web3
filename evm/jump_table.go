@@ -18,7 +18,7 @@
 package evm
 
 import (
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/go-web3/evm/params"
 )
 
 type (

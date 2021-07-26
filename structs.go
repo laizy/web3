@@ -6,6 +6,14 @@ import (
 	"math/big"
 )
 
+// Lengths of hashes and addresses in bytes.
+const (
+	// HashLength is the expected length of the hash
+	HashLength = 32
+	// AddressLength is the expected length of the address
+	AddressLength = 20
+)
+
 // Address is an Ethereum address
 type Address [20]byte
 
@@ -30,6 +38,10 @@ func (a Address) String() string {
 	return "0x" + hex.EncodeToString(a[:])
 }
 
+func (a Address) Bytes() []byte {
+	return a[:]
+}
+
 // Hash is an Ethereum hash
 type Hash [32]byte
 
@@ -52,6 +64,10 @@ func (h Hash) MarshalText() ([]byte, error) {
 
 func (h Hash) String() string {
 	return "0x" + hex.EncodeToString(h[:])
+}
+
+func (h Hash) Bytes() []byte {
+	return h[:]
 }
 
 type Block struct {
@@ -143,6 +159,24 @@ type Receipt struct {
 	Logs              []*Log
 }
 
+func (self *Receipt) AddStorageLogs(logs []*StorageLog) {
+	for ind, log := range logs {
+		l := &Log{
+			Removed:          false,
+			LogIndex:         uint64(ind),
+			TransactionIndex: self.TransactionIndex,
+			TransactionHash:  self.TransactionHash,
+			BlockHash:        self.BlockHash,
+			BlockNumber:      self.BlockNumber,
+			Address:          log.Address,
+			Topics:           log.Topics,
+			Data:             log.Data,
+		}
+		l.ParseEvent()
+		self.Logs = append(self.Logs, l)
+	}
+}
+
 type Log struct {
 	Removed          bool
 	LogIndex         uint64
@@ -154,6 +188,19 @@ type Log struct {
 	Topics           []Hash
 	Data             []byte
 	Event            *ParsedEvent
+}
+
+func (self *Log) ParseEvent() {
+	parsed, err := GetParser().ParseLog(self)
+	if err == nil {
+		self.Event = parsed
+	}
+}
+
+type StorageLog struct {
+	Address Address
+	Topics  []Hash
+	Data    []byte
 }
 
 type BlockNumber int
@@ -190,4 +237,50 @@ type ParsedEvent struct {
 	Contract string
 	Sig      string
 	Values   map[string]interface{}
+}
+
+// BytesToHash sets b to hash.
+// If b is larger than len(h), b will be cropped from the left.
+func BytesToHash(b []byte) Hash {
+	var h Hash
+	h.SetBytes(b)
+	return h
+}
+
+// SetBytes sets the hash to the value of b.
+// If b is larger than len(h), b will be cropped from the left.
+func (h *Hash) SetBytes(b []byte) {
+	if len(b) > len(h) {
+		b = b[len(b)-HashLength:]
+	}
+
+	copy(h[HashLength-len(b):], b)
+}
+
+func BytesToAddress(b []byte) Address {
+	var a Address
+	a.SetBytes(b)
+	return a
+}
+
+func (a *Address) SetBytes(b []byte) {
+	if len(b) > len(a) {
+		b = b[len(b)-AddressLength:]
+	}
+	copy(a[AddressLength-len(b):], b)
+}
+
+func CopyBytes(b []byte) (copiedBytes []byte) {
+	if b == nil {
+		return nil
+	}
+	copiedBytes = make([]byte, len(b))
+	copy(copiedBytes, b)
+
+	return
+}
+
+func Hex2Bytes(str string) []byte {
+	h, _ := hex.DecodeString(str)
+	return h
 }

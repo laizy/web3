@@ -25,6 +25,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/umbracle/go-web3"
 )
 
 type JSONLogger struct {
@@ -42,7 +43,7 @@ func NewJSONLogger(cfg *LogConfig, writer io.Writer) *JSONLogger {
 	return l
 }
 
-func (l *JSONLogger) CaptureStart(from common.Address, to common.Address, create bool, input []byte,
+func (l *JSONLogger) CaptureStart(from web3.Address, to web3.Address, create bool, input []byte,
 	gas uint64, value *big.Int) {
 }
 

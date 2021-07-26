@@ -24,18 +24,19 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/holiman/uint256"
 	"github.com/ontio/ontology/smartcontract/storage"
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/go-web3"
+	"github.com/umbracle/go-web3/evm/params"
 )
 
 type dummyContractRef struct {
 	calledForEach bool
 }
 
-func (dummyContractRef) ReturnGas(*big.Int)          {}
-func (dummyContractRef) Address() common.Address     { return common.Address{} }
-func (dummyContractRef) Value() *big.Int             { return new(big.Int) }
-func (dummyContractRef) SetCode(common.Hash, []byte) {}
-func (d *dummyContractRef) ForEachStorage(callback func(key, value common.Hash) bool) {
+func (dummyContractRef) ReturnGas(*big.Int)        {}
+func (dummyContractRef) Address() web3.Address     { return web3.Address{} }
+func (dummyContractRef) Value() *big.Int           { return new(big.Int) }
+func (dummyContractRef) SetCode(web3.Hash, []byte) {}
+func (d *dummyContractRef) ForEachStorage(callback func(key, value web3.Hash) bool) {
 	d.calledForEach = true
 }
 func (d *dummyContractRef) SubBalance(amount *big.Int) {}
@@ -61,7 +62,7 @@ func TestStoreCapture(t *testing.T) {
 	)
 	stack.push(uint256.NewInt().SetUint64(1))
 	stack.push(uint256.NewInt())
-	var index common.Hash
+	var index web3.Hash
 	logger.CaptureState(env, 0, SSTORE, 0, 0, mem, stack, rstack, nil, contract, 0, nil)
 	if len(logger.storage[contract.Address()]) == 0 {
 		t.Fatalf("expected exactly 1 changed value on address %x, got %d", contract.Address(), len(logger.storage[contract.Address()]))

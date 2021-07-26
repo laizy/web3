@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/umbracle/go-web3"
 )
 
 // precompiledTest defines the input/output pairs for precompiled contract tests.
@@ -46,7 +47,7 @@ type precompiledFailureTest struct {
 
 // allPrecompiles does not map to the actual set of precompiles, as it also contains
 // repriced versions of precompiles at certain slots
-var allPrecompiles = map[common.Address]PrecompiledContract{
+var allPrecompiles = map[web3.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{1}):    &ecrecover{},
 	common.BytesToAddress([]byte{2}):    &sha256hash{},
 	common.BytesToAddress([]byte{3}):    &ripemd160hash{},

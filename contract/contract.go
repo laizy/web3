@@ -8,6 +8,8 @@ import (
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/abi"
 	"github.com/umbracle/go-web3/jsonrpc"
+	"github.com/umbracle/go-web3/registry"
+	"github.com/umbracle/go-web3/utils"
 )
 
 // Contract is an Ethereum contract
@@ -19,18 +21,23 @@ type Contract struct {
 }
 
 // DeployContract deploys a contract
-func DeployContract(provider *jsonrpc.Client, from web3.Address, abi *abi.ABI, bin []byte, args ...interface{}) *Txn {
-	return &Txn{
+func DeployContract(provider *jsonrpc.Client, from web3.Address, abiVal *abi.ABI, bin []byte, args ...interface{}) *Txn {
+	method := abiVal.Constructor
+	txn := &Txn{
 		from:     from,
 		provider: provider,
-		method:   abi.Constructor,
-		args:     args,
-		bin:      bin,
 	}
+	txn.data = append(txn.data, bin...)
+	data, err := abi.Encode(args, method.Inputs)
+	utils.Ensure(err)
+	txn.data = append(txn.data, data...)
+
+	return txn
 }
 
 // NewContract creates a new contract instance
 func NewContract(addr web3.Address, abi *abi.ABI, provider *jsonrpc.Client) *Contract {
+	registry.Instance().RegisterFromAbi(abi)
 	return &Contract{
 		addr:     addr,
 		Abi:      abi,
@@ -60,12 +67,7 @@ func (c *Contract) Call(method string, block web3.BlockNumber, args ...interface
 		return nil, fmt.Errorf("method %s not found", method)
 	}
 
-	// Encode input
-	data, err := abi.Encode(args, m.Inputs)
-	if err != nil {
-		return nil, err
-	}
-	data = append(m.ID(), data...)
+	data := m.MustEncodeIDAndInput(args...)
 
 	// Call function
 	msg := &web3.CallMsg{
@@ -102,43 +104,32 @@ func (c *Contract) Call(method string, block web3.BlockNumber, args ...interface
 func (c *Contract) Txn(method string, args ...interface{}) *Txn {
 	m, ok := c.Abi.Methods[method]
 	if !ok {
-		// TODO, return error
 		panic(fmt.Errorf("method %s not found", method))
 	}
+	data := m.MustEncodeIDAndInput(args...)
 
 	return &Txn{
 		from:     *c.from,
-		addr:     &c.addr,
+		to:       &c.addr,
 		provider: c.provider,
-		method:   m,
-		args:     args,
+		data:     data,
 	}
 }
 
 // Txn is a transaction object
 type Txn struct {
 	from     web3.Address
-	addr     *web3.Address
+	to       *web3.Address
 	provider *jsonrpc.Client
-	method   *abi.Method
-	args     []interface{}
 	data     []byte
-	bin      []byte
 	gasLimit uint64
 	gasPrice uint64
 	value    *big.Int
 	hash     web3.Hash
-	receipt  *web3.Receipt
 }
 
 func (t *Txn) isContractDeployment() bool {
-	return t.bin != nil
-}
-
-// AddArgs is used to set the arguments of the transaction
-func (t *Txn) AddArgs(args ...interface{}) *Txn {
-	t.args = args
-	return t
+	return t.to == nil
 }
 
 // SetValue sets the value for the txn
@@ -149,20 +140,13 @@ func (t *Txn) SetValue(v *big.Int) *Txn {
 
 // EstimateGas estimates the gas for the call
 func (t *Txn) EstimateGas() (uint64, error) {
-	if err := t.Validate(); err != nil {
-		return 0, err
-	}
-	return t.estimateGas()
-}
-
-func (t *Txn) estimateGas() (uint64, error) {
 	if t.isContractDeployment() {
 		return t.provider.Eth().EstimateGasContract(t.data)
 	}
 
 	msg := &web3.CallMsg{
 		From:  t.from,
-		To:    t.addr,
+		To:    t.to,
 		Data:  t.data,
 		Value: t.value,
 	}
@@ -171,22 +155,15 @@ func (t *Txn) estimateGas() (uint64, error) {
 
 // DoAndWait is a blocking query that combines
 // both Do and Wait functions
-func (t *Txn) DoAndWait() error {
+func (t *Txn) DoAndWait() (*web3.Receipt, error) {
 	if err := t.Do(); err != nil {
-		return err
+		return nil, err
 	}
-	if err := t.Wait(); err != nil {
-		return err
-	}
-	return nil
+	return t.Wait()
 }
 
 func (t *Txn) ToTransaction(nonce uint64) (*web3.Transaction, error) {
-	err := t.Validate()
-	if err != nil {
-		return nil, err
-	}
-
+	var err error
 	// estimate gas price
 	if t.gasPrice == 0 {
 		t.gasPrice, err = t.provider.Eth().GasPrice()
@@ -196,7 +173,7 @@ func (t *Txn) ToTransaction(nonce uint64) (*web3.Transaction, error) {
 	}
 	// estimate gas limit
 	if t.gasLimit == 0 {
-		t.gasLimit, err = t.estimateGas()
+		t.gasLimit, err = t.EstimateGas()
 		if err != nil {
 			return nil, err
 		}
@@ -211,8 +188,8 @@ func (t *Txn) ToTransaction(nonce uint64) (*web3.Transaction, error) {
 		Value:    t.value,
 		Nonce:    nonce,
 	}
-	if t.addr != nil {
-		txn.To = t.addr
+	if t.to != nil {
+		txn.To = t.to
 	}
 
 	return txn, nil
@@ -232,29 +209,6 @@ func (t *Txn) Do() error {
 	return nil
 }
 
-// Validate validates the arguments of the transaction
-func (t *Txn) Validate() error {
-	if t.data != nil {
-		// Already validated
-		return nil
-	}
-	if t.isContractDeployment() {
-		t.data = append(t.data, t.bin...)
-	}
-	if t.method != nil {
-		data, err := abi.Encode(t.args, t.method.Inputs)
-		if err != nil {
-			return fmt.Errorf("failed to encode arguments: %v", err)
-		}
-		if !t.isContractDeployment() {
-			t.data = append(t.method.ID(), data...)
-		} else {
-			t.data = append(t.data, data...)
-		}
-	}
-	return nil
-}
-
 // SetGasPrice sets the gas price of the transaction
 func (t *Txn) SetGasPrice(gasPrice uint64) *Txn {
 	t.gasPrice = gasPrice
@@ -268,51 +222,22 @@ func (t *Txn) SetGasLimit(gasLimit uint64) *Txn {
 }
 
 // Wait waits till the transaction is mined
-func (t *Txn) Wait() error {
+func (t *Txn) Wait() (receipt *web3.Receipt, err error) {
 	if (t.hash == web3.Hash{}) {
 		panic("transaction not executed")
 	}
 
-	var err error
 	for {
-		t.receipt, err = t.provider.Eth().GetTransactionReceipt(t.hash)
+		receipt, err = t.provider.Eth().GetTransactionReceipt(t.hash)
 		if err != nil {
 			if err.Error() != "not found" {
-				return err
+				return nil, err
 			}
 		}
-		if t.receipt != nil {
+		if receipt != nil {
 			break
 		}
 	}
-	return nil
-}
 
-// Receipt returns the receipt of the transaction after wait
-func (t *Txn) Receipt() *web3.Receipt {
-	return t.receipt
-}
-
-// Event is a solidity event
-type Event struct {
-	event *abi.Event
-}
-
-// Encode encodes an event
-func (e *Event) Encode() web3.Hash {
-	return e.event.ID()
-}
-
-// ParseLog parses a log
-func (e *Event) ParseLog(log *web3.Log) (map[string]interface{}, error) {
-	return abi.ParseLog(e.event.Inputs, log)
-}
-
-// Event returns a specific event
-func (c *Contract) Event(name string) (*Event, bool) {
-	event, ok := c.Abi.Events[name]
-	if !ok {
-		return nil, false
-	}
-	return &Event{event}, true
+	return
 }

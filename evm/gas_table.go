@@ -20,10 +20,10 @@ package evm
 import (
 	"errors"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
-	errors2 "github.com/ontio/ontology/vm/evm/errors"
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/go-web3"
+	errors2 "github.com/umbracle/go-web3/evm/errors"
+	"github.com/umbracle/go-web3/evm/params"
 )
 
 // memoryGasCost calculates the quadratic gas for memory expansion. It does so
@@ -110,9 +110,9 @@ func gasSStore(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySi
 		// 2. From a non-zero value address to a zero-value address (DELETE)
 		// 3. From a non-zero to a non-zero                         (CHANGE)
 		switch {
-		case current == (common.Hash{}) && y.Sign() != 0: // 0 => non 0
+		case current == (web3.Hash{}) && y.Sign() != 0: // 0 => non 0
 			return params.SstoreSetGas, nil
-		case current != (common.Hash{}) && y.Sign() == 0: // non 0 => 0
+		case current != (web3.Hash{}) && y.Sign() == 0: // non 0 => 0
 			evm.StateDB.AddRefund(params.SstoreRefundGas)
 			return params.SstoreClearGas, nil
 		default: // non 0 => non 0 (or 0 => 0)
@@ -133,29 +133,29 @@ func gasSStore(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySi
 	// 	  2.2.2. If original value equals new value (this storage slot is reset)
 	//       2.2.2.1. If original value is 0, add 19800 gas to refund counter.
 	// 	     2.2.2.2. Otherwise, add 4800 gas to refund counter.
-	value := common.Hash(y.Bytes32())
+	value := web3.Hash(y.Bytes32())
 	if current == value { // noop (1)
 		return params.NetSstoreNoopGas, nil
 	}
 	original := evm.StateDB.GetCommittedState(contract.Address(), x.Bytes32())
 	if original == current {
-		if original == (common.Hash{}) { // create slot (2.1.1)
+		if original == (web3.Hash{}) { // create slot (2.1.1)
 			return params.NetSstoreInitGas, nil
 		}
-		if value == (common.Hash{}) { // delete slot (2.1.2b)
+		if value == (web3.Hash{}) { // delete slot (2.1.2b)
 			evm.StateDB.AddRefund(params.NetSstoreClearRefund)
 		}
 		return params.NetSstoreCleanGas, nil // write existing slot (2.1.2)
 	}
-	if original != (common.Hash{}) {
-		if current == (common.Hash{}) { // recreate slot (2.2.1.1)
+	if original != (web3.Hash{}) {
+		if current == (web3.Hash{}) { // recreate slot (2.2.1.1)
 			evm.StateDB.SubRefund(params.NetSstoreClearRefund)
-		} else if value == (common.Hash{}) { // delete slot (2.2.1.2)
+		} else if value == (web3.Hash{}) { // delete slot (2.2.1.2)
 			evm.StateDB.AddRefund(params.NetSstoreClearRefund)
 		}
 	}
 	if original == value {
-		if original == (common.Hash{}) { // reset to original inexistent slot (2.2.2.1)
+		if original == (web3.Hash{}) { // reset to original inexistent slot (2.2.2.1)
 			evm.StateDB.AddRefund(params.NetSstoreResetClearRefund)
 		} else { // reset to original existing slot (2.2.2.2)
 			evm.StateDB.AddRefund(params.NetSstoreResetRefund)
@@ -187,30 +187,30 @@ func gasSStoreEIP2200(evm *EVM, contract *Contract, stack *Stack, mem *Memory, m
 		y, x    = stack.Back(1), stack.Back(0)
 		current = evm.StateDB.GetState(contract.Address(), x.Bytes32())
 	)
-	value := common.Hash(y.Bytes32())
+	value := web3.Hash(y.Bytes32())
 
 	if current == value { // noop (1)
 		return params.SloadGasEIP2200, nil
 	}
 	original := evm.StateDB.GetCommittedState(contract.Address(), x.Bytes32())
 	if original == current {
-		if original == (common.Hash{}) { // create slot (2.1.1)
+		if original == (web3.Hash{}) { // create slot (2.1.1)
 			return params.SstoreSetGasEIP2200, nil
 		}
-		if value == (common.Hash{}) { // delete slot (2.1.2b)
+		if value == (web3.Hash{}) { // delete slot (2.1.2b)
 			evm.StateDB.AddRefund(params.SstoreClearsScheduleRefundEIP2200)
 		}
 		return params.SstoreResetGasEIP2200, nil // write existing slot (2.1.2)
 	}
-	if original != (common.Hash{}) {
-		if current == (common.Hash{}) { // recreate slot (2.2.1.1)
+	if original != (web3.Hash{}) {
+		if current == (web3.Hash{}) { // recreate slot (2.2.1.1)
 			evm.StateDB.SubRefund(params.SstoreClearsScheduleRefundEIP2200)
-		} else if value == (common.Hash{}) { // delete slot (2.2.1.2)
+		} else if value == (web3.Hash{}) { // delete slot (2.2.1.2)
 			evm.StateDB.AddRefund(params.SstoreClearsScheduleRefundEIP2200)
 		}
 	}
 	if original == value {
-		if original == (common.Hash{}) { // reset to original inexistent slot (2.2.2.1)
+		if original == (web3.Hash{}) { // reset to original inexistent slot (2.2.2.1)
 			evm.StateDB.AddRefund(params.SstoreSetGasEIP2200 - params.SloadGasEIP2200)
 		} else { // reset to original existing slot (2.2.2.2)
 			evm.StateDB.AddRefund(params.SstoreResetGasEIP2200 - params.SloadGasEIP2200)
@@ -331,7 +331,7 @@ func gasCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize
 	var (
 		gas            uint64
 		transfersValue = !stack.Back(2).IsZero()
-		address        = common.Address(stack.Back(1).Bytes20())
+		address        = web3.Address(stack.Back(1).Bytes20())
 	)
 	if evm.chainRules.IsEIP158 {
 		if transfersValue && evm.StateDB.Empty(address) {
@@ -424,7 +424,7 @@ func gasSelfdestruct(evm *EVM, contract *Contract, stack *Stack, mem *Memory, me
 	// EIP150 homestead gas reprice fork:
 	if evm.chainRules.IsEIP150 {
 		gas = params.SelfdestructGasEIP150
-		var address = common.Address(stack.Back(0).Bytes20())
+		var address = web3.Address(stack.Back(0).Bytes20())
 
 		if evm.chainRules.IsEIP158 {
 			// if empty and transfers value

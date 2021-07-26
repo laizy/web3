@@ -29,8 +29,9 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/crypto/bls12381"
 	"github.com/ethereum/go-ethereum/crypto/bn256"
-	errors2 "github.com/ontio/ontology/vm/evm/errors"
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/go-web3"
+	errors2 "github.com/umbracle/go-web3/evm/errors"
+	"github.com/umbracle/go-web3/evm/params"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -44,68 +45,68 @@ type PrecompiledContract interface {
 
 // PrecompiledContractsHomestead contains the default set of pre-compiled Ethereum
 // contracts used in the Frontier and Homestead releases.
-var PrecompiledContractsHomestead = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
+var PrecompiledContractsHomestead = map[web3.Address]PrecompiledContract{
+	web3.BytesToAddress([]byte{1}): &ecrecover{},
+	web3.BytesToAddress([]byte{2}): &sha256hash{},
+	web3.BytesToAddress([]byte{3}): &ripemd160hash{},
+	web3.BytesToAddress([]byte{4}): &dataCopy{},
 }
 
 // PrecompiledContractsByzantium contains the default set of pre-compiled Ethereum
 // contracts used in the Byzantium release.
-var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
-	common.BytesToAddress([]byte{6}): &bn256AddByzantium{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMulByzantium{},
-	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
+var PrecompiledContractsByzantium = map[web3.Address]PrecompiledContract{
+	web3.BytesToAddress([]byte{1}): &ecrecover{},
+	web3.BytesToAddress([]byte{2}): &sha256hash{},
+	web3.BytesToAddress([]byte{3}): &ripemd160hash{},
+	web3.BytesToAddress([]byte{4}): &dataCopy{},
+	web3.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
+	web3.BytesToAddress([]byte{6}): &bn256AddByzantium{},
+	web3.BytesToAddress([]byte{7}): &bn256ScalarMulByzantium{},
+	web3.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
 }
 
 // PrecompiledContractsIstanbul contains the default set of pre-compiled Ethereum
 // contracts used in the Istanbul release.
-var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
-	common.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
-	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
-	common.BytesToAddress([]byte{9}): &blake2F{},
+var PrecompiledContractsIstanbul = map[web3.Address]PrecompiledContract{
+	web3.BytesToAddress([]byte{1}): &ecrecover{},
+	web3.BytesToAddress([]byte{2}): &sha256hash{},
+	web3.BytesToAddress([]byte{3}): &ripemd160hash{},
+	web3.BytesToAddress([]byte{4}): &dataCopy{},
+	web3.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
+	web3.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
+	web3.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
+	web3.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
+	web3.BytesToAddress([]byte{9}): &blake2F{},
 }
 
 // PrecompiledContractsYoloV2 contains the default set of pre-compiled Ethereum
 // contracts used in the Yolo v2 test release.
-var PrecompiledContractsYoloV2 = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}):  &ecrecover{},
-	common.BytesToAddress([]byte{2}):  &sha256hash{},
-	common.BytesToAddress([]byte{3}):  &ripemd160hash{},
-	common.BytesToAddress([]byte{4}):  &dataCopy{},
-	common.BytesToAddress([]byte{5}):  &bigModExp{eip2565: false},
-	common.BytesToAddress([]byte{6}):  &bn256AddIstanbul{},
-	common.BytesToAddress([]byte{7}):  &bn256ScalarMulIstanbul{},
-	common.BytesToAddress([]byte{8}):  &bn256PairingIstanbul{},
-	common.BytesToAddress([]byte{9}):  &blake2F{},
-	common.BytesToAddress([]byte{10}): &bls12381G1Add{},
-	common.BytesToAddress([]byte{11}): &bls12381G1Mul{},
-	common.BytesToAddress([]byte{12}): &bls12381G1MultiExp{},
-	common.BytesToAddress([]byte{13}): &bls12381G2Add{},
-	common.BytesToAddress([]byte{14}): &bls12381G2Mul{},
-	common.BytesToAddress([]byte{15}): &bls12381G2MultiExp{},
-	common.BytesToAddress([]byte{16}): &bls12381Pairing{},
-	common.BytesToAddress([]byte{17}): &bls12381MapG1{},
-	common.BytesToAddress([]byte{18}): &bls12381MapG2{},
+var PrecompiledContractsYoloV2 = map[web3.Address]PrecompiledContract{
+	web3.BytesToAddress([]byte{1}):  &ecrecover{},
+	web3.BytesToAddress([]byte{2}):  &sha256hash{},
+	web3.BytesToAddress([]byte{3}):  &ripemd160hash{},
+	web3.BytesToAddress([]byte{4}):  &dataCopy{},
+	web3.BytesToAddress([]byte{5}):  &bigModExp{eip2565: false},
+	web3.BytesToAddress([]byte{6}):  &bn256AddIstanbul{},
+	web3.BytesToAddress([]byte{7}):  &bn256ScalarMulIstanbul{},
+	web3.BytesToAddress([]byte{8}):  &bn256PairingIstanbul{},
+	web3.BytesToAddress([]byte{9}):  &blake2F{},
+	web3.BytesToAddress([]byte{10}): &bls12381G1Add{},
+	web3.BytesToAddress([]byte{11}): &bls12381G1Mul{},
+	web3.BytesToAddress([]byte{12}): &bls12381G1MultiExp{},
+	web3.BytesToAddress([]byte{13}): &bls12381G2Add{},
+	web3.BytesToAddress([]byte{14}): &bls12381G2Mul{},
+	web3.BytesToAddress([]byte{15}): &bls12381G2MultiExp{},
+	web3.BytesToAddress([]byte{16}): &bls12381Pairing{},
+	web3.BytesToAddress([]byte{17}): &bls12381MapG1{},
+	web3.BytesToAddress([]byte{18}): &bls12381MapG2{},
 }
 
 var (
-	PrecompiledAddressesYoloV2    []common.Address
-	PrecompiledAddressesIstanbul  []common.Address
-	PrecompiledAddressesByzantium []common.Address
-	PrecompiledAddressesHomestead []common.Address
+	PrecompiledAddressesYoloV2    []web3.Address
+	PrecompiledAddressesIstanbul  []web3.Address
+	PrecompiledAddressesByzantium []web3.Address
+	PrecompiledAddressesHomestead []web3.Address
 )
 
 func init() {

@@ -19,7 +19,7 @@ package evm
 
 import (
 	"github.com/holiman/uint256"
-	"github.com/ontio/ontology/vm/evm/errors"
+	"github.com/umbracle/go-web3/evm/errors"
 )
 
 // Gas costs

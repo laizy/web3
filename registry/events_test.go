@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	web32 "github.com/umbracle/go-web3/utils"
-
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/jsonrpc"
+	web32 "github.com/umbracle/go-web3/utils"
 )
 
 func TestEventRegistry_DumpLog(t *testing.T) {

@@ -27,7 +27,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/holiman/uint256"
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/go-web3/evm/params"
 )
 
 type TwoOperandTestcase struct {

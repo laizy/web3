@@ -2,7 +2,6 @@ package registry
 
 import (
 	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/contract/builtin/erc20"
 )
 
 func (self *EventRegistry) RegisterPresetMainnet() {
@@ -17,5 +16,4 @@ func (self *EventRegistry) RegisterPresetMainnet() {
 	for addr, name := range wellKnowns {
 		self.RegisterContractAlias(addr, name)
 	}
-	self.RegisterFromAbi(erc20.ERC20Abi())
 }

@@ -151,6 +151,17 @@ func (e *Eth) GetNonce(addr web3.Address, blockNumber web3.BlockNumber) (uint64,
 	return parseUint64orHex(nonce)
 }
 
+// StorageAt returns the value of key in the contract storage of the given account.
+// The block number can be nil, in which case the value is taken from the latest known block.
+func (ec *Eth) GetStorage(account web3.Address, key web3.Hash, blockNumber web3.BlockNumber) (web3.Hash, error) {
+	var out string
+	if err := ec.c.Call("eth_getStorageAt", &out, account, key, blockNumber.String()); err != nil {
+		return web3.Hash{}, err
+	}
+
+	return web3.HexToHash(out), nil
+}
+
 // GetBalance returns the balance of the account of given address.
 func (e *Eth) GetBalance(addr web3.Address, blockNumber web3.BlockNumber) (*big.Int, error) {
 	var out string

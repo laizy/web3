@@ -6,17 +6,19 @@ import (
 	"fmt"
 	"sync"
 
-	web32 "github.com/umbracle/go-web3/utils"
-
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/abi"
-	"github.com/umbracle/go-web3/contract"
+	"github.com/umbracle/go-web3/utils"
 )
 
 type EventRegistry struct {
 	events        map[web3.Hash]*abi.Event
 	contractNames map[web3.Address]string
 	lock          sync.RWMutex
+}
+
+func NewEventRegistry() *EventRegistry {
+	return &EventRegistry{}
 }
 
 func (self *EventRegistry) RegisterContractAlias(c web3.Address, name string) {
@@ -35,14 +37,10 @@ func (self *EventRegistry) Register(e *abi.Event) {
 		self.events = map[web3.Hash]*abi.Event{}
 	}
 	if event := self.events[e.ID()]; event != nil {
-		web32.EnsureTrue(event.Name == e.Name)
+		utils.EnsureTrue(event.Name == e.Name)
 		return
 	}
 	self.events[e.ID()] = e
-}
-
-func (self *EventRegistry) RegisterFromContract(c *contract.Contract) {
-	self.RegisterFromAbi(c.Abi)
 }
 
 func (self *EventRegistry) RegisterFromAbi(abi *abi.ABI) {
@@ -94,7 +92,7 @@ func (self *EventRegistry) DumpLog(log *web3.Log) string {
 	}
 
 	buf, err := json.MarshalIndent(decoded, "", "  ")
-	web32.Ensure(err)
+	utils.Ensure(err)
 
 	return string(buf)
 }
