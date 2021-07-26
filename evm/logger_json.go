@@ -25,6 +25,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/umbracle/ethgo"
 )
 
 type JSONLogger struct {
@@ -42,7 +43,7 @@ func NewJSONLogger(cfg *LogConfig, writer io.Writer) *JSONLogger {
 	return l
 }
 
-func (l *JSONLogger) CaptureStart(from common.Address, to common.Address, create bool, input []byte,
+func (l *JSONLogger) CaptureStart(from ethgo.Address, to ethgo.Address, create bool, input []byte,
 	gas uint64, value *big.Int) {
 }
 

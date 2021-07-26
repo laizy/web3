@@ -18,7 +18,7 @@
 package evm
 
 import (
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/ethgo/evm/params"
 )
 
 type (

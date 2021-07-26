@@ -26,17 +26,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/evm/params"
 )
 
 var errTraceLimitReached = errors.New("the number of logs reached the specified limit")
 
 // Storage represents a contract's storage.
-type Storage map[common.Hash]common.Hash
+type Storage map[ethgo.Hash]ethgo.Hash
 
 // Copy duplicates the current storage.
 func (s Storage) Copy() Storage {
@@ -64,19 +64,19 @@ type LogConfig struct {
 // StructLog is emitted to the EVM each cycle and lists information about the current internal state
 // prior to the execution of the statement.
 type StructLog struct {
-	Pc            uint64                      `json:"pc"`
-	Op            OpCode                      `json:"op"`
-	Gas           uint64                      `json:"gas"`
-	GasCost       uint64                      `json:"gasCost"`
-	Memory        []byte                      `json:"memory"`
-	MemorySize    int                         `json:"memSize"`
-	Stack         []*big.Int                  `json:"stack"`
-	ReturnStack   []uint32                    `json:"returnStack"`
-	ReturnData    []byte                      `json:"returnData"`
-	Storage       map[common.Hash]common.Hash `json:"-"`
-	Depth         int                         `json:"depth"`
-	RefundCounter uint64                      `json:"refund"`
-	Err           error                       `json:"-"`
+	Pc            uint64                    `json:"pc"`
+	Op            OpCode                    `json:"op"`
+	Gas           uint64                    `json:"gas"`
+	GasCost       uint64                    `json:"gasCost"`
+	Memory        []byte                    `json:"memory"`
+	MemorySize    int                       `json:"memSize"`
+	Stack         []*big.Int                `json:"stack"`
+	ReturnStack   []uint32                  `json:"returnStack"`
+	ReturnData    []byte                    `json:"returnData"`
+	Storage       map[ethgo.Hash]ethgo.Hash `json:"-"`
+	Depth         int                       `json:"depth"`
+	RefundCounter uint64                    `json:"refund"`
+	Err           error                     `json:"-"`
 }
 
 // overrides for gencodec
@@ -110,7 +110,7 @@ func (s *StructLog) ErrorString() string {
 // Note that reference types are actual VM data structures; make copies
 // if you need to retain them beyond the current call.
 type Tracer interface {
-	CaptureStart(from common.Address, to common.Address, create bool, input []byte, gas uint64, value *big.Int)
+	CaptureStart(from ethgo.Address, to ethgo.Address, create bool, input []byte, gas uint64, value *big.Int)
 	CaptureState(env *EVM, pc uint64, op OpCode, gas, cost uint64, memory *Memory, stack *Stack,
 		rStack *ReturnStack, rData []byte, contract *Contract, depth int, err error)
 	CaptureFault(env *EVM, pc uint64, op OpCode, gas, cost uint64, memory *Memory, stack *Stack,
@@ -126,7 +126,7 @@ type Tracer interface {
 type StructLogger struct {
 	cfg LogConfig
 
-	storage map[common.Address]Storage
+	storage map[ethgo.Address]Storage
 	logs    []StructLog
 	output  []byte
 	err     error
@@ -135,7 +135,7 @@ type StructLogger struct {
 // NewStructLogger returns a new logger
 func NewStructLogger(cfg *LogConfig) *StructLogger {
 	logger := &StructLogger{
-		storage: make(map[common.Address]Storage),
+		storage: make(map[ethgo.Address]Storage),
 	}
 	if cfg != nil {
 		logger.cfg = *cfg
@@ -144,7 +144,7 @@ func NewStructLogger(cfg *LogConfig) *StructLogger {
 }
 
 // CaptureStart implements the Tracer interface to initialize the tracing operation.
-func (l *StructLogger) CaptureStart(from common.Address, to common.Address, create bool, input []byte, gas uint64, value *big.Int) {
+func (l *StructLogger) CaptureStart(from ethgo.Address, to ethgo.Address, create bool, input []byte, gas uint64, value *big.Int) {
 }
 
 // CaptureState logs a new structured log message and pushes it out to the environment
@@ -186,7 +186,7 @@ func (l *StructLogger) CaptureState(env *EVM, pc uint64, op OpCode, gas, cost ui
 		// capture SLOAD opcodes and record the read entry in the local storage
 		if op == SLOAD && stack.len() >= 1 {
 			var (
-				address = common.Hash(stack.data[stack.len()-1].Bytes32())
+				address = ethgo.Hash(stack.data[stack.len()-1].Bytes32())
 				value   = env.StateDB.GetState(contract.Address(), address)
 			)
 			l.storage[contract.Address()][address] = value
@@ -194,8 +194,8 @@ func (l *StructLogger) CaptureState(env *EVM, pc uint64, op OpCode, gas, cost ui
 		// capture SSTORE opcodes and record the written entry in the local storage.
 		if op == SSTORE && stack.len() >= 2 {
 			var (
-				value   = common.Hash(stack.data[stack.len()-2].Bytes32())
-				address = common.Hash(stack.data[stack.len()-1].Bytes32())
+				value   = ethgo.Hash(stack.data[stack.len()-2].Bytes32())
+				address = ethgo.Hash(stack.data[stack.len()-1].Bytes32())
 			)
 			l.storage[contract.Address()][address] = value
 		}
@@ -306,7 +306,7 @@ func NewMarkdownLogger(cfg *LogConfig, writer io.Writer) *mdLogger {
 	return l
 }
 
-func (t *mdLogger) CaptureStart(from common.Address, to common.Address, create bool, input []byte, gas uint64, value *big.Int) {
+func (t *mdLogger) CaptureStart(from ethgo.Address, to ethgo.Address, create bool, input []byte, gas uint64, value *big.Int) {
 	if !create {
 		_, _ = fmt.Fprintf(t.out, "From: `%v`\nTo: `%v`\nData: `0x%x`\nGas: `%d`\nValue `%v` wei\n",
 			from.String(), to.String(),

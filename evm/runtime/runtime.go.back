@@ -21,15 +21,15 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/holiman/uint256"
 	"github.com/ontio/ontology/core/store/leveldbstore"
-	"github.com/ontio/ontology/core/store/overlaydb"
 	"github.com/ontio/ontology/smartcontract/service/native/ong"
-	"github.com/ontio/ontology/smartcontract/storage"
-	"github.com/ontio/ontology/vm/evm"
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/crypto"
+	"github.com/umbracle/ethgo/evm"
+	"github.com/umbracle/ethgo/evm/params"
+	"github.com/umbracle/ethgo/evm/storage"
+	"github.com/umbracle/ethgo/evm/storage/overlaydb"
 )
 
 // Config is a basic type specifying certain configuration flags for running
@@ -37,8 +37,8 @@ import (
 type Config struct {
 	ChainConfig *params.ChainConfig
 	Difficulty  *big.Int
-	Origin      common.Address
-	Coinbase    common.Address
+	Origin      web3.Address
+	Coinbase    web3.Address
 	BlockNumber *big.Int
 	Time        *big.Int
 	GasLimit    uint64
@@ -48,7 +48,7 @@ type Config struct {
 	EVMConfig   evm.Config
 
 	State     *storage.StateDB
-	GetHashFn func(n uint64) common.Hash
+	GetHashFn func(n uint64) web3.Hash
 }
 
 // sets defaults on the config
@@ -90,8 +90,8 @@ func setDefaults(cfg *Config) {
 		cfg.BlockNumber = new(big.Int)
 	}
 	if cfg.GetHashFn == nil {
-		cfg.GetHashFn = func(n uint64) common.Hash {
-			return common.BytesToHash(crypto.Keccak256([]byte(new(big.Int).SetUint64(n).String())))
+		cfg.GetHashFn = func(n uint64) web3.Hash {
+			return web3.BytesToHash(crypto.Keccak256([]byte(new(big.Int).SetUint64(n).String())))
 		}
 	}
 }
@@ -109,10 +109,10 @@ func Execute(code, input []byte, cfg *Config) ([]byte, *storage.StateDB, error) 
 
 	if cfg.State == nil {
 		db := storage.NewCacheDB(overlaydb.NewOverlayDB(leveldbstore.NewMemLevelDBStore()))
-		cfg.State = storage.NewStateDB(db, common.Hash{}, common.Hash{}, ong.OngBalanceHandle{})
+		cfg.State = storage.NewStateDB(db, web3.Hash{}, web3.Hash{}, ong.OngBalanceHandle{})
 	}
 	var (
-		address = common.BytesToAddress([]byte("contract"))
+		address = web3.BytesToAddress([]byte("contract"))
 		vmenv   = NewEnv(cfg)
 		sender  = evm.AccountRef(cfg.Origin)
 	)
@@ -123,7 +123,7 @@ func Execute(code, input []byte, cfg *Config) ([]byte, *storage.StateDB, error) 
 	// Call the code with the given configuration.
 	ret, _, err := vmenv.Call(
 		sender,
-		common.BytesToAddress([]byte("contract")),
+		web3.BytesToAddress([]byte("contract")),
 		input,
 		cfg.GasLimit,
 		cfg.Value,
@@ -133,7 +133,7 @@ func Execute(code, input []byte, cfg *Config) ([]byte, *storage.StateDB, error) 
 }
 
 // Create executes the code using the EVM create method
-func Create(input []byte, cfg *Config) ([]byte, common.Address, uint64, error) {
+func Create(input []byte, cfg *Config) ([]byte, web3.Address, uint64, error) {
 	if cfg == nil {
 		cfg = new(Config)
 	}
@@ -141,7 +141,7 @@ func Create(input []byte, cfg *Config) ([]byte, common.Address, uint64, error) {
 
 	if cfg.State == nil {
 		db := storage.NewCacheDB(overlaydb.NewOverlayDB(leveldbstore.NewMemLevelDBStore()))
-		cfg.State = storage.NewStateDB(db, common.Hash{}, common.Hash{}, ong.OngBalanceHandle{})
+		cfg.State = storage.NewStateDB(db, web3.Hash{}, web3.Hash{}, ong.OngBalanceHandle{})
 	}
 	var (
 		vmenv  = NewEnv(cfg)
@@ -159,7 +159,7 @@ func Create(input []byte, cfg *Config) ([]byte, common.Address, uint64, error) {
 }
 
 // Create2 executes the code using the EVM create2 method
-func Create2(input []byte, cfg *Config, salt *uint256.Int) ([]byte, common.Address, uint64, error) {
+func Create2(input []byte, cfg *Config, salt *uint256.Int) ([]byte, web3.Address, uint64, error) {
 	if cfg == nil {
 		cfg = new(Config)
 	}
@@ -167,7 +167,7 @@ func Create2(input []byte, cfg *Config, salt *uint256.Int) ([]byte, common.Addre
 
 	if cfg.State == nil {
 		db := storage.NewCacheDB(overlaydb.NewOverlayDB(leveldbstore.NewMemLevelDBStore()))
-		cfg.State = storage.NewStateDB(db, common.Hash{}, common.Hash{}, ong.OngBalanceHandle{})
+		cfg.State = storage.NewStateDB(db, web3.Hash{}, web3.Hash{}, ong.OngBalanceHandle{})
 	}
 	var (
 		vmenv  = NewEnv(cfg)
@@ -190,7 +190,7 @@ func Create2(input []byte, cfg *Config, salt *uint256.Int) ([]byte, common.Addre
 //
 // Call, unlike Execute, requires a config and also requires the State field to
 // be set.
-func Call(address common.Address, input []byte, cfg *Config) ([]byte, uint64, error) {
+func Call(address web3.Address, input []byte, cfg *Config) ([]byte, uint64, error) {
 	setDefaults(cfg)
 
 	vmenv := NewEnv(cfg)

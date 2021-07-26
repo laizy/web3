@@ -6,6 +6,8 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 var (
@@ -14,6 +16,14 @@ var (
 
 	// ZeroHash is a hash of all zeros
 	ZeroHash = Hash{}
+)
+
+// Lengths of hashes and addresses in bytes.
+const (
+	// HashLength is the expected length of the hash
+	HashLength = 32
+	// AddressLength is the expected length of the address
+	AddressLength = 20
 )
 
 // Address is an Ethereum address
@@ -85,8 +95,10 @@ func (a Address) checksumEncode() string {
 	return ret
 }
 
-// Hash is an Ethereum hash
-type Hash [32]byte
+type Hash common.Hash
+
+//// Hash is an Ethereum hash
+//type Hash [32]byte
 
 // HexToHash converts an hex string value to a hash object
 func HexToHash(str string) Hash {
@@ -401,4 +413,65 @@ func completeHex(str string, num int) []byte {
 		str = str[diff:]
 	}
 	return []byte("0x" + str)
+}
+
+// SetBytes sets the hash to the value of b.
+// If b is larger than len(h), b will be cropped from the left.
+func (h *Hash) SetBytes(b []byte) {
+	if len(b) > len(h) {
+		b = b[len(b)-HashLength:]
+	}
+
+	copy(h[HashLength-len(b):], b)
+}
+
+func (a *Address) SetBytes(b []byte) {
+	if len(b) > len(a) {
+		b = b[len(b)-AddressLength:]
+	}
+	copy(a[AddressLength-len(b):], b)
+}
+
+func CopyBytes(b []byte) (copiedBytes []byte) {
+	if b == nil {
+		return nil
+	}
+	copiedBytes = make([]byte, len(b))
+	copy(copiedBytes, b)
+
+	return
+}
+
+func Hex2Bytes(str string) []byte {
+	h, _ := hex.DecodeString(str)
+	return h
+}
+
+type ParsedEvent struct {
+	Contract string
+	Sig      string
+	Values   map[string]interface{}
+}
+
+type StorageLog struct {
+	Address Address
+	Topics  []Hash
+	Data    []byte
+}
+
+func (self *Receipt) AddStorageLogs(logs []*StorageLog) {
+	for ind, log := range logs {
+		l := &Log{
+			Removed:          false,
+			LogIndex:         uint64(ind),
+			TransactionIndex: self.TransactionIndex,
+			TransactionHash:  self.TransactionHash,
+			BlockHash:        self.BlockHash,
+			BlockNumber:      self.BlockNumber,
+			Address:          log.Address,
+			Topics:           log.Topics,
+			Data:             log.Data,
+		}
+		self.Logs = append(self.Logs, l)
+	}
 }

@@ -29,8 +29,9 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/crypto/bls12381"
 	"github.com/ethereum/go-ethereum/crypto/bn256"
-	errors2 "github.com/ontio/ontology/vm/evm/errors"
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/ethgo"
+	errors2 "github.com/umbracle/ethgo/evm/errors"
+	"github.com/umbracle/ethgo/evm/params"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -44,68 +45,68 @@ type PrecompiledContract interface {
 
 // PrecompiledContractsHomestead contains the default set of pre-compiled Ethereum
 // contracts used in the Frontier and Homestead releases.
-var PrecompiledContractsHomestead = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
+var PrecompiledContractsHomestead = map[ethgo.Address]PrecompiledContract{
+	ethgo.BytesToAddress([]byte{1}): &ecrecover{},
+	ethgo.BytesToAddress([]byte{2}): &sha256hash{},
+	ethgo.BytesToAddress([]byte{3}): &ripemd160hash{},
+	ethgo.BytesToAddress([]byte{4}): &dataCopy{},
 }
 
 // PrecompiledContractsByzantium contains the default set of pre-compiled Ethereum
 // contracts used in the Byzantium release.
-var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
-	common.BytesToAddress([]byte{6}): &bn256AddByzantium{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMulByzantium{},
-	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
+var PrecompiledContractsByzantium = map[ethgo.Address]PrecompiledContract{
+	ethgo.BytesToAddress([]byte{1}): &ecrecover{},
+	ethgo.BytesToAddress([]byte{2}): &sha256hash{},
+	ethgo.BytesToAddress([]byte{3}): &ripemd160hash{},
+	ethgo.BytesToAddress([]byte{4}): &dataCopy{},
+	ethgo.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
+	ethgo.BytesToAddress([]byte{6}): &bn256AddByzantium{},
+	ethgo.BytesToAddress([]byte{7}): &bn256ScalarMulByzantium{},
+	ethgo.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
 }
 
 // PrecompiledContractsIstanbul contains the default set of pre-compiled Ethereum
 // contracts used in the Istanbul release.
-var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
-	common.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
-	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
-	common.BytesToAddress([]byte{9}): &blake2F{},
+var PrecompiledContractsIstanbul = map[ethgo.Address]PrecompiledContract{
+	ethgo.BytesToAddress([]byte{1}): &ecrecover{},
+	ethgo.BytesToAddress([]byte{2}): &sha256hash{},
+	ethgo.BytesToAddress([]byte{3}): &ripemd160hash{},
+	ethgo.BytesToAddress([]byte{4}): &dataCopy{},
+	ethgo.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
+	ethgo.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
+	ethgo.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
+	ethgo.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
+	ethgo.BytesToAddress([]byte{9}): &blake2F{},
 }
 
 // PrecompiledContractsYoloV2 contains the default set of pre-compiled Ethereum
 // contracts used in the Yolo v2 test release.
-var PrecompiledContractsYoloV2 = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}):  &ecrecover{},
-	common.BytesToAddress([]byte{2}):  &sha256hash{},
-	common.BytesToAddress([]byte{3}):  &ripemd160hash{},
-	common.BytesToAddress([]byte{4}):  &dataCopy{},
-	common.BytesToAddress([]byte{5}):  &bigModExp{eip2565: false},
-	common.BytesToAddress([]byte{6}):  &bn256AddIstanbul{},
-	common.BytesToAddress([]byte{7}):  &bn256ScalarMulIstanbul{},
-	common.BytesToAddress([]byte{8}):  &bn256PairingIstanbul{},
-	common.BytesToAddress([]byte{9}):  &blake2F{},
-	common.BytesToAddress([]byte{10}): &bls12381G1Add{},
-	common.BytesToAddress([]byte{11}): &bls12381G1Mul{},
-	common.BytesToAddress([]byte{12}): &bls12381G1MultiExp{},
-	common.BytesToAddress([]byte{13}): &bls12381G2Add{},
-	common.BytesToAddress([]byte{14}): &bls12381G2Mul{},
-	common.BytesToAddress([]byte{15}): &bls12381G2MultiExp{},
-	common.BytesToAddress([]byte{16}): &bls12381Pairing{},
-	common.BytesToAddress([]byte{17}): &bls12381MapG1{},
-	common.BytesToAddress([]byte{18}): &bls12381MapG2{},
+var PrecompiledContractsYoloV2 = map[ethgo.Address]PrecompiledContract{
+	ethgo.BytesToAddress([]byte{1}):  &ecrecover{},
+	ethgo.BytesToAddress([]byte{2}):  &sha256hash{},
+	ethgo.BytesToAddress([]byte{3}):  &ripemd160hash{},
+	ethgo.BytesToAddress([]byte{4}):  &dataCopy{},
+	ethgo.BytesToAddress([]byte{5}):  &bigModExp{eip2565: false},
+	ethgo.BytesToAddress([]byte{6}):  &bn256AddIstanbul{},
+	ethgo.BytesToAddress([]byte{7}):  &bn256ScalarMulIstanbul{},
+	ethgo.BytesToAddress([]byte{8}):  &bn256PairingIstanbul{},
+	ethgo.BytesToAddress([]byte{9}):  &blake2F{},
+	ethgo.BytesToAddress([]byte{10}): &bls12381G1Add{},
+	ethgo.BytesToAddress([]byte{11}): &bls12381G1Mul{},
+	ethgo.BytesToAddress([]byte{12}): &bls12381G1MultiExp{},
+	ethgo.BytesToAddress([]byte{13}): &bls12381G2Add{},
+	ethgo.BytesToAddress([]byte{14}): &bls12381G2Mul{},
+	ethgo.BytesToAddress([]byte{15}): &bls12381G2MultiExp{},
+	ethgo.BytesToAddress([]byte{16}): &bls12381Pairing{},
+	ethgo.BytesToAddress([]byte{17}): &bls12381MapG1{},
+	ethgo.BytesToAddress([]byte{18}): &bls12381MapG2{},
 }
 
 var (
-	PrecompiledAddressesYoloV2    []common.Address
-	PrecompiledAddressesIstanbul  []common.Address
-	PrecompiledAddressesByzantium []common.Address
-	PrecompiledAddressesHomestead []common.Address
+	PrecompiledAddressesYoloV2    []ethgo.Address
+	PrecompiledAddressesIstanbul  []ethgo.Address
+	PrecompiledAddressesByzantium []ethgo.Address
+	PrecompiledAddressesHomestead []ethgo.Address
 )
 
 func init() {
@@ -247,9 +248,10 @@ var (
 // modexpMultComplexity implements bigModexp multComplexity formula, as defined in EIP-198
 //
 // def mult_complexity(x):
-//    if x <= 64: return x ** 2
-//    elif x <= 1024: return x ** 2 // 4 + 96 * x - 3072
-//    else: return x ** 2 // 16 + 480 * x - 199680
+//
+//	if x <= 64: return x ** 2
+//	elif x <= 1024: return x ** 2 // 4 + 96 * x - 3072
+//	else: return x ** 2 // 16 + 480 * x - 199680
 //
 // where is x is max(length_of_MODULUS, length_of_BASE)
 func modexpMultComplexity(x *big.Int) *big.Int {

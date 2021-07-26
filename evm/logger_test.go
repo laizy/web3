@@ -23,19 +23,20 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/holiman/uint256"
-	"github.com/ontio/ontology/smartcontract/storage"
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/evm/params"
+	"github.com/umbracle/ethgo/evm/storage"
 )
 
 type dummyContractRef struct {
 	calledForEach bool
 }
 
-func (dummyContractRef) ReturnGas(*big.Int)          {}
-func (dummyContractRef) Address() common.Address     { return common.Address{} }
-func (dummyContractRef) Value() *big.Int             { return new(big.Int) }
-func (dummyContractRef) SetCode(common.Hash, []byte) {}
-func (d *dummyContractRef) ForEachStorage(callback func(key, value common.Hash) bool) {
+func (dummyContractRef) ReturnGas(*big.Int)         {}
+func (dummyContractRef) Address() ethgo.Address     { return ethgo.Address{} }
+func (dummyContractRef) Value() *big.Int            { return new(big.Int) }
+func (dummyContractRef) SetCode(ethgo.Hash, []byte) {}
+func (d *dummyContractRef) ForEachStorage(callback func(key, value ethgo.Hash) bool) {
 	d.calledForEach = true
 }
 func (d *dummyContractRef) SubBalance(amount *big.Int) {}
@@ -59,15 +60,15 @@ func TestStoreCapture(t *testing.T) {
 		rstack   = newReturnStack()
 		contract = NewContract(&dummyContractRef{}, &dummyContractRef{}, new(big.Int), 0)
 	)
-	stack.push(uint256.NewInt().SetUint64(1))
-	stack.push(uint256.NewInt())
-	var index common.Hash
+	stack.push(uint256.NewInt(0).SetUint64(1))
+	stack.push(uint256.NewInt(0))
+	var index ethgo.Hash
 	logger.CaptureState(env, 0, SSTORE, 0, 0, mem, stack, rstack, nil, contract, 0, nil)
 	if len(logger.storage[contract.Address()]) == 0 {
 		t.Fatalf("expected exactly 1 changed value on address %x, got %d", contract.Address(), len(logger.storage[contract.Address()]))
 	}
 	exp := common.BigToHash(big.NewInt(1))
-	if logger.storage[contract.Address()][index] != exp {
+	if logger.storage[contract.Address()][index] != ethgo.Hash(exp) {
 		t.Errorf("expected %x, got %x", exp, logger.storage[contract.Address()][index])
 	}
 }

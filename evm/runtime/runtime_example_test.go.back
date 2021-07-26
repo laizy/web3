@@ -20,12 +20,12 @@ package runtime_test
 import (
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ontio/ontology/vm/evm/runtime"
+	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/evm/runtime"
 )
 
 func ExampleExecute() {
-	ret, _, err := runtime.Execute(common.Hex2Bytes("6060604052600a8060106000396000f360606040526008565b00"), nil, nil)
+	ret, _, err := runtime.Execute(web3.Hex2Bytes("6060604052600a8060106000396000f360606040526008565b00"), nil, nil)
 	if err != nil {
 		fmt.Println(err)
 	}

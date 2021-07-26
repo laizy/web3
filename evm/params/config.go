@@ -20,11 +20,9 @@ package params
 import (
 	"fmt"
 	"math/big"
-
-	"github.com/ontio/ontology/common/constants"
 )
 
-func GetChainConfig(chainId uint32) *ChainConfig {
+func GetChainConfig(chainId uint64) *ChainConfig {
 	return &ChainConfig{
 		ChainID:             big.NewInt(int64(chainId)),
 		HomesteadBlock:      big.NewInt(0),
@@ -45,7 +43,7 @@ func GetChainConfig(chainId uint32) *ChainConfig {
 var (
 	// MainnetChainConfig is the chain parameters to run a node on the main network.
 	MainnetChainConfig = &ChainConfig{
-		ChainID:             big.NewInt(constants.EIP155_CHAINID_MAINNET),
+		ChainID:             big.NewInt(58),
 		HomesteadBlock:      big.NewInt(0),
 		DAOForkBlock:        nil,
 		DAOForkSupport:      true,

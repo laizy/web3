@@ -35,9 +35,10 @@ import (
 	"github.com/ontio/ontology/core/store/overlaydb"
 	"github.com/ontio/ontology/smartcontract/service/native/ong"
 	"github.com/ontio/ontology/smartcontract/storage"
-	"github.com/ontio/ontology/vm/evm"
-	"github.com/ontio/ontology/vm/evm/params"
 	"github.com/stretchr/testify/require"
+	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/evm"
+	"github.com/umbracle/ethgo/evm/params"
 )
 
 func init() {
@@ -111,7 +112,7 @@ func TestExecute(t *testing.T) {
 
 func TestCall(t *testing.T) {
 	db := storage.NewCacheDB(overlaydb.NewOverlayDB(leveldbstore.NewMemLevelDBStore()))
-	statedb := storage.NewStateDB(db, common.Hash{}, common.Hash{}, ong.OngBalanceHandle{})
+	statedb := storage.NewStateDB(db, web3.Hash{}, web3.Hash{}, ong.OngBalanceHandle{})
 	address := common.HexToAddress("0x0a")
 	statedb.SetCode(address, []byte{
 		byte(evm.PUSH1), 10,
@@ -168,7 +169,7 @@ func BenchmarkCall(b *testing.B) {
 func benchmarkEVM_Create(bench *testing.B, code string) {
 	var (
 		db       = storage.NewCacheDB(overlaydb.NewOverlayDB(leveldbstore.NewMemLevelDBStore()))
-		statedb  = storage.NewStateDB(db, common.Hash{}, common.Hash{}, ong.OngBalanceHandle{})
+		statedb  = storage.NewStateDB(db, web3.Hash{}, web3.Hash{}, ong.OngBalanceHandle{})
 		sender   = common.BytesToAddress([]byte("sender"))
 		receiver = common.BytesToAddress([]byte("receiver"))
 	)
@@ -181,7 +182,7 @@ func benchmarkEVM_Create(bench *testing.B, code string) {
 		GasLimit:    10000000,
 		Difficulty:  big.NewInt(0x200000),
 		Time:        new(big.Int).SetUint64(0),
-		Coinbase:    common.Address{},
+		Coinbase:    web3.Address{},
 		BlockNumber: new(big.Int).SetUint64(1),
 		ChainConfig: &params.ChainConfig{
 			ChainID:             big.NewInt(1),
@@ -221,7 +222,7 @@ func BenchmarkEVM_CREATE2_1200(bench *testing.B) {
 	benchmarkEVM_Create(bench, "5b5862124f80600080f5600152600056")
 }
 
-func fakeHeader(n uint64, parentHash common.Hash) *types.Header {
+func fakeHeader(n uint64, parentHash web3.Hash) *types.Header {
 	header := types.Header{
 		Coinbase:   common.HexToAddress("0x00000000000000000000000000000000deadbeef"),
 		Number:     big.NewInt(int64(n)),
@@ -245,13 +246,13 @@ func (d *dummyChain) Engine() consensus.Engine {
 }
 
 // GetHeader returns the hash corresponding to their hash.
-func (d *dummyChain) GetHeader(h common.Hash, n uint64) *types.Header {
+func (d *dummyChain) GetHeader(h web3.Hash, n uint64) *types.Header {
 	d.counter++
-	parentHash := common.Hash{}
+	parentHash := web3.Hash{}
 	s := common.LeftPadBytes(big.NewInt(int64(n-1)).Bytes(), 32)
 	copy(parentHash[:], s)
 
-	//parentHash := common.Hash{byte(n - 1)}
+	//parentHash := web3.Hash{byte(n - 1)}
 	//fmt.Printf("GetHeader(%x, %d) => header with parent %x\n", h, n, parentHash)
 	return fakeHeader(n, parentHash)
 }
@@ -261,7 +262,7 @@ func (d *dummyChain) GetHeader(h common.Hash, n uint64) *types.Header {
 func TestBlockhash(t *testing.T) {
 	// Current head
 	n := uint64(1000)
-	parentHash := common.Hash{}
+	parentHash := web3.Hash{}
 	s := common.LeftPadBytes(big.NewInt(int64(n-1)).Bytes(), 32)
 	copy(parentHash[:], s)
 	header := fakeHeader(n, parentHash)
@@ -336,7 +337,7 @@ type stepCounter struct {
 	steps int
 }
 
-func (s *stepCounter) CaptureStart(from common.Address, to common.Address, create bool, input []byte, gas uint64, value *big.Int) {
+func (s *stepCounter) CaptureStart(from web3.Address, to web3.Address, create bool, input []byte, gas uint64, value *big.Int) {
 }
 
 func (s *stepCounter) CaptureState(env *evm.EVM, pc uint64, op evm.OpCode, gas, cost uint64,
@@ -356,7 +357,7 @@ func (s *stepCounter) CaptureEnd(output []byte, gasUsed uint64, t time.Duration,
 
 func TestJumpSub1024Limit(t *testing.T) {
 	db := storage.NewCacheDB(overlaydb.NewOverlayDB(leveldbstore.NewMemLevelDBStore()))
-	statedb := storage.NewStateDB(db, common.Hash{}, common.Hash{}, ong.OngBalanceHandle{})
+	statedb := storage.NewStateDB(db, web3.Hash{}, web3.Hash{}, ong.OngBalanceHandle{})
 	address := common.HexToAddress("0x0a")
 	// Code is
 	// 0 beginsub
@@ -394,7 +395,7 @@ func TestJumpSub1024Limit(t *testing.T) {
 
 func TestReturnSubShallow(t *testing.T) {
 	db := storage.NewCacheDB(overlaydb.NewOverlayDB(leveldbstore.NewMemLevelDBStore()))
-	statedb := storage.NewStateDB(db, common.Hash{}, common.Hash{}, ong.OngBalanceHandle{})
+	statedb := storage.NewStateDB(db, web3.Hash{}, web3.Hash{}, ong.OngBalanceHandle{})
 	address := common.HexToAddress("0x0a")
 	// The code does returnsub without having anything on the returnstack.
 	// It should not panic, but just fail after one step
@@ -583,7 +584,7 @@ func benchmarkNonModifyingCode(gas uint64, code []byte, name string, b *testing.
 	cfg := new(Config)
 	setDefaults(cfg)
 	db := storage.NewCacheDB(overlaydb.NewOverlayDB(leveldbstore.NewMemLevelDBStore()))
-	cfg.State = storage.NewStateDB(db, common.Hash{}, common.Hash{}, ong.OngBalanceHandle{})
+	cfg.State = storage.NewStateDB(db, web3.Hash{}, web3.Hash{}, ong.OngBalanceHandle{})
 	cfg.GasLimit = gas
 	var (
 		destination = common.BytesToAddress([]byte("contract"))
@@ -855,7 +856,7 @@ func mkcfg() *Config {
 	overlay := overlaydb.NewOverlayDB(memback)
 
 	cache := storage.NewCacheDB(overlay)
-	cfg.State = storage.NewStateDB(cache, common.Hash{}, common.Hash{}, ong.OngBalanceHandle{})
+	cfg.State = storage.NewStateDB(cache, web3.Hash{}, web3.Hash{}, ong.OngBalanceHandle{})
 
 	cfg.GasLimit = 10000000
 	cfg.Origin = common.HexToAddress("0x123456")

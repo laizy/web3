@@ -1,5 +1,5 @@
 // Copyright (C) 2021 The Ontology Authors
-// Copyright 2015 The go-ethereum Authors
+// Copyright 2016 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
 // The go-ethereum library is free software: you can redistribute it and/or modify
@@ -15,42 +15,46 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package runtime
+package executor
 
 import (
+	"math"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ontio/ontology/vm/evm"
+	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/evm"
 )
 
-func NewEnv(cfg *Config) *evm.EVM {
-	txContext := evm.TxContext{
-		Origin:   cfg.Origin,
-		GasPrice: cfg.GasPrice,
-	}
-	blockContext := evm.BlockContext{
+// NewEVMBlockContext creates a new context for use in the EVM.
+func NewEVMBlockContext(height, timestamp uint64, hashFn evm.GetHashFunc) evm.BlockContext {
+	return evm.BlockContext{
 		CanTransfer: CanTransfer,
 		Transfer:    Transfer,
-		GetHash:     cfg.GetHashFn,
-		Coinbase:    cfg.Coinbase,
-		BlockNumber: cfg.BlockNumber,
-		Time:        cfg.Time,
-		Difficulty:  cfg.Difficulty,
-		GasLimit:    cfg.GasLimit,
+		GetHash:     hashFn,
+		Coinbase:    ethgo.Address{}, // todo
+		BlockNumber: big.NewInt(int64(height)),
+		Time:        big.NewInt(int64(timestamp)),
+		Difficulty:  big.NewInt(0),
+		GasLimit:    math.MaxUint64, // todo
 	}
+}
 
-	return evm.NewEVM(blockContext, txContext, cfg.State, cfg.ChainConfig, cfg.EVMConfig)
+// NewEVMTxContext creates a new transaction context for a single transaction.
+func NewEVMTxContext(msg Message) evm.TxContext {
+	return evm.TxContext{
+		Origin:   msg.From(),
+		GasPrice: new(big.Int).Set(msg.GasPrice()),
+	}
 }
 
 // CanTransfer checks whether there are enough funds in the address' account to make a transfer.
 // This does not take the necessary gas in to account to make the transfer valid.
-func CanTransfer(db evm.StateDB, addr common.Address, amount *big.Int) bool {
+func CanTransfer(db evm.StateDB, addr ethgo.Address, amount *big.Int) bool {
 	return db.GetBalance(addr).Cmp(amount) >= 0
 }
 
 // Transfer subtracts amount from sender and adds amount to recipient using the given Db
-func Transfer(db evm.StateDB, sender, recipient common.Address, amount *big.Int) {
+func Transfer(db evm.StateDB, sender, recipient ethgo.Address, amount *big.Int) {
 	db.SubBalance(sender, amount)
 	db.AddBalance(recipient, amount)
 }

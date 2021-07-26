@@ -148,6 +148,17 @@ func (e *Eth) GetNonce(addr ethgo.Address, blockNumber ethgo.BlockNumberOrHash) 
 	return parseUint64orHex(nonce)
 }
 
+// StorageAt returns the value of key in the contract storage of the given account.
+// The block number can be nil, in which case the value is taken from the latest known block.
+func (ec *Eth) GetStorage(account ethgo.Address, key ethgo.Hash, blockNumber ethgo.BlockNumber) (ethgo.Hash, error) {
+	var out string
+	if err := ec.c.Call("eth_getStorageAt", &out, account, key, blockNumber.String()); err != nil {
+		return ethgo.Hash{}, err
+	}
+
+	return ethgo.HexToHash(out), nil
+}
+
 // GetBalance returns the balance of the account of given address.
 func (e *Eth) GetBalance(addr ethgo.Address, blockNumber ethgo.BlockNumberOrHash) (*big.Int, error) {
 	var out string

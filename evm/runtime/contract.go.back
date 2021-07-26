@@ -6,16 +6,16 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/holiman/uint256"
 	"github.com/ontio/ontology/common/log"
+	"github.com/umbracle/ethgo"
 )
 
 type Contract struct {
 	Abi        abi.ABI
 	Cfg        *Config
-	Address    common.Address
+	Address    web3.Address
 	AutoCommit bool
 }
 
@@ -75,7 +75,7 @@ func CreateContract(cfg *Config, jsonABI string, hexCode string, params ...inter
 	}
 }
 
-func NewContract(cfg *Config, jsonABI string, addr common.Address) *Contract {
+func NewContract(cfg *Config, jsonABI string, addr web3.Address) *Contract {
 	cabi, err := abi.JSON(strings.NewReader(jsonABI))
 	Ensure(err)
 
@@ -102,6 +102,6 @@ func (self *Contract) Balance() *big.Int {
 	return self.Cfg.State.GetBalance(self.Address)
 }
 
-func (self *Contract) BalanceOf(addr common.Address) *big.Int {
+func (self *Contract) BalanceOf(addr web3.Address) *big.Int {
 	return self.Cfg.State.GetBalance(addr)
 }

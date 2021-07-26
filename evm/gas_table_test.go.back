@@ -28,8 +28,9 @@ import (
 	"github.com/ontio/ontology/core/store/overlaydb"
 	"github.com/ontio/ontology/smartcontract/service/native/ong"
 	"github.com/ontio/ontology/smartcontract/storage"
-	"github.com/ontio/ontology/vm/evm/errors"
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/evm/errors"
+	"github.com/umbracle/ethgo/evm/params"
 )
 
 func TestMemoryGasCost(t *testing.T) {
@@ -86,19 +87,19 @@ func TestEIP2200(t *testing.T) {
 		address := common.BytesToAddress([]byte("contract"))
 
 		db := storage.NewCacheDB(overlaydb.NewOverlayDB(leveldbstore.NewMemLevelDBStore()))
-		statedb := storage.NewStateDB(db, common.Hash{}, common.Hash{}, ong.OngBalanceHandle{})
+		statedb := storage.NewStateDB(db, web3.Hash{}, web3.Hash{}, ong.OngBalanceHandle{})
 		statedb.CreateAccount(address)
 		statedb.SetCode(address, hexutil.MustDecode(tt.input))
-		statedb.SetState(address, common.Hash{}, common.BytesToHash([]byte{tt.original}))
+		statedb.SetState(address, web3.Hash{}, common.BytesToHash([]byte{tt.original}))
 		_ = statedb.Commit() // Push the state into the "original" slot
 
 		vmctx := BlockContext{
-			CanTransfer: func(StateDB, common.Address, *big.Int) bool { return true },
-			Transfer:    func(StateDB, common.Address, common.Address, *big.Int) {},
+			CanTransfer: func(StateDB, web3.Address, *big.Int) bool { return true },
+			Transfer:    func(StateDB, web3.Address, web3.Address, *big.Int) {},
 		}
 		vmenv := NewEVM(vmctx, TxContext{}, statedb, params.AllEthashProtocolChanges, Config{ExtraEips: []int{2200}})
 
-		_, gas, err := vmenv.Call(AccountRef(common.Address{}), address, nil, tt.gaspool, new(big.Int))
+		_, gas, err := vmenv.Call(AccountRef(web3.Address{}), address, nil, tt.gaspool, new(big.Int))
 		if err != tt.failure {
 			t.Errorf("test %d: failure mismatch: have %v, want %v", i, err, tt.failure)
 		}

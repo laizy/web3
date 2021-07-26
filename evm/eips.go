@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	"github.com/holiman/uint256"
-	"github.com/ontio/ontology/vm/evm/params"
+	"github.com/umbracle/ethgo/evm/params"
 )
 
 var activators = map[int]func(*JumpTable){

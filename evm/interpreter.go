@@ -24,7 +24,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ontio/ontology/vm/evm/errors"
+	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/evm/errors"
 )
 
 // Config are the configuration options for the Interpreter
@@ -72,7 +73,7 @@ type EVMInterpreter struct {
 	cfg Config
 
 	hasher    keccakState // Keccak256 hasher instance shared across opcodes
-	hasherBuf common.Hash // Keccak256 hasher result array shared aross opcodes
+	hasherBuf ethgo.Hash  // Keccak256 hasher result array shared aross opcodes
 
 	readOnly   bool   // Whether to throw on stateful modifications
 	returnData []byte // Last CALL's return data for subsequent reuse
