@@ -26,11 +26,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/evm/params"
+	"github.com/umbracle/go-web3/utils/common/hexutil"
+	"github.com/umbracle/go-web3/utils/common/math"
 )
 
 var errTraceLimitReached = errors.New("the number of logs reached the specified limit")
@@ -278,9 +277,9 @@ func WriteTrace(writer io.Writer, logs []StructLog) {
 }
 
 // WriteLogs writes vm logs in a readable format to the given writer
-func WriteLogs(writer io.Writer, logs []*types.Log) {
+func WriteLogs(writer io.Writer, logs []*web3.Log) {
 	for _, log := range logs {
-		_, _ = fmt.Fprintf(writer, "LOG%d: %x bn=%d txi=%x\n", len(log.Topics), log.Address, log.BlockNumber, log.TxIndex)
+		_, _ = fmt.Fprintf(writer, "LOG%d: %x bn=%d txi=%x\n", len(log.Topics), log.Address, log.BlockNumber, log.TransactionIndex)
 
 		for i, topic := range log.Topics {
 			_, _ = fmt.Fprintf(writer, "%08d  %x\n", i, topic)

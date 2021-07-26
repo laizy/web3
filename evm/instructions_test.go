@@ -24,10 +24,12 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/umbracle/go-web3"
+
 	"github.com/holiman/uint256"
+	"github.com/umbracle/go-web3/crypto"
 	"github.com/umbracle/go-web3/evm/params"
+	"github.com/umbracle/go-web3/utils/common"
 )
 
 type TwoOperandTestcase struct {
@@ -569,11 +571,11 @@ func BenchmarkOpSHA3(bench *testing.B) {
 	env.interpreter = evmInterpreter
 	mem.Resize(32)
 	pc := uint64(0)
-	start := uint256.NewInt()
+	start := uint256.NewInt(0)
 
 	bench.ResetTimer()
 	for i := 0; i < bench.N; i++ {
-		stack.pushN(*uint256.NewInt().SetUint64(32), *start)
+		stack.pushN(*uint256.NewInt(0).SetUint64(32), *start)
 		opSha3(&pc, evmInterpreter, &callCtx{mem, stack, rstack, nil})
 	}
 }
@@ -631,8 +633,8 @@ func TestCreate2Addreses(t *testing.T) {
 		},
 	} {
 
-		origin := common.BytesToAddress(common.FromHex(tt.origin))
-		salt := common.BytesToHash(common.FromHex(tt.salt))
+		origin := web3.BytesToAddress(common.FromHex(tt.origin))
+		salt := web3.BytesToHash(common.FromHex(tt.salt))
 		code := common.FromHex(tt.code)
 		codeHash := crypto.Keccak256(code)
 		address := crypto.CreateAddress2(origin, salt, codeHash)

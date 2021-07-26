@@ -7,7 +7,7 @@ import (
 	"github.com/umbracle/go-web3/evm/storage"
 	"github.com/umbracle/go-web3/evm/storage/overlaydb"
 	"github.com/umbracle/go-web3/executor/remotedb"
-	"github.com/umbracle/go-web3/executor/types"
+	"github.com/umbracle/go-web3/jsonrpc"
 )
 
 type Executor struct {
@@ -17,8 +17,8 @@ type Executor struct {
 	chainID   uint64
 }
 
-func NewExecutor(rpcurl string) *Executor {
-	remote := remotedb.NewRemoteDB(rpcurl)
+func NewExecutor(client *jsonrpc.Client) *Executor {
+	remote := remotedb.NewRemoteDB(client)
 	overlay := overlaydb.NewOverlayDB(remote)
 	cacheDB := storage.NewCacheDB(overlay)
 	return &Executor{
@@ -37,7 +37,7 @@ type Eip155Context struct {
 	Coinbase  web3.Address
 }
 
-func (self *Executor) ExecuteTransaction(tx *web3.Transaction, ctx Eip155Context) (*types.ExecutionResult, *web3.Receipt, error) {
+func (self *Executor) ExecuteTransaction(tx *web3.Transaction, ctx Eip155Context) (*web3.ExecutionResult, *web3.Receipt, error) {
 	usedGas := uint64(0)
 	config := params.GetChainConfig(self.chainID)
 	statedb := storage.NewStateDB(self.cacheDB, tx.Hash, ctx.BlockHash)

@@ -18,8 +18,8 @@
 package overlaydb
 
 import (
-	"github.com/ontio/ontology/core/store/common"
 	"github.com/syndtr/goleveldb/leveldb/comparer"
+	"github.com/umbracle/go-web3/evm/storage/schema"
 )
 
 type KeyOrigin byte
@@ -31,8 +31,8 @@ const (
 )
 
 type JoinIter struct {
-	backend     common.StoreIterator
-	memdb       common.StoreIterator
+	backend     schema.StoreIterator
+	memdb       schema.StoreIterator
 	key, value  []byte
 	keyOrigin   KeyOrigin
 	nextMemEnd  bool
@@ -40,7 +40,7 @@ type JoinIter struct {
 	cmp         comparer.BasicComparer
 }
 
-func NewJoinIter(memIter, backendIter common.StoreIterator) *JoinIter {
+func NewJoinIter(memIter, backendIter schema.StoreIterator) *JoinIter {
 	return &JoinIter{
 		backend: backendIter,
 		memdb:   memIter,

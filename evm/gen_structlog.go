@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/umbracle/go-web3"
+	"github.com/umbracle/go-web3/utils/common/hexutil"
+	"github.com/umbracle/go-web3/utils/common/math"
 )
 
 var _ = (*structLogMarshaling)(nil)

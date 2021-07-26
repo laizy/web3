@@ -24,10 +24,9 @@ import (
 	"github.com/umbracle/go-web3/evm/params"
 	"github.com/umbracle/go-web3/evm/storage"
 	"github.com/umbracle/go-web3/executor/remotedb"
-	"github.com/umbracle/go-web3/executor/types"
 )
 
-func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transaction, usedGas *uint64, evm *evm.EVM, feeReceiver web3.Address) (*types.ExecutionResult, *web3.Receipt, error) {
+func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transaction, usedGas *uint64, evm *evm.EVM, feeReceiver web3.Address) (*web3.ExecutionResult, *web3.Receipt, error) {
 	// Create a new context to be used in the EVM environment
 	txContext := NewEVMTxContext(msg)
 
@@ -74,7 +73,7 @@ func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transactio
 // and uses the input parameters for its environment. It returns the receipt
 // for the transaction, gas used and an error if the transaction failed,
 // indicating the block was invalid.
-func ApplyTransaction(config *params.ChainConfig, bc *remotedb.RemoteDB, statedb *storage.StateDB, blockHeight, timestamp uint64, tx *web3.Transaction, usedGas *uint64, feeReceiver web3.Address, cfg evm.Config, checkNonce bool) (*types.ExecutionResult, *web3.Receipt, error) {
+func ApplyTransaction(config *params.ChainConfig, bc *remotedb.RemoteDB, statedb *storage.StateDB, blockHeight, timestamp uint64, tx *web3.Transaction, usedGas *uint64, feeReceiver web3.Address, cfg evm.Config, checkNonce bool) (*web3.ExecutionResult, *web3.Receipt, error) {
 	// Create a new context to be used in the EVM environment
 	msg := MessageFromTx(tx, checkNonce)
 	blockContext := NewEVMBlockContext(blockHeight, timestamp, bc.GetBlockHash)

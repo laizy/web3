@@ -23,15 +23,15 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/blake2b"
-	"github.com/ethereum/go-ethereum/crypto/bls12381"
-	"github.com/ethereum/go-ethereum/crypto/bn256"
 	"github.com/umbracle/go-web3"
+	"github.com/umbracle/go-web3/crypto"
+	"github.com/umbracle/go-web3/crypto/blake2b"
+	"github.com/umbracle/go-web3/crypto/bls12381"
+	"github.com/umbracle/go-web3/crypto/bn256"
 	errors2 "github.com/umbracle/go-web3/evm/errors"
 	"github.com/umbracle/go-web3/evm/params"
+	"github.com/umbracle/go-web3/utils/common"
+	"github.com/umbracle/go-web3/utils/common/math"
 	"golang.org/x/crypto/ripemd160"
 )
 

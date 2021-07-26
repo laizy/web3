@@ -22,8 +22,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/umbracle/go-web3/utils/common"
+	"github.com/umbracle/go-web3/utils/common/hexutil"
 	"github.com/ontio/ontology/core/store/leveldbstore"
 	"github.com/ontio/ontology/core/store/overlaydb"
 	"github.com/ontio/ontology/smartcontract/service/native/ong"

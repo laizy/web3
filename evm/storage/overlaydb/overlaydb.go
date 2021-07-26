@@ -21,8 +21,8 @@ package overlaydb
 import (
 	"crypto/sha256"
 
-	comm "github.com/ontio/ontology/common"
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/evm/storage/schema"
 )
 
@@ -96,14 +96,14 @@ func (self *OverlayDB) GetWriteSet() *MemDB {
 	return self.memdb
 }
 
-func (self *OverlayDB) ChangeHash() comm.Uint256 {
+func (self *OverlayDB) ChangeHash() web3.Hash {
 	stateDiff := sha256.New()
 	self.memdb.ForEach(func(key, val []byte) {
 		stateDiff.Write(key)
 		stateDiff.Write(val)
 	})
 
-	var hash comm.Uint256
+	var hash web3.Hash
 	stateDiff.Sum(hash[:0])
 	return hash
 }

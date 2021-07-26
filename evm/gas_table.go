@@ -20,10 +20,10 @@ package evm
 import (
 	"errors"
 
-	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/umbracle/go-web3"
 	errors2 "github.com/umbracle/go-web3/evm/errors"
 	"github.com/umbracle/go-web3/evm/params"
+	"github.com/umbracle/go-web3/utils/common/math"
 )
 
 // memoryGasCost calculates the quadratic gas for memory expansion. It does so

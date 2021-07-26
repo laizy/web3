@@ -27,10 +27,10 @@ func DeployContract(provider *jsonrpc.Client, from web3.Address, abiVal *abi.ABI
 		from:     from,
 		provider: provider,
 	}
-	txn.data = append(txn.data, bin...)
+	txn.Data = append(txn.Data, bin...)
 	data, err := abi.Encode(args, method.Inputs)
 	utils.Ensure(err)
-	txn.data = append(txn.data, data...)
+	txn.Data = append(txn.Data, data...)
 
 	return txn
 }
@@ -112,19 +112,21 @@ func (c *Contract) Txn(method string, args ...interface{}) *Txn {
 		from:     *c.from,
 		to:       &c.addr,
 		provider: c.provider,
-		data:     data,
+		Data:     data,
 	}
 }
 
 // Txn is a transaction object
 type Txn struct {
+	provider *jsonrpc.Client
+
 	from     web3.Address
 	to       *web3.Address
-	provider *jsonrpc.Client
-	data     []byte
+	value    *big.Int
+	nonce    uint64
 	gasLimit uint64
 	gasPrice uint64
-	value    *big.Int
+	Data     []byte
 	hash     web3.Hash
 }
 
@@ -138,22 +140,26 @@ func (t *Txn) SetValue(v *big.Int) *Txn {
 	return t
 }
 
+func (t *Txn) SetNonce(nonce uint64) *Txn {
+	t.nonce = nonce
+	return t
+}
+
 // EstimateGas estimates the gas for the call
 func (t *Txn) EstimateGas() (uint64, error) {
 	if t.isContractDeployment() {
-		return t.provider.Eth().EstimateGasContract(t.data)
+		return t.provider.Eth().EstimateGasContract(t.Data)
 	}
 
 	msg := &web3.CallMsg{
 		From:  t.from,
 		To:    t.to,
-		Data:  t.data,
+		Data:  t.Data,
 		Value: t.value,
 	}
 	return t.provider.Eth().EstimateGas(msg)
 }
 
-// DoAndWait is a blocking query that combines
 // both Do and Wait functions
 func (t *Txn) DoAndWait() (*web3.Receipt, error) {
 	if err := t.Do(); err != nil {
@@ -162,7 +168,14 @@ func (t *Txn) DoAndWait() (*web3.Receipt, error) {
 	return t.Wait()
 }
 
-func (t *Txn) ToTransaction(nonce uint64) (*web3.Transaction, error) {
+func (t *Txn) MustToTransaction() *web3.Transaction {
+	tx, err := t.ToTransaction()
+	utils.Ensure(err)
+
+	return tx
+}
+
+func (t *Txn) ToTransaction() (*web3.Transaction, error) {
 	var err error
 	// estimate gas price
 	if t.gasPrice == 0 {
@@ -171,6 +184,15 @@ func (t *Txn) ToTransaction(nonce uint64) (*web3.Transaction, error) {
 			return nil, err
 		}
 	}
+	if t.nonce == 0 {
+		nonce, err := t.provider.Eth().GetNonce(t.from, web3.Pending)
+		if err != nil {
+			return nil, err
+		}
+
+		t.nonce = nonce
+	}
+	utils.Ensure(err)
 	// estimate gas limit
 	if t.gasLimit == 0 {
 		t.gasLimit, err = t.EstimateGas()
@@ -182,11 +204,11 @@ func (t *Txn) ToTransaction(nonce uint64) (*web3.Transaction, error) {
 	// send transaction
 	txn := &web3.Transaction{
 		From:     t.from,
-		Input:    t.data,
+		Input:    t.Data,
 		GasPrice: t.gasPrice,
 		Gas:      t.gasLimit,
 		Value:    t.value,
-		Nonce:    nonce,
+		Nonce:    t.nonce,
 	}
 	if t.to != nil {
 		txn.To = t.to
@@ -198,7 +220,7 @@ func (t *Txn) ToTransaction(nonce uint64) (*web3.Transaction, error) {
 // Do sends the transaction to the network
 func (t *Txn) Do() error {
 	// send transaction
-	txn, err := t.ToTransaction(0)
+	txn, err := t.ToTransaction()
 	if err != nil {
 		return err
 	}

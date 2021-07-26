@@ -23,9 +23,9 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/holiman/uint256"
+	"github.com/umbracle/go-web3/utils/codec"
 
-	comm "github.com/ontio/ontology/common"
+	"github.com/holiman/uint256"
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/crypto"
 	"github.com/umbracle/go-web3/evm/storage/overlaydb"
@@ -219,15 +219,15 @@ func (self *EthAccount) IsEmpty() bool {
 	return self.Nonce == 0 && self.CodeHash == web3.Hash{}
 }
 
-func (self *EthAccount) Serialization(sink *comm.ZeroCopySink) {
+func (self *EthAccount) Serialization(sink *codec.ZeroCopySink) {
 	sink.WriteUint64(self.Nonce)
 	balance := self.Balance.Bytes32()
 	sink.WriteBytes(balance[:])
 	sink.WriteVarBytes(self.Code)
-	sink.WriteHash(comm.Uint256(self.CodeHash))
+	sink.WriteHash(self.CodeHash)
 }
 
-func (self *EthAccount) Deserialization(source *comm.ZeroCopySource) error {
+func (self *EthAccount) Deserialization(source *codec.ZeroCopySource) error {
 	self.Nonce, _ = source.NextUint64()
 	balance, _ := source.NextBytes(32)
 	self.Balance = uint256.NewInt(0).SetBytes32(balance)
@@ -251,7 +251,7 @@ func (self *CacheDB) GetEthAccount(addr web3.Address) (val EthAccount, err error
 		return val, nil
 	}
 
-	err = val.Deserialization(comm.NewZeroCopySource(value))
+	err = val.Deserialization(codec.NewZeroCopySource(value))
 
 	return val, err
 }
@@ -259,7 +259,7 @@ func (self *CacheDB) GetEthAccount(addr web3.Address) (val EthAccount, err error
 func (self *CacheDB) PutEthAccount(addr web3.Address, val EthAccount) {
 	var raw []byte
 	if !val.IsEmpty() {
-		raw = comm.SerializeToBytes(&val)
+		raw = codec.SerializeToBytes(&val)
 	}
 
 	self.put(schema.ST_ETH_ACCOUNT, addr[:], raw)

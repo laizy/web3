@@ -21,11 +21,10 @@ import (
 	"hash"
 	"sync/atomic"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/evm/errors"
+	"github.com/umbracle/go-web3/utils/common"
+	"github.com/umbracle/go-web3/utils/common/math"
 )
 
 // Config are the configuration options for the Interpreter
@@ -108,7 +107,7 @@ func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
 			if err := EnableEIP(eip, &jt); err != nil {
 				// Disable it, so caller can check if it's activated or not
 				cfg.ExtraEips = append(cfg.ExtraEips[:i], cfg.ExtraEips[i+1:]...)
-				log.Error("EIP activation failed", "eip", eip, "error", err)
+				panic(err)
 			}
 		}
 		cfg.JumpTable = jt

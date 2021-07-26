@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/umbracle/go-web3/utils/common/hexutil"
 	"github.com/holiman/uint256"
 	"github.com/ontio/ontology/common/log"
 	"github.com/umbracle/go-web3"

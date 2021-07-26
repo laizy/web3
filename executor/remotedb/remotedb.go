@@ -4,14 +4,13 @@ import (
 	"encoding/hex"
 
 	"github.com/holiman/uint256"
-
-	common2 "github.com/ontio/ontology/common"
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/crypto"
 	"github.com/umbracle/go-web3/evm/storage"
 	"github.com/umbracle/go-web3/evm/storage/schema"
 	"github.com/umbracle/go-web3/jsonrpc"
 	"github.com/umbracle/go-web3/utils"
+	"github.com/umbracle/go-web3/utils/codec"
 )
 
 type RemoteDB struct {
@@ -20,9 +19,7 @@ type RemoteDB struct {
 	Storage  map[storageKey]web3.Hash
 }
 
-func NewRemoteDB(url string) *RemoteDB {
-	client, err := jsonrpc.NewClient(url)
-	utils.Ensure(err)
+func NewRemoteDB(client *jsonrpc.Client) *RemoteDB {
 	return &RemoteDB{
 		client:   client,
 		Accounts: make(map[web3.Address]*storage.EthAccount),
@@ -79,7 +76,7 @@ func (self *RemoteDB) Get(key []byte) ([]byte, error) {
 	case schema.ST_ETH_ACCOUNT:
 		addr := web3.BytesToAddress(key[1:])
 		acct := self.GetAccount(addr)
-		return common2.SerializeToBytes(acct), nil
+		return codec.SerializeToBytes(acct), nil
 	case schema.ST_STORAGE:
 		addr := web3.BytesToAddress(key[1:21])
 		key := web3.BytesToHash(key[21:])
