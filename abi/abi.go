@@ -17,9 +17,10 @@ import (
 
 // ABI represents the ethereum abi format
 type ABI struct {
-	Constructor *Method
-	Methods     map[string]*Method
-	Events      map[string]*Event
+	Constructor  *Method
+	Methods      map[string]*Method
+	MethodsBySig map[string]*Method
+	Events       map[string]*Event
 }
 
 func (a *ABI) addEvent(e *Event) {
@@ -34,6 +35,11 @@ func (a *ABI) addMethod(m *Method) {
 		a.Methods = map[string]*Method{}
 	}
 	a.Methods[m.Name] = m
+	// 临时方案：添加完整的sig，避免solidity中重载的函数被覆盖, console合约需要
+	if len(a.MethodsBySig) == 0 {
+		a.MethodsBySig = map[string]*Method{}
+	}
+	a.MethodsBySig[m.Sig()] = m
 }
 
 // NewABI returns a parsed ABI struct
@@ -95,12 +101,13 @@ func (a *ABI) UnmarshalJSON(data []byte) error {
 				c = true
 			}
 
-			a.Methods[field.Name] = &Method{
+			m := &Method{
 				Name:    field.Name,
 				Const:   c,
 				Inputs:  field.Inputs.Type(),
 				Outputs: field.Outputs.Type(),
 			}
+			a.addMethod(m)
 
 		case "event":
 			a.Events[field.Name] = &Event{
@@ -136,7 +143,8 @@ func (m *Method) Sig() string {
 // ID returns the id of the method
 func (m *Method) ID() []byte {
 	k := acquireKeccak()
-	k.Write([]byte(m.Sig()))
+	sig := m.Sig()
+	k.Write([]byte(sig))
 	dst := k.Sum(nil)[:4]
 	releaseKeccak(k)
 	return dst

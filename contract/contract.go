@@ -17,7 +17,7 @@ type Contract struct {
 	addr     web3.Address
 	from     *web3.Address
 	Abi      *abi.ABI
-	provider *jsonrpc.Client
+	Provider *jsonrpc.Client
 }
 
 // DeployContract deploys a contract
@@ -41,7 +41,7 @@ func NewContract(addr web3.Address, abi *abi.ABI, provider *jsonrpc.Client) *Con
 	return &Contract{
 		addr:     addr,
 		Abi:      abi,
-		provider: provider,
+		Provider: provider,
 	}
 }
 
@@ -78,7 +78,7 @@ func (c *Contract) Call(method string, block web3.BlockNumber, args ...interface
 		msg.From = *c.from
 	}
 
-	rawStr, err := c.provider.Eth().Call(msg, block)
+	rawStr, err := c.Provider.Eth().Call(msg, block)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (c *Contract) Txn(method string, args ...interface{}) *Txn {
 	return &Txn{
 		from:     *c.from,
 		to:       &c.addr,
-		provider: c.provider,
+		provider: c.Provider,
 		Data:     data,
 	}
 }
@@ -173,6 +173,31 @@ func (t *Txn) MustToTransaction() *web3.Transaction {
 	utils.Ensure(err)
 
 	return tx
+}
+
+func (t *Txn) Sign(signer *Signer) *SignedTx {
+	t.from = signer.Address()
+	tx := t.MustToTransaction()
+	tx = signer.SignTx(tx)
+
+	return &SignedTx{tx}
+}
+
+type SignedTx struct {
+	*web3.Transaction
+}
+
+func (self *SignedTx) Execute(signer *Signer) (*web3.ExecutionResult, *web3.Receipt) {
+	return signer.ExecuteTxn(self.Transaction)
+}
+
+func (self *SignedTx) Execute2(signer *Signer) *web3.Receipt {
+	_, receipt := signer.ExecuteTxn(self.Transaction)
+	return receipt
+}
+
+func (self *SignedTx) SendTransaction(signer *Signer) *web3.Receipt {
+	return signer.SendTransaction(self.Transaction)
 }
 
 func (t *Txn) ToTransaction() (*web3.Transaction, error) {

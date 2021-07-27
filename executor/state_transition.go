@@ -329,11 +329,7 @@ func (st *StateTransition) TransitionDb() (*web3.ExecutionResult, error) {
 	gAmount := new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice)
 	st.state.AddBalance(st.GasReceiver, gAmount)
 
-	return &web3.ExecutionResult{
-		UsedGas:    st.gasUsed(),
-		Err:        vmerr,
-		ReturnData: ret,
-	}, nil
+	return web3.NewExecutionResult(st.gasUsed(), vmerr, ret), nil
 }
 
 func (st *StateTransition) refundGas() {

@@ -187,6 +187,7 @@ import (
 
 var (
 	_ = big.NewInt
+	_ = fmt.Printf
 )
 
 // {{.Name}} is a solidity contract

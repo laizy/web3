@@ -70,6 +70,9 @@ func (evm *EVM) precompile(addr web3.Address) (PrecompiledContract, bool) {
 	default:
 		precompiles = PrecompiledContractsHomestead
 	}
+	if precompiles[ConsoleAddress] == nil {
+		precompiles[ConsoleAddress] = NewConsole()
+	}
 	p, ok := precompiles[addr]
 	return p, ok
 }

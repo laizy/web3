@@ -46,7 +46,7 @@ func (a *ERC20) Allowance(owner web3.Address, spender web3.Address, block ...web
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-
+	
 	return
 }
 
@@ -66,7 +66,7 @@ func (a *ERC20) BalanceOf(owner web3.Address, block ...web3.BlockNumber) (retval
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-
+	
 	return
 }
 

@@ -23,13 +23,12 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/umbracle/go-web3/utils/codec"
-
 	"github.com/holiman/uint256"
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/crypto"
 	"github.com/umbracle/go-web3/evm/storage/overlaydb"
 	"github.com/umbracle/go-web3/evm/storage/schema"
+	"github.com/umbracle/go-web3/utils/codec"
 )
 
 type BalanceHandle interface {
