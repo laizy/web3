@@ -7,9 +7,29 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/umbracle/go-web3/abi"
+	"github.com/umbracle/go-web3/registry"
 	"github.com/umbracle/go-web3/utils"
 )
+
+func GetArtifacts() (map[string]*Artifact, error) {
+	pathes, err := getArtifactPathes()
+	if err != nil {
+		return nil, err
+	}
+	results := make(map[string]*Artifact)
+	for name, path := range pathes {
+		arti, err := getArtifactWithPath(path)
+		if err != nil {
+			return nil, err
+		}
+		results[name] = arti
+	}
+
+	return results, nil
+}
 
 func GetArtifact(name string) (*Artifact, error) {
 	path, err := GetArtifactPath(name)
@@ -17,6 +37,10 @@ func GetArtifact(name string) (*Artifact, error) {
 		return nil, err
 	}
 
+	return getArtifactWithPath(path)
+}
+
+func getArtifactWithPath(path string) (*Artifact, error) {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -44,34 +68,47 @@ func GetArtifact(name string) (*Artifact, error) {
 	}, nil
 }
 
-func GetArtifactPath(name string) (string, error) {
+func getArtifactPathes() (map[string]string, error) {
 	dir, err := GetProjectRoot()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	var breakError = errors.New("normal break")
-	var result string
+	result := make(map[string]string)
 	buildDir := filepath.Join(dir, "artifacts")
 	err = filepath.Walk(buildDir, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
-		if filepath.Base(path) == name+".json" {
-			result = path
-			return breakError
+		base := filepath.Base(path)
+		if strings.HasSuffix(base, ".dbg.json") {
+			name := strings.TrimSuffix(base, ".dbg.json")
+			contractFile := name + ".json"
+			full := filepath.Join(filepath.Dir(path), contractFile)
+			result[name] = full
 		}
 
 		return nil
 	})
-	if err == nil {
-		return "", fs.ErrNotExist
-	}
-	if err == breakError {
-		return result, nil
+	if err != nil {
+		return nil, err
 	}
 
-	return "", err
+	return result, nil
+}
+
+func GetArtifactPath(name string) (string, error) {
+	pathes, err := getArtifactPathes()
+	if err != nil {
+		return "", err
+	}
+
+	path, ok := pathes[name]
+	if !ok {
+		return "", fs.ErrNotExist
+	}
+
+	return path, nil
 }
 
 func GetProjectRoot() (string, error) {
@@ -109,4 +146,20 @@ func pathExists(path string) bool {
 		return true
 	}
 	return false
+}
+
+func RegisterProjectEvents() error {
+	artifacts, err := GetArtifacts()
+	if err != nil {
+		return err
+	}
+	for _, arti := range artifacts {
+		artiAbi, err := abi.NewABI(arti.Abi)
+		if err != nil {
+			return err
+		}
+		registry.Instance().RegisterFromAbi(artiAbi)
+	}
+
+	return nil
 }

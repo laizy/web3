@@ -86,11 +86,7 @@ func (s *Solidity) compileImpl(code string, files ...string) (map[string]*Artifa
 
 	artifacts := map[string]*Artifact{}
 	for name, i := range output.Contracts {
-		artifacts[name] = &Artifact{
-			Bin:        i.Bin,
-			BinRuntime: i.BinRuntime,
-			Abi:        i.Abi,
-		}
+		artifacts[name] = NewArtifact(i.Bin, i.BinRuntime, i.Abi)
 	}
 	return artifacts, nil
 }

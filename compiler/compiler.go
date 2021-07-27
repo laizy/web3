@@ -1,6 +1,9 @@
 package compiler
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type factory func(path string) Compiler
 
@@ -29,4 +32,19 @@ type Artifact struct {
 	Abi        string
 	Bin        string
 	BinRuntime string
+}
+
+func NewArtifact(abi, bin, binRuntime string) *Artifact {
+	return &Artifact{
+		Abi:        abi,
+		Bin:        unifyHexString(bin),
+		BinRuntime: unifyHexString(binRuntime),
+	}
+}
+
+func unifyHexString(hex string) string {
+	if !strings.HasPrefix(hex, "0x") {
+		hex = "0x" + hex
+	}
+	return hex
 }

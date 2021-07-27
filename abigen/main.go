@@ -199,10 +199,7 @@ func processJson(sources []string) (map[string]*compiler.Artifact, error) {
 			return nil, err
 		}
 
-		artifacts[strings.Title(name)] = &compiler.Artifact{
-			Abi: string(art.Abi),
-			Bin: "0x" + art.Bytecode,
-		}
+		artifacts[strings.Title(name)] = compiler.NewArtifact(string(art.Abi), art.Bytecode, "")
 	}
 	return artifacts, nil
 }
