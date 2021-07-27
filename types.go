@@ -24,9 +24,46 @@ import (
 // ExecutionResult includes all output after executing given evm
 // message no matter the execution itself is successful or not.
 type ExecutionResult struct {
-	UsedGas    uint64 // Total used gas but include the refunded gas
-	Err        error  // Any error encountered during the execution(listed in core/vm/errors.go)
-	ReturnData []byte // Returned data from evm(function result or data supplied with revert opcode)
+	UsedGas     uint64        // Total used gas but include the refunded gas
+	Err         error         // Any error encountered during the execution(listed in core/vm/errors.go)
+	ReturnData  hexutil.Bytes // Returned data from evm(function result or data supplied with revert opcode)
+	RevertReson string
+}
+
+func NewExecutionResult(usedGas uint64, err error, ret []byte) *ExecutionResult {
+	result := &ExecutionResult{
+		UsedGas:    usedGas,
+		Err:        err,
+		ReturnData: ret,
+	}
+
+	// revert data signature is: Error(string) (0x08c379a0)
+	// https://ethereum.stackexchange.com/questions/83528/how-can-i-get-the-revert-reason-of-a-call-in-solidity-so-that-i-can-use-it-in-th
+	if err != nil {
+		result.RevertReson = "Transaction reverted silently"
+		if len(result.ReturnData) >= 68 && hex.EncodeToString(result.ReturnData[:4]) == "08c379a0" {
+			// data layout: sig(4bytes) + strpos(32bytes,should equal 2) + strlength(32bytes) + strdata
+			data := result.ReturnData[36:]
+			length, err := readLength(data)
+			utils.Ensure(err)
+			result.RevertReson = string(data[32 : 32+length])
+		}
+	}
+
+	return result
+}
+
+//copied from abi to avoid cycle dependencies
+func readLength(data []byte) (int, error) {
+	lengthBig := big.NewInt(0).SetBytes(data[0:32])
+	if lengthBig.BitLen() > 63 {
+		return 0, fmt.Errorf("length larger than int64: %v", lengthBig.Int64())
+	}
+	length := int(lengthBig.Uint64())
+	if length > len(data) {
+		return 0, fmt.Errorf("length insufficient %v require %v", len(data), length)
+	}
+	return length, nil
 }
 
 // Unwrap returns the internal evm error which allows us for further

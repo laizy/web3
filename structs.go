@@ -62,6 +62,11 @@ func (a *Address) UnmarshalText(b []byte) error {
 	return unmarshalTextByte(a[:], b, 20)
 }
 
+func (a *Address) IsZero() bool {
+	var zero Address
+	return *a == zero
+}
+
 // MarshalText implements the marshal interface
 func (a Address) MarshalText() ([]byte, error) {
 	return []byte(a.String()), nil

@@ -190,6 +190,7 @@ import (
 var (
 	_ = big.NewInt
 	_ = jsonrpc.NewClient
+	_ = fmt.Printf
 )
 
 // {{.Name}} is a solidity contract
@@ -205,6 +206,11 @@ func Deploy{{.Name}}(provider *jsonrpc.Client, from ethgo.Address, args []interf
 // New{{.Name}} creates a new instance of the contract at a specific address
 func New{{.Name}}(addr ethgo.Address, opts ...contract.ContractOption) *{{.Name}} {
 	return &{{.Name}}{c: contract.NewContract(addr, abi{{.Name}}, opts...)}
+}
+
+// Contract returns the contract object
+func ({{.Ptr}} *{{.Name}}) Contract() *contract.Contract {
+	return {{.Ptr}}.c
 }
 
 // calls
