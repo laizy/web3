@@ -22,15 +22,16 @@ type Contract struct {
 
 // DeployContract deploys a contract
 func DeployContract(provider *jsonrpc.Client, from web3.Address, abiVal *abi.ABI, bin []byte, args ...interface{}) *Txn {
-	method := abiVal.Constructor
 	txn := &Txn{
 		from:     from,
 		provider: provider,
 	}
 	txn.Data = append(txn.Data, bin...)
-	data, err := abi.Encode(args, method.Inputs)
-	utils.Ensure(err)
-	txn.Data = append(txn.Data, data...)
+	if method := abiVal.Constructor; method != nil {
+		data, err := abi.Encode(args, method.Inputs)
+		utils.Ensure(err)
+		txn.Data = append(txn.Data, data...)
+	}
 
 	return txn
 }
@@ -178,6 +179,10 @@ func (t *Txn) MustToTransaction() *web3.Transaction {
 func (t *Txn) Sign(signer *Signer) *SignedTx {
 	t.from = signer.Address()
 	tx := t.MustToTransaction()
+	if signer.Submit == false {
+		tx.Nonce = signer.Nonce
+		signer.Nonce += 1
+	}
 	tx = signer.SignTx(tx)
 
 	return &SignedTx{tx}
@@ -192,12 +197,19 @@ func (self *SignedTx) Execute(signer *Signer) (*web3.ExecutionResult, *web3.Rece
 }
 
 func (self *SignedTx) Execute2(signer *Signer) *web3.Receipt {
-	_, receipt := signer.ExecuteTxn(self.Transaction)
+	result, receipt := signer.ExecuteTxn(self.Transaction)
+	if result.Err != nil {
+		panic(fmt.Errorf("execution reverted: %s", result.RevertReson))
+	}
 	return receipt
 }
 
 func (self *SignedTx) SendTransaction(signer *Signer) *web3.Receipt {
-	return signer.SendTransaction(self.Transaction)
+	if signer.Submit {
+		return signer.SendTransaction(self.Transaction)
+	}
+
+	return self.Execute2(signer)
 }
 
 func (t *Txn) ToTransaction() (*web3.Transaction, error) {

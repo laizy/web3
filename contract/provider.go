@@ -21,6 +21,9 @@ type Signer struct {
 	*wallet.Key
 	signer wallet.Signer
 	*jsonrpc.Client
+	Executor *executor.Executor
+	Submit   bool
+	Nonce    uint64 // only used when in simulate mode
 }
 
 func NewSigner(hexPrivKey string, client *jsonrpc.Client, chainId uint64) *Signer {
@@ -33,9 +36,10 @@ func NewSigner(hexPrivKey string, client *jsonrpc.Client, chainId uint64) *Signe
 	signer := wallet.NewEIP155Signer(chainId)
 
 	return &Signer{
-		Key:    account,
-		signer: signer,
-		Client: client,
+		Key:      account,
+		signer:   signer,
+		Client:   client,
+		Executor: executor.NewExecutor(client),
 	}
 }
 
@@ -55,10 +59,9 @@ func (self *Signer) SendTransaction(tx *web3.Transaction) *web3.Receipt {
 }
 
 func (self *Signer) ExecuteTxn(tx *web3.Transaction) (*web3.ExecutionResult, *web3.Receipt) {
-	exec := executor.NewExecutor(self.Client)
 	num, err := self.Client.Eth().BlockNumber()
 	utils.Ensure(err)
-	result, receipt, err := exec.ExecuteTransaction(tx, executor.Eip155Context{
+	result, receipt, err := self.Executor.ExecuteTransaction(tx, executor.Eip155Context{
 		Height:    num + 1,
 		Timestamp: uint64(time.Now().Unix()),
 	})

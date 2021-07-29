@@ -3,11 +3,12 @@ package hardhat
 import (
 	"encoding/json"
 	"errors"
-	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/umbracle/go-web3/utils/common/hexutil"
 
 	"github.com/umbracle/go-web3/abi"
 	"github.com/umbracle/go-web3/registry"
@@ -47,11 +48,11 @@ func getArtifactWithPath(path string) (*Artifact, error) {
 	}
 
 	type artifact struct {
-		ContractName     string      `json:"contractName"`
-		SourceName       string      `json:"sourceName"`
-		Abi              interface{} `json:"abi"`
-		Bytecode         string      `json:"bytecode"`
-		DeployedBytecode string      `json:"deployedBytecode"`
+		ContractName     string        `json:"contractName"`
+		SourceName       string        `json:"sourceName"`
+		Abi              interface{}   `json:"abi"`
+		Bytecode         hexutil.Bytes `json:"bytecode"`
+		DeployedBytecode hexutil.Bytes `json:"deployedBytecode"`
 	}
 	var value artifact
 	err = json.Unmarshal(buf, &value)
@@ -76,7 +77,7 @@ func getArtifactPathes() (map[string]string, error) {
 
 	result := make(map[string]string)
 	buildDir := filepath.Join(dir, "artifacts")
-	err = filepath.Walk(buildDir, func(path string, info fs.FileInfo, err error) error {
+	err = filepath.Walk(buildDir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
@@ -105,7 +106,7 @@ func GetArtifactPath(name string) (string, error) {
 
 	path, ok := pathes[name]
 	if !ok {
-		return "", fs.ErrNotExist
+		return "", os.ErrNotExist
 	}
 
 	return path, nil
@@ -133,11 +134,11 @@ func GetProjectRoot() (string, error) {
 }
 
 type Artifact struct {
-	ContractName     string `json:"contractName"` // "DSProxy",
-	SourceName       string `json:"sourceName"`   // "contracts/proxy.sol"
-	Abi              string `json:"abi"`
-	Bytecode         string `json:"bytecode"`         // 0x6080
-	DeployedBytecode string `json:"deployedBytecode"` // 0x6080
+	ContractName     string        `json:"contractName"` // "DSProxy",
+	SourceName       string        `json:"sourceName"`   // "contracts/proxy.sol"
+	Abi              string        `json:"abi"`
+	Bytecode         hexutil.Bytes `json:"bytecode"`         // 0x6080
+	DeployedBytecode hexutil.Bytes `json:"deployedBytecode"` // 0x6080
 }
 
 func pathExists(path string) bool {
