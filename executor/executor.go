@@ -14,6 +14,7 @@ type Executor struct {
 	overlayDB *overlaydb.OverlayDB
 	cacheDB   *storage.CacheDB
 	chainID   uint64
+	Trace     bool
 }
 
 func NewExecutor(rpcurl string) *Executor {
@@ -28,6 +29,11 @@ func NewExecutor(rpcurl string) *Executor {
 	}
 }
 
+func (self *Executor) ResetOverlay() {
+	self.overlayDB = overlaydb.NewOverlayDB(self.db)
+	self.cacheDB = storage.NewCacheDB(self.overlayDB)
+}
+
 type Eip155Context struct {
 	BlockHash ethgo.Hash
 	TxIndex   uint64
@@ -40,8 +46,13 @@ func (self *Executor) ExecuteTransaction(tx *ethgo.Transaction, ctx Eip155Contex
 	usedGas := uint64(0)
 	config := params.GetChainConfig(self.chainID)
 	statedb := storage.NewStateDB(self.cacheDB, tx.Hash, ctx.BlockHash)
+	evmConf := evm.Config{}
+	if self.Trace {
+		evmConf.Debug = true
+		evmConf.Tracer = evm.NewJSONLogger(nil, os.Stdout)
+	}
 	result, receipt, err := ApplyTransaction(config, self.db, statedb, ctx.Height, ctx.Timestamp, tx, &usedGas,
-		ctx.Coinbase, evm.Config{}, false)
+		ctx.Coinbase, evmConf, false)
 
 	if err != nil {
 		return nil, nil, err

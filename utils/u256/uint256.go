@@ -35,6 +35,16 @@ func New(v interface{}) Int {
 	}
 }
 
+func Mul(val ...interface{}) Int {
+	utils.EnsureTrue(len(val) >= 1)
+	result := New(1)
+	for _, v := range val {
+		result = result.Mul(New(v))
+	}
+
+	return result
+}
+
 func (self Int) Mul(val Int) Int {
 	return Int{big.NewInt(0).Mul(self.val, val.val)}
 }
