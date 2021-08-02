@@ -35,12 +35,18 @@ func NewSigner(hexPrivKey string, client *jsonrpc.Client, chainId uint64) *Signe
 
 	signer := wallet.NewEIP155Signer(chainId)
 
-	return &Signer{
+	nonce, err := client.Eth().GetNonce(account.Address(), web3.Latest)
+	utils.Ensure(err)
+
+	result :=  &Signer{
 		Key:      account,
 		signer:   signer,
 		Client:   client,
 		Executor: executor.NewExecutor(client),
+		Nonce: nonce,
 	}
+	
+	return result
 }
 
 func (self *Signer) SignTx(tx *web3.Transaction) *web3.Transaction {

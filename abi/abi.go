@@ -127,6 +127,24 @@ func (a *ABI) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (self *ABI) DecodeTxInput(input []byte) (map[string]interface{}, error) {
+	result := make(map[string]interface{})
+	for _, method := range self.MethodsBySig {
+		if bytes.Equal(method.ID(), input[:4]) {
+			value, err := Decode(method.Inputs, input[4:])
+			if err != nil {
+				return nil, err
+			}
+			result["params"] = value.(map[string]interface{})
+			result["method"] = method.DetailedSig()
+
+			return result, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no matched method")
+}
+
 // Method is a callable function in the contract
 type Method struct {
 	Name    string
@@ -138,6 +156,10 @@ type Method struct {
 // Sig returns the signature of the method
 func (m *Method) Sig() string {
 	return buildSignature(m.Name, m.Inputs)
+}
+
+func (m *Method) DetailedSig() string {
+	return buildHumanSignature(m.Name, m.Inputs)
 }
 
 // ID returns the id of the method

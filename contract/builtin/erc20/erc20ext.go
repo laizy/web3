@@ -14,3 +14,10 @@ func (self *ERC20) AmountWithDecimals(amount uint64) *big.Int {
 
 	return u256.New(10).ExpUint8(decimals).MulUint64(amount).ToBigInt()
 }
+
+func (self *ERC20) AmountWithoutDecimals(amount *big.Int) uint64 {
+	decimals, err := self.Decimals(web3.Latest)
+	utils.Ensure(err)
+
+	return u256.New(amount).Div(u256.New(10).ExpUint8(decimals)).ToBigInt().Uint64()
+}

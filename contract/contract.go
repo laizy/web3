@@ -178,11 +178,12 @@ func (t *Txn) MustToTransaction() *web3.Transaction {
 
 func (t *Txn) Sign(signer *Signer) *SignedTx {
 	t.from = signer.Address()
-	tx := t.MustToTransaction()
 	if signer.Submit == false {
-		tx.Nonce = signer.Nonce
+		t.nonce = signer.Nonce
 		signer.Nonce += 1
+		t.SetGasLimit(5000000)
 	}
+	tx := t.MustToTransaction()
 	tx = signer.SignTx(tx)
 
 	return &SignedTx{tx}
@@ -236,6 +237,7 @@ func (t *Txn) ToTransaction() (*web3.Transaction, error) {
 		if err != nil {
 			return nil, err
 		}
+		t.gasLimit = t.gasLimit*130/100 + 500000
 	}
 
 	// send transaction

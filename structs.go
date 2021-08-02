@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+
+	"github.com/umbracle/go-web3/utils"
 )
 
 // Lengths of hashes and addresses in bytes.
@@ -20,7 +22,8 @@ type Address [20]byte
 // HexToAddress converts an hex string value to an address object
 func HexToAddress(str string) Address {
 	a := Address{}
-	a.UnmarshalText([]byte(str))
+	err := a.UnmarshalText([]byte(str))
+	utils.Ensure(err)
 	return a
 }
 
