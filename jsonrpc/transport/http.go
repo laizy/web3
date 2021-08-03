@@ -29,7 +29,8 @@ func (h *HTTP) Close() error {
 func (h *HTTP) Call(method string, out interface{}, params ...interface{}) error {
 	// Encode json-rpc request
 	request := codec.Request{
-		Method: method,
+		Method:  method,
+		JsonRpc: "2.0",
 	}
 	if len(params) > 0 {
 		data, err := json.Marshal(params)

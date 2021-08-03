@@ -2,6 +2,7 @@ package remotedb
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/holiman/uint256"
 	"github.com/umbracle/go-web3"
@@ -14,6 +15,7 @@ import (
 )
 
 type RemoteDB struct {
+	Trace    bool
 	client   *jsonrpc.Client
 	Accounts map[web3.Address]*storage.EthAccount
 	Storage  map[storageKey]web3.Hash
@@ -54,6 +56,10 @@ func (self *RemoteDB) GetAccount(addr web3.Address) *storage.EthAccount {
 		CodeHash: hash,
 	}
 
+	if self.Trace {
+		fmt.Printf("[remotedb] get account %s: %s\n", addr, utils.JsonString(acct))
+	}
+
 	self.Accounts[addr] = acct
 	return acct
 }
@@ -67,6 +73,10 @@ func (self *RemoteDB) GetStorage(addr web3.Address, key web3.Hash) web3.Hash {
 	val, err := self.client.Eth().GetStorage(addr, key, web3.Latest)
 	utils.Ensure(err)
 	self.Storage[skey] = val
+
+	if self.Trace {
+		fmt.Printf("[remotedb] get storage, contract: %s, key: %s, value:%s\n", addr, key, val)
+	}
 
 	return val
 }

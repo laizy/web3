@@ -29,6 +29,7 @@ import (
 	"github.com/umbracle/go-web3/evm/storage/overlaydb"
 	"github.com/umbracle/go-web3/evm/storage/schema"
 	"github.com/umbracle/go-web3/utils/codec"
+	"github.com/umbracle/go-web3/utils/common/hexutil"
 )
 
 type BalanceHandle interface {
@@ -210,7 +211,7 @@ func (self *StateDB) GetCommittedState(addr web3.Address, key web3.Hash) web3.Ha
 type EthAccount struct {
 	Nonce    uint64
 	Balance  *uint256.Int
-	Code     []byte
+	Code     hexutil.Bytes
 	CodeHash web3.Hash
 }
 

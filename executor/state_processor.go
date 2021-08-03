@@ -18,12 +18,15 @@
 package executor
 
 import (
+	"fmt"
+
 	"github.com/umbracle/go-web3"
 	"github.com/umbracle/go-web3/crypto"
 	"github.com/umbracle/go-web3/evm"
 	"github.com/umbracle/go-web3/evm/params"
 	"github.com/umbracle/go-web3/evm/storage"
 	"github.com/umbracle/go-web3/executor/remotedb"
+	"github.com/umbracle/go-web3/utils"
 )
 
 func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transaction, usedGas *uint64, evm *evm.EVM, feeReceiver web3.Address) (*web3.ExecutionResult, *web3.Receipt, error) {
@@ -76,6 +79,7 @@ func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transactio
 func ApplyTransaction(config *params.ChainConfig, bc *remotedb.RemoteDB, statedb *storage.StateDB, blockHeight, timestamp uint64, tx *web3.Transaction, usedGas *uint64, feeReceiver web3.Address, cfg evm.Config, checkNonce bool) (*web3.ExecutionResult, *web3.Receipt, error) {
 	// Create a new context to be used in the EVM environment
 	msg := MessageFromTx(tx, checkNonce)
+	fmt.Println(utils.JsonString(msg))
 	blockContext := NewEVMBlockContext(blockHeight, timestamp, bc.GetBlockHash)
 	vmenv := evm.NewEVM(blockContext, evm.TxContext{}, statedb, config, cfg)
 	return applyTransaction(msg, statedb, tx, usedGas, vmenv, feeReceiver)

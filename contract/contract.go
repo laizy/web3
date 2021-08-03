@@ -177,7 +177,7 @@ func (t *Txn) MustToTransaction() *web3.Transaction {
 }
 
 func (t *Txn) Sign(signer *Signer) *SignedTx {
-	t.from = signer.Address()
+	//t.from = signer.Address()
 	if signer.Submit == false {
 		t.nonce = signer.Nonce
 		signer.Nonce += 1
