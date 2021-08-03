@@ -21,6 +21,7 @@ func NewExecutor(rpcurl string) *Executor {
 	remote := remotedb.NewRemoteDB(rpcurl)
 	overlay := overlaydb.NewOverlayDB(remote)
 	cacheDB := storage.NewCacheDB(overlay)
+	//remote.Trace = true
 	return &Executor{
 		db:        remote,
 		overlayDB: overlay,

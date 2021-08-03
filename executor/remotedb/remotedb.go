@@ -2,6 +2,7 @@ package remotedb
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/holiman/uint256"
 	common2 "github.com/ontio/ontology/common"
@@ -15,6 +16,7 @@ import (
 )
 
 type RemoteDB struct {
+	Trace    bool
 	client   *jsonrpc.Client
 	Accounts map[ethgo.Address]*storage.EthAccount
 	Storage  map[storageKey]ethgo.Hash
@@ -57,6 +59,10 @@ func (self *RemoteDB) GetAccount(addr ethgo.Address) *storage.EthAccount {
 		CodeHash: hash,
 	}
 
+	if self.Trace {
+		fmt.Printf("[remotedb] get account %s: %s\n", addr, utils.JsonString(acct))
+	}
+
 	self.Accounts[addr] = acct
 	return acct
 }
@@ -70,6 +76,10 @@ func (self *RemoteDB) GetStorage(addr ethgo.Address, key ethgo.Hash) ethgo.Hash 
 	val, err := self.client.Eth().GetStorage(addr, key, ethgo.Latest)
 	utils.Ensure(err)
 	self.Storage[skey] = val
+
+	if self.Trace {
+		fmt.Printf("[remotedb] get storage, contract: %s, key: %s, value:%s\n", addr, key, val)
+	}
 
 	return val
 }
