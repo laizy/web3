@@ -79,7 +79,8 @@ func (self Int) Sub(val Int) Int {
 	return Int{big.NewInt(0).Sub(self.val, val.val)}
 }
 
-func (self Int) Div(val Int) Int {
+func (self Int) Div(value interface{}) Int {
+	val := New(value)
 	return Int{big.NewInt(0).Div(self.val, val.val)}
 }
 

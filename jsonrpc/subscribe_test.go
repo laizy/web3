@@ -1,9 +1,12 @@
 package jsonrpc
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/umbracle/go-web3/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/umbracle/go-web3"
@@ -69,4 +72,16 @@ func TestSubscribeNewHead(t *testing.T) {
 		// subscription already closed
 		assert.Error(t, cancel())
 	})
+}
+
+func TestPendingTx(t *testing.T) {
+	wssUrl := "ws://exchainrpc.okex.org:8546"
+	client, err := NewClient(wssUrl)
+	utils.Ensure(err)
+
+	_, err = client.Subscribe("newPendingTransactions", func(b []byte) {
+		fmt.Println(string(b))
+	})
+	utils.Ensure(err)
+
 }
