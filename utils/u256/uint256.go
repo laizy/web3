@@ -8,7 +8,15 @@ import (
 )
 
 type Int struct {
-	val *big.Int
+	value *big.Int
+}
+
+func (self *Int) val() *big.Int {
+	if self.value == nil {
+		self.value = big.NewInt(0)
+	}
+
+	return self.value
 }
 
 func New(v interface{}) Int {
@@ -63,12 +71,18 @@ func Mul(val ...interface{}) Int {
 	return result
 }
 
-func (self Int) Mul(val Int) Int {
-	return Int{big.NewInt(0).Mul(self.val, val.val)}
+func (self Int) Mul(value interface{}) Int {
+	val := New(value)
+	return Int{big.NewInt(0).Mul(self.val(), val.val())}
 }
 
-func (self Int) Add(val Int) Int {
-	return Int{big.NewInt(0).Add(self.val, val.val)}
+func (self Int) Add(value interface{}) Int {
+	val := New(value)
+	return Int{big.NewInt(0).Add(self.val(), val.val())}
+}
+
+func (self Int) Clone() Int {
+	return self.MulUint64(1)
 }
 
 func Sub(val1, val2 interface{}) Int {
@@ -76,21 +90,21 @@ func Sub(val1, val2 interface{}) Int {
 }
 
 func (self Int) Sub(val Int) Int {
-	return Int{big.NewInt(0).Sub(self.val, val.val)}
+	return Int{big.NewInt(0).Sub(self.val(), val.val())}
 }
 
 func (self Int) Div(value interface{}) Int {
 	val := New(value)
-	return Int{big.NewInt(0).Div(self.val, val.val)}
+	return Int{big.NewInt(0).Div(self.val(), val.val())}
 }
 
 func (self Int) Uint64() uint64 {
-	utils.EnsureTrue(self.val.IsUint64())
-	return self.val.Uint64()
+	utils.EnsureTrue(self.val().IsUint64())
+	return self.val().Uint64()
 }
 
 func (self Int) ToBigInt() *big.Int {
-	return self.val
+	return self.val()
 }
 
 func (a Int) MulUint64(rhs uint64) Int {
@@ -98,7 +112,7 @@ func (a Int) MulUint64(rhs uint64) Int {
 }
 
 func (self Int) Exp(val Int) Int {
-	return Int{big.NewInt(0).Exp(self.val, val.val, nil)}
+	return Int{big.NewInt(0).Exp(self.val(), val.val(), nil)}
 }
 
 func (self Int) ExpUint8(val uint8) Int {
@@ -122,11 +136,15 @@ func (self Int) LessThan(rhs Int) bool {
 }
 
 func (self Int) String() string {
-	return self.val.String()
+	return self.val().String()
 }
 
 func (self Int) ToFixNum(precise uint64) string {
 	return toStringByPrecise(self.ToBigInt(), precise)
+}
+
+func (self Int) ToFix9() string {
+	return toStringByPrecise(self.ToBigInt(), 9)
 }
 
 func toStringByPrecise(bigNum *big.Int, precise uint64) string {

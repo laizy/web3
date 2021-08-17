@@ -31,9 +31,8 @@ import (
 	"os"
 
 	"github.com/umbracle/fastrlp"
-
-	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/umbracle/go-web3"
+	"github.com/umbracle/go-web3/utils/common/math"
 	"golang.org/x/crypto/sha3"
 )
 

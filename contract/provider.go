@@ -13,10 +13,6 @@ import (
 	"github.com/umbracle/go-web3/wallet"
 )
 
-// NodeProvider handles the interactions with the Ethereum 1x node
-type NodeProvider interface {
-}
-
 type Signer struct {
 	*wallet.Key
 	signer wallet.Signer
@@ -38,14 +34,14 @@ func NewSigner(hexPrivKey string, client *jsonrpc.Client, chainId uint64) *Signe
 	nonce, err := client.Eth().GetNonce(account.Address(), web3.Latest)
 	utils.Ensure(err)
 
-	result :=  &Signer{
+	result := &Signer{
 		Key:      account,
 		signer:   signer,
 		Client:   client,
 		Executor: executor.NewExecutor(client),
-		Nonce: nonce,
+		Nonce:    nonce,
 	}
-	
+
 	return result
 }
 
@@ -90,7 +86,7 @@ func (self *Signer) WaitTx(hs web3.Hash) *web3.Receipt {
 	}
 }
 
-func (self *Signer) TransferEther(to web3.Address, value *big.Int) *web3.Transaction {
+func (self *Signer) TransferEther(to web3.Address, value *big.Int, msg string) *web3.Transaction {
 	nonce, err := self.Client.Eth().GetNonce(self.Key.Address(), web3.Pending)
 	utils.Ensure(err)
 	price, err := self.Client.Eth().GasPrice()
@@ -99,9 +95,10 @@ func (self *Signer) TransferEther(to web3.Address, value *big.Int) *web3.Transac
 	tx := &web3.Transaction{
 		To:       &to,
 		GasPrice: price,
-		Gas:      41000,
+		Gas:      41000 + uint64(len(msg))*100,
 		Value:    value,
 		Nonce:    nonce,
+		Input:    []byte(msg),
 	}
 
 	return self.SignTx(tx)
