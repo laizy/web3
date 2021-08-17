@@ -30,9 +30,9 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/umbracle/ethgo"
 	"github.com/umbracle/fastrlp"
+	"github.com/umbracle/go-web3"
+	"github.com/umbracle/go-web3/utils/common/math"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -76,7 +76,7 @@ func NewKeccakState() KeccakState {
 }
 
 // HashData hashes the provided data using the KeccakState and returns a 32 byte hash
-func HashData(kh KeccakState, data []byte) (h ethgo.Hash) {
+func HashData(kh KeccakState, data []byte) (h web3.Hash) {
 	kh.Reset()
 	kh.Write(data)
 	kh.Read(h[:])
@@ -96,7 +96,7 @@ func Keccak256(data ...[]byte) []byte {
 
 // Keccak256Hash calculates and returns the Keccak256 hash of the input data,
 // converting it to an internal Hash data structure.
-func Keccak256Hash(data ...[]byte) (h ethgo.Hash) {
+func Keccak256Hash(data ...[]byte) (h web3.Hash) {
 	d := NewKeccakState()
 	for _, b := range data {
 		d.Write(b)
@@ -115,19 +115,19 @@ func Keccak512(data ...[]byte) []byte {
 }
 
 // CreateAddress creates an ethereum address given the bytes and the nonce
-func CreateAddress(b ethgo.Address, nonce uint64) ethgo.Address {
+func CreateAddress(b web3.Address, nonce uint64) web3.Address {
 	a := &fastrlp.Arena{}
 	v := a.NewArray()
 	v.Set(a.NewBytes(b.Bytes()))
 	v.Set(a.NewUint(nonce))
 	data := v.MarshalTo(nil)
-	return ethgo.BytesToAddress(Keccak256(data)[12:])
+	return web3.BytesToAddress(Keccak256(data)[12:])
 }
 
 // CreateAddress2 creates an ethereum address given the address bytes, initial
 // contract code hash and a salt.
-func CreateAddress2(b ethgo.Address, salt [32]byte, inithash []byte) ethgo.Address {
-	return ethgo.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
+func CreateAddress2(b web3.Address, salt [32]byte, inithash []byte) web3.Address {
+	return web3.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
 }
 
 // ToECDSA creates a private key with the given D value.
@@ -287,9 +287,9 @@ func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 	return r.Cmp(secp256k1N) < 0 && s.Cmp(secp256k1N) < 0 && (v == 0 || v == 1)
 }
 
-func PubkeyToAddress(p ecdsa.PublicKey) ethgo.Address {
+func PubkeyToAddress(p ecdsa.PublicKey) web3.Address {
 	pubBytes := FromECDSAPub(&p)
-	return ethgo.BytesToAddress(Keccak256(pubBytes[1:])[12:])
+	return web3.BytesToAddress(Keccak256(pubBytes[1:])[12:])
 }
 
 func zeroBytes(bytes []byte) {
