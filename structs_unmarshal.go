@@ -115,7 +115,7 @@ func (t *Transaction) UnmarshalJSON(buf []byte) error {
 
 func (t *Transaction) unmarshalJSON(v *fastjson.Value) error {
 	var err error
-	if err := decodeHash(&t.Hash, v, "hash"); err != nil {
+	if err := decodeHash(&t.hash, v, "hash"); err != nil {
 		return err
 	}
 	if err = decodeAddr(&t.From, v, "from"); err != nil {

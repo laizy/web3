@@ -282,5 +282,5 @@ func TestEthTransactionsInBlock(t *testing.T) {
 	assert.Len(t, block1.TransactionsHashes, 0)
 	assert.Len(t, block1.Transactions, 1)
 
-	assert.Equal(t, block0.TransactionsHashes[0], block1.Transactions[0].Hash)
+	assert.Equal(t, block0.TransactionsHashes[0], block1.Transactions[0].Hash())
 }

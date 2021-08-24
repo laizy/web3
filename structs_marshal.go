@@ -86,7 +86,7 @@ func (t *Transaction) MarshalJSON() ([]byte, error) {
 	a := defaultArena.Get()
 
 	o := a.NewObject()
-	o.Set("hash", a.NewString(t.Hash.String()))
+	o.Set("hash", a.NewString(t.Hash().String()))
 	o.Set("from", a.NewString(t.From.String()))
 	if len(t.Input) != 0 {
 		o.Set("input", a.NewString("0x"+hex.EncodeToString(t.Input)))

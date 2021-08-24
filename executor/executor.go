@@ -49,7 +49,7 @@ type Eip155Context struct {
 func (self *Executor) ExecuteTransaction(tx *web3.Transaction, ctx Eip155Context) (*web3.ExecutionResult, *web3.Receipt, error) {
 	usedGas := uint64(0)
 	config := params.GetChainConfig(self.chainID)
-	statedb := storage.NewStateDB(self.cacheDB, tx.Hash, ctx.BlockHash)
+	statedb := storage.NewStateDB(self.cacheDB, tx.Hash(), ctx.BlockHash)
 	evmConf := evm.Config{}
 	if self.Trace {
 		evmConf.Debug = true

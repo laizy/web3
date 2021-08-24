@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/laizy/web3/utils"
+	"golang.org/x/crypto/sha3"
 )
 
 // Lengths of hashes and addresses in bytes.
@@ -74,6 +75,12 @@ func (h Hash) String() string {
 	return "0x" + hex.EncodeToString(h[:])
 }
 
+func (h Hash) IsEmpty() bool {
+	empty := Hash{}
+
+	return h == empty
+}
+
 func (h Hash) Bytes() []byte {
 	return h[:]
 }
@@ -98,7 +105,7 @@ type Block struct {
 }
 
 type Transaction struct {
-	Hash        Hash
+	hash        Hash
 	From        Address
 	To          *Address
 	Input       []byte
@@ -112,6 +119,16 @@ type Transaction struct {
 	BlockHash   Hash
 	BlockNumber uint64
 	TxnIndex    uint64
+}
+
+func (t *Transaction) Hash() Hash {
+	if t.hash.IsEmpty() {
+		hs := sha3.NewLegacyKeccak256()
+		hs.Write(t.MarshalRLP())
+		hs.Sum(t.hash[:0])
+	}
+
+	return t.hash
 }
 
 func (t *Transaction) ToCallMsg() *CallMsg {
