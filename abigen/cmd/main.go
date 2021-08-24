@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
-	"path/filepath"
-
+	"github.com/laizy/web3/abigen"
 	"github.com/laizy/web3/compiler"
 )
 
@@ -30,7 +30,7 @@ func main() {
 
 	flag.Parse()
 
-	config := &config{
+	config := &abigen.Config{
 		Package: pckg,
 		Output:  output,
 		Name:    name,
@@ -52,7 +52,7 @@ func main() {
 			fmt.Printf("Failed to parse sources: %v", err)
 			os.Exit(1)
 		}
-		if err := gen(artifacts, config); err != nil {
+		if err := abigen.GenCode(artifacts, config); err != nil {
 			fmt.Printf("Failed to generate sources: %v", err)
 			os.Exit(1)
 		}
@@ -66,7 +66,7 @@ const (
 	jsonExt = 3
 )
 
-func process(sources string, config *config) (map[string]*compiler.Artifact, error) {
+func process(sources string, config *abigen.Config) (map[string]*compiler.Artifact, error) {
 	files := strings.Split(sources, ",")
 	if len(files) == 0 {
 		return nil, fmt.Errorf("input not found")
@@ -145,7 +145,7 @@ func processSolc(sources []string) (map[string]*compiler.Artifact, error) {
 	return res, nil
 }
 
-func processAbi(sources []string, config *config) (map[string]*compiler.Artifact, error) {
+func processAbi(sources []string, config *abigen.Config) (map[string]*compiler.Artifact, error) {
 	artifacts := map[string]*compiler.Artifact{}
 
 	for _, abiPath := range sources {

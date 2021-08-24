@@ -1,4 +1,4 @@
-package main
+package abigen
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"github.com/laizy/web3/compiler"
 )
 
-type config struct {
+type Config struct {
 	Package string
 	Output  string
 	Name    string
@@ -120,7 +120,7 @@ func isNil(c interface{}) bool {
 	return c == nil || (reflect.ValueOf(c).Kind() == reflect.Ptr && reflect.ValueOf(c).IsNil())
 }
 
-func gen(artifacts map[string]*compiler.Artifact, config *config) error {
+func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 	funcMap := template.FuncMap{
 		"title":      strings.Title,
 		"clean":      cleanName,

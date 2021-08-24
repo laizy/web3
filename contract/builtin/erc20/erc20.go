@@ -11,6 +11,7 @@ import (
 
 var (
 	_ = big.NewInt
+	_ = fmt.Printf
 )
 
 // ERC20 is a solidity contract
@@ -46,7 +47,7 @@ func (a *ERC20) Allowance(owner web3.Address, spender web3.Address, block ...web
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-
+	
 	return
 }
 
@@ -66,7 +67,7 @@ func (a *ERC20) BalanceOf(owner web3.Address, block ...web3.BlockNumber) (retval
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-
+	
 	return
 }
 
@@ -86,7 +87,7 @@ func (a *ERC20) Decimals(block ...web3.BlockNumber) (retval0 uint8, err error) {
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-
+	
 	return
 }
 
@@ -106,7 +107,7 @@ func (a *ERC20) Name(block ...web3.BlockNumber) (retval0 string, err error) {
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-
+	
 	return
 }
 
@@ -126,7 +127,7 @@ func (a *ERC20) Symbol(block ...web3.BlockNumber) (retval0 string, err error) {
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-
+	
 	return
 }
 
@@ -146,9 +147,10 @@ func (a *ERC20) TotalSupply(block ...web3.BlockNumber) (retval0 *big.Int, err er
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-
+	
 	return
 }
+
 
 // txns
 

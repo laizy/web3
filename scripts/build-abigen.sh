@@ -29,7 +29,7 @@ echo "==> Building..."
     -arch="${XC_ARCH}" \
     -osarch="!darwin/arm !darwin/arm64" \
     -output "pkg/{{.OS}}_{{.Arch}}/go-web3" \
-    .
+    ./cmd
 
 # Move all the compiled things to the $GOPATH/bin
 GOPATH=${GOPATH:-$(go env GOPATH)}
