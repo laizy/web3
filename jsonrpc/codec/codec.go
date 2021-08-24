@@ -10,7 +10,7 @@ type Request struct {
 	JsonRPC string          `json:"jsonrpc"`
 	ID      uint64          `json:"id"`
 	Method  string          `json:"method"`
-	Params  json.RawMessage `json:"params"`
+	Params  json.RawMessage `json:"params,omitempty"`
 }
 
 // Response is a jsonrpc response
