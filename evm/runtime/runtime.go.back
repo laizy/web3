@@ -21,7 +21,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/holiman/uint256"
+	"github.com/laizy/web3/utils/common/uint256"
 	"github.com/ontio/ontology/core/store/leveldbstore"
 	"github.com/ontio/ontology/smartcontract/service/native/ong"
 	"github.com/umbracle/ethgo"
