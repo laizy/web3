@@ -2,6 +2,7 @@ package transport
 
 import (
 	"encoding/json"
+	"sync/atomic"
 
 	"github.com/laizy/web3/jsonrpc/codec"
 	"github.com/valyala/fasthttp"
@@ -11,6 +12,7 @@ import (
 type HTTP struct {
 	addr   string
 	client *fasthttp.Client
+	nextId uint64
 }
 
 func newHTTP(addr string) *HTTP {
@@ -25,19 +27,28 @@ func (h *HTTP) Close() error {
 	return nil
 }
 
+func (c *HTTP) nextID() uint64 {
+	id := atomic.AddUint64(&c.nextId, 1)
+	return id
+}
+
 // Call implements the transport interface
 func (h *HTTP) Call(method string, out interface{}, params ...interface{}) error {
 	// Encode json-rpc request
 	request := codec.Request{
 		Method:  method,
 		JsonRpc: "2.0",
+		ID:      h.nextID(),
 	}
+
 	if len(params) > 0 {
 		data, err := json.Marshal(params)
 		if err != nil {
 			return err
 		}
 		request.Params = data
+	} else {
+		request.Params = nil
 	}
 	raw, err := json.Marshal(request)
 	if err != nil {
