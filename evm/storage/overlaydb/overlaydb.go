@@ -21,9 +21,9 @@ package overlaydb
 import (
 	"crypto/sha256"
 
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/evm/storage/schema"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/evm/storage/schema"
 )
 
 type OverlayDB struct {

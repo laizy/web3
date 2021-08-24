@@ -7,9 +7,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/umbracle/go-web3/utils"
+	"github.com/laizy/web3/utils"
 
-	"github.com/umbracle/go-web3"
+	"github.com/laizy/web3"
 
 	"github.com/stretchr/testify/assert"
 )

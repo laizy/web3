@@ -1,6 +1,6 @@
 package registry
 
-import "github.com/umbracle/go-web3"
+import "github.com/laizy/web3"
 
 var eventRegistry = NewEventRegistry()
 

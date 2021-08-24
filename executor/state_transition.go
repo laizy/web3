@@ -23,9 +23,9 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/evm"
-	"github.com/umbracle/go-web3/evm/params"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/evm"
+	"github.com/laizy/web3/evm/params"
 )
 
 // List of evm-call-message pre-checking errors. All state transition messages will

@@ -22,10 +22,10 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/umbracle/go-web3/utils"
+	"github.com/laizy/web3/utils"
 
-	"github.com/umbracle/go-web3/evm/errors"
-	"github.com/umbracle/go-web3/utils/common/hexutil"
+	"github.com/laizy/web3/evm/errors"
+	"github.com/laizy/web3/utils/common/hexutil"
 )
 
 // ExecutionResult includes all output after executing given evm

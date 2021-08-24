@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/umbracle/go-web3/utils"
+	"github.com/laizy/web3/utils"
 )
 
 // Lengths of hashes and addresses in bytes.

@@ -20,7 +20,7 @@ package evm
 import (
 	"math/big"
 
-	"github.com/umbracle/go-web3"
+	"github.com/laizy/web3"
 )
 
 // StateDB is an EVM database for full state querying.

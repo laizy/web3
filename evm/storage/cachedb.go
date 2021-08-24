@@ -19,10 +19,10 @@
 package storage
 
 import (
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/evm/storage/overlaydb"
+	"github.com/laizy/web3/evm/storage/schema"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/evm/storage/overlaydb"
-	"github.com/umbracle/go-web3/evm/storage/schema"
 )
 
 // CacheDB is smart contract execute cache, it contain transaction cache and block cache

@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/umbracle/go-web3/utils/common/hexutil"
+	"github.com/laizy/web3/utils/common/hexutil"
 
-	"github.com/umbracle/go-web3/abi"
-	"github.com/umbracle/go-web3/registry"
-	"github.com/umbracle/go-web3/utils"
+	"github.com/laizy/web3/abi"
+	"github.com/laizy/web3/registry"
+	"github.com/laizy/web3/utils"
 )
 
 func GetArtifacts() (map[string]*Artifact, error) {

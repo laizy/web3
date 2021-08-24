@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/umbracle/go-web3"
+	"github.com/laizy/web3"
 )
 
 // Eth is the eth namespace

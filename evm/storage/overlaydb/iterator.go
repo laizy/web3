@@ -18,8 +18,8 @@
 package overlaydb
 
 import (
+	"github.com/laizy/web3/evm/storage/schema"
 	"github.com/syndtr/goleveldb/leveldb/comparer"
-	"github.com/umbracle/go-web3/evm/storage/schema"
 )
 
 type KeyOrigin byte

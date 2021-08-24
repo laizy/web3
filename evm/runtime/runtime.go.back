@@ -24,12 +24,12 @@ import (
 	"github.com/holiman/uint256"
 	"github.com/ontio/ontology/core/store/leveldbstore"
 	"github.com/ontio/ontology/smartcontract/service/native/ong"
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/crypto"
-	"github.com/umbracle/go-web3/evm"
-	"github.com/umbracle/go-web3/evm/params"
-	"github.com/umbracle/go-web3/evm/storage"
-	"github.com/umbracle/go-web3/evm/storage/overlaydb"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/crypto"
+	"github.com/laizy/web3/evm"
+	"github.com/laizy/web3/evm/params"
+	"github.com/laizy/web3/evm/storage"
+	"github.com/laizy/web3/evm/storage/overlaydb"
 )
 
 // Config is a basic type specifying certain configuration flags for running

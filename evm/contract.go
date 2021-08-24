@@ -21,7 +21,7 @@ import (
 	"math/big"
 
 	"github.com/holiman/uint256"
-	"github.com/umbracle/go-web3"
+	"github.com/laizy/web3"
 )
 
 // ContractRef is a reference to the contract's backing object

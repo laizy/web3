@@ -10,8 +10,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/utils"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/utils"
 	"golang.org/x/crypto/sha3"
 )
 

@@ -22,15 +22,15 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/umbracle/go-web3/utils/common"
-	"github.com/umbracle/go-web3/utils/common/hexutil"
+	"github.com/laizy/web3/utils/common"
+	"github.com/laizy/web3/utils/common/hexutil"
 	"github.com/ontio/ontology/core/store/leveldbstore"
 	"github.com/ontio/ontology/core/store/overlaydb"
 	"github.com/ontio/ontology/smartcontract/service/native/ong"
 	"github.com/ontio/ontology/smartcontract/storage"
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/evm/errors"
-	"github.com/umbracle/go-web3/evm/params"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/evm/errors"
+	"github.com/laizy/web3/evm/params"
 )
 
 func TestMemoryGasCost(t *testing.T) {

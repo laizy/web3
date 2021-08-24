@@ -21,7 +21,7 @@ import (
 	"math"
 
 	"github.com/holiman/uint256"
-	"github.com/umbracle/go-web3/utils/common"
+	"github.com/laizy/web3/utils/common"
 )
 
 // calcMemSize64 calculates the required memory size, and returns

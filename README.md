@@ -1,5 +1,7 @@
 
-# Go-Web3
+# Web3
+
+**forked from "github.com/umbracle/go-web3"**
 
 ## JsonRPC
 
@@ -9,8 +11,8 @@ package main
 import (
 	"fmt"
 	
-	web3 "github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/jsonrpc"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/jsonrpc"
 )
 
 func main() {
@@ -40,7 +42,7 @@ The ABI codifier uses randomized tests with e2e integration tests with a real Ge
 To use the library import:
 
 ```
-"github.com/umbracle/go-web3/abi"
+"github.com/laizy/web3/abi"
 ```
 
 Declare basic objects:
@@ -80,8 +82,8 @@ You can also codify structs as Solidity tuples:
 import (
 	"fmt"
     
-	web3 "github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/abi"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/abi"
 	"math/big"
 )
 
@@ -155,9 +157,9 @@ Resolve names on the Ethereum Name Service registrar.
 import (
     "fmt"
 
-    web3 "github.com/umbracle/go-web3"
-    "github.com/umbracle/go-web3/jsonrpc"
-    "github.com/umbracle/go-web3/contract/builtin/ens"
+    "github.com/laizy/web3"
+    "github.com/laizy/web3/jsonrpc"
+    "github.com/laizy/web3/contract/builtin/ens"
 )
 
 var mainnetAddress = web3.HexToAddress("0x314159265dD8dbb310642f98f50C066173C1259b")

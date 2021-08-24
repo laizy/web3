@@ -21,8 +21,8 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/evm"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/evm"
 )
 
 // NewEVMBlockContext creates a new context for use in the EVM.

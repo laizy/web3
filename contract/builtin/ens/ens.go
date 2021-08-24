@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"math/big"
 
-	web3 "github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/contract"
-	"github.com/umbracle/go-web3/jsonrpc"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/contract"
+	"github.com/laizy/web3/jsonrpc"
 )
 
 var (
@@ -51,7 +51,7 @@ func (a *ENS) Owner(node [32]byte, block ...web3.BlockNumber) (val0 web3.Address
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-	
+
 	return
 }
 
@@ -71,7 +71,7 @@ func (a *ENS) Resolver(node [32]byte, block ...web3.BlockNumber) (val0 web3.Addr
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-	
+
 	return
 }
 
@@ -91,10 +91,9 @@ func (a *ENS) Ttl(node [32]byte, block ...web3.BlockNumber) (val0 uint64, err er
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-	
+
 	return
 }
-
 
 // txns
 

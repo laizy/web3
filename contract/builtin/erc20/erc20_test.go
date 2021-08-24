@@ -3,10 +3,10 @@ package erc20
 import (
 	"testing"
 
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/jsonrpc"
+	"github.com/laizy/web3/testutil"
 	"github.com/stretchr/testify/assert"
-	web3 "github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/jsonrpc"
-	"github.com/umbracle/go-web3/testutil"
 )
 
 var (

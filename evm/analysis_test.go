@@ -20,7 +20,7 @@ package evm
 import (
 	"testing"
 
-	"github.com/umbracle/go-web3/crypto"
+	"github.com/laizy/web3/crypto"
 )
 
 func TestJumpDestAnalysis(t *testing.T) {

@@ -30,9 +30,9 @@ import (
 	"math/big"
 	"os"
 
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/utils/common/math"
 	"github.com/umbracle/fastrlp"
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/utils/common/math"
 	"golang.org/x/crypto/sha3"
 )
 

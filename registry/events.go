@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/abi"
-	"github.com/umbracle/go-web3/utils"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/abi"
+	"github.com/laizy/web3/utils"
 )
 
 type EventRegistry struct {

@@ -21,10 +21,10 @@ import (
 	"hash"
 	"sync/atomic"
 
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/evm/errors"
-	"github.com/umbracle/go-web3/utils/common"
-	"github.com/umbracle/go-web3/utils/common/math"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/evm/errors"
+	"github.com/laizy/web3/utils/common"
+	"github.com/laizy/web3/utils/common/math"
 )
 
 // Config are the configuration options for the Interpreter

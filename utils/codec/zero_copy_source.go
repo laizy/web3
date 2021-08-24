@@ -24,7 +24,7 @@ import (
 	"io"
 	"math"
 
-	"github.com/umbracle/go-web3"
+	"github.com/laizy/web3"
 )
 
 var ErrIrregularData = errors.New("irregular data")

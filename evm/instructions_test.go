@@ -24,12 +24,12 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/umbracle/go-web3"
+	"github.com/laizy/web3"
 
 	"github.com/holiman/uint256"
-	"github.com/umbracle/go-web3/crypto"
-	"github.com/umbracle/go-web3/evm/params"
-	"github.com/umbracle/go-web3/utils/common"
+	"github.com/laizy/web3/crypto"
+	"github.com/laizy/web3/evm/params"
+	"github.com/laizy/web3/utils/common"
 )
 
 type TwoOperandTestcase struct {

@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/umbracle/go-web3/utils"
+	"github.com/laizy/web3/utils"
 
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/testutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/testutil"
 )
 
 func TestSubscribeNewHead(t *testing.T) {

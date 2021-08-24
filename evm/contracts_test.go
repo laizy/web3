@@ -25,8 +25,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/utils/common"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/utils/common"
 )
 
 // precompiledTest defines the input/output pairs for precompiled contract tests.

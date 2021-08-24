@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	web3 "github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/jsonrpc"
-	"github.com/umbracle/go-web3/testutil"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/jsonrpc"
+	"github.com/laizy/web3/testutil"
 )
 
 func testTracker(t *testing.T, server *testutil.TestServer, tracker BlockTracker) {

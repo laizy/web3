@@ -20,8 +20,8 @@ package runtime_test
 import (
 	"fmt"
 
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/evm/runtime"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/evm/runtime"
 )
 
 func ExampleExecute() {

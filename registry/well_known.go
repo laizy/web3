@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"github.com/umbracle/go-web3"
+	"github.com/laizy/web3"
 )
 
 func (self *EventRegistry) RegisterPresetMainnet() {

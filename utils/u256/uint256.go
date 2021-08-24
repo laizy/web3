@@ -4,7 +4,7 @@ import (
 	"math/big"
 
 	"github.com/holiman/uint256"
-	"github.com/umbracle/go-web3/utils"
+	"github.com/laizy/web3/utils"
 )
 
 type Int struct {

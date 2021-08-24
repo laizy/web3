@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/umbracle/go-web3/utils/common/hexutil"
+	"github.com/laizy/web3/utils/common/hexutil"
 	"github.com/holiman/uint256"
 	"github.com/ontio/ontology/common/log"
-	"github.com/umbracle/go-web3"
+	"github.com/laizy/web3"
 )
 
 type Contract struct {

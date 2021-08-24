@@ -28,7 +28,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/umbracle/go-web3/utils/common/hexutil"
+	"github.com/laizy/web3/utils/common/hexutil"
 	"golang.org/x/crypto/sha3"
 )
 

@@ -26,10 +26,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/evm/params"
-	"github.com/umbracle/go-web3/utils/common/hexutil"
-	"github.com/umbracle/go-web3/utils/common/math"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/evm/params"
+	"github.com/laizy/web3/utils/common/hexutil"
+	"github.com/laizy/web3/utils/common/math"
 )
 
 var errTraceLimitReached = errors.New("the number of logs reached the specified limit")

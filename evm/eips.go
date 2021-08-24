@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	"github.com/holiman/uint256"
-	"github.com/umbracle/go-web3/evm/params"
+	"github.com/laizy/web3/evm/params"
 )
 
 var activators = map[int]func(*JumpTable){

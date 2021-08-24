@@ -22,7 +22,7 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/umbracle/go-web3"
+	"github.com/laizy/web3"
 )
 
 type ZeroCopySink struct {

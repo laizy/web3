@@ -24,12 +24,12 @@ import (
 	"math/big"
 
 	"github.com/holiman/uint256"
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/crypto"
-	"github.com/umbracle/go-web3/evm/storage/overlaydb"
-	"github.com/umbracle/go-web3/evm/storage/schema"
-	"github.com/umbracle/go-web3/utils/codec"
-	"github.com/umbracle/go-web3/utils/common/hexutil"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/crypto"
+	"github.com/laizy/web3/evm/storage/overlaydb"
+	"github.com/laizy/web3/evm/storage/schema"
+	"github.com/laizy/web3/utils/codec"
+	"github.com/laizy/web3/utils/common/hexutil"
 )
 
 type BalanceHandle interface {

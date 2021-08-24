@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/laizy/web3"
 	"github.com/stretchr/testify/assert"
-	"github.com/umbracle/go-web3"
 )
 
 func TestSigner_EIP1155(t *testing.T) {

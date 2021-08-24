@@ -3,13 +3,13 @@ package executor
 import (
 	"os"
 
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/evm"
-	"github.com/umbracle/go-web3/evm/params"
-	"github.com/umbracle/go-web3/evm/storage"
-	"github.com/umbracle/go-web3/evm/storage/overlaydb"
-	"github.com/umbracle/go-web3/executor/remotedb"
-	"github.com/umbracle/go-web3/jsonrpc"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/evm"
+	"github.com/laizy/web3/evm/params"
+	"github.com/laizy/web3/evm/storage"
+	"github.com/laizy/web3/evm/storage/overlaydb"
+	"github.com/laizy/web3/executor/remotedb"
+	"github.com/laizy/web3/jsonrpc"
 )
 
 type Executor struct {

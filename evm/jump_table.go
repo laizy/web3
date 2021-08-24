@@ -18,7 +18,7 @@
 package evm
 
 import (
-	"github.com/umbracle/go-web3/evm/params"
+	"github.com/laizy/web3/evm/params"
 )
 
 type (

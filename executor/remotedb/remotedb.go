@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	"github.com/holiman/uint256"
-	"github.com/umbracle/go-web3"
-	"github.com/umbracle/go-web3/crypto"
-	"github.com/umbracle/go-web3/evm/storage"
-	"github.com/umbracle/go-web3/evm/storage/schema"
-	"github.com/umbracle/go-web3/jsonrpc"
-	"github.com/umbracle/go-web3/utils"
-	"github.com/umbracle/go-web3/utils/codec"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/crypto"
+	"github.com/laizy/web3/evm/storage"
+	"github.com/laizy/web3/evm/storage/schema"
+	"github.com/laizy/web3/jsonrpc"
+	"github.com/laizy/web3/utils"
+	"github.com/laizy/web3/utils/codec"
 )
 
 type RemoteDB struct {

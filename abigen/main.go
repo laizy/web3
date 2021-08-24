@@ -10,7 +10,7 @@ import (
 
 	"path/filepath"
 
-	"github.com/umbracle/go-web3/compiler"
+	"github.com/laizy/web3/compiler"
 )
 
 const (
