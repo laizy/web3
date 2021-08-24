@@ -22,11 +22,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/holiman/uint256"
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/crypto"
 	"github.com/laizy/web3/evm/errors"
 	"github.com/laizy/web3/evm/params"
+	"github.com/laizy/web3/utils/common/uint256"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already

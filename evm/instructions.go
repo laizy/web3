@@ -18,11 +18,11 @@
 package evm
 
 import (
-	"github.com/holiman/uint256"
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/evm/errors"
 	"github.com/laizy/web3/evm/params"
 	"github.com/laizy/web3/utils/common"
+	"github.com/laizy/web3/utils/common/uint256"
 	"golang.org/x/crypto/sha3"
 )
 

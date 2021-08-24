@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/holiman/uint256"
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/crypto"
 	"github.com/laizy/web3/evm/storage"
@@ -12,6 +11,7 @@ import (
 	"github.com/laizy/web3/jsonrpc"
 	"github.com/laizy/web3/utils"
 	"github.com/laizy/web3/utils/codec"
+	"github.com/laizy/web3/utils/common/uint256"
 )
 
 type RemoteDB struct {

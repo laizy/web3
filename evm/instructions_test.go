@@ -26,10 +26,10 @@ import (
 
 	"github.com/laizy/web3"
 
-	"github.com/holiman/uint256"
 	"github.com/laizy/web3/crypto"
 	"github.com/laizy/web3/evm/params"
 	"github.com/laizy/web3/utils/common"
+	"github.com/laizy/web3/utils/common/uint256"
 )
 
 type TwoOperandTestcase struct {
@@ -571,11 +571,11 @@ func BenchmarkOpSHA3(bench *testing.B) {
 	env.interpreter = evmInterpreter
 	mem.Resize(32)
 	pc := uint64(0)
-	start := uint256.NewInt(0)
+	start := uint256.NewInt()
 
 	bench.ResetTimer()
 	for i := 0; i < bench.N; i++ {
-		stack.pushN(*uint256.NewInt(0).SetUint64(32), *start)
+		stack.pushN(*uint256.NewInt().SetUint64(32), *start)
 		opSha3(&pc, evmInterpreter, &callCtx{mem, stack, rstack, nil})
 	}
 }

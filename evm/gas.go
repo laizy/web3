@@ -18,8 +18,8 @@
 package evm
 
 import (
-	"github.com/holiman/uint256"
 	"github.com/laizy/web3/evm/errors"
+	"github.com/laizy/web3/utils/common/uint256"
 )
 
 // Gas costs

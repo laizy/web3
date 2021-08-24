@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/holiman/uint256"
+	"github.com/laizy/web3/utils/common/uint256"
 )
 
 var stackPool = sync.Pool{

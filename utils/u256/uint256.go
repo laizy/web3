@@ -3,8 +3,8 @@ package u256
 import (
 	"math/big"
 
-	"github.com/holiman/uint256"
 	"github.com/laizy/web3/utils"
+	"github.com/laizy/web3/utils/common/uint256"
 )
 
 type Int struct {

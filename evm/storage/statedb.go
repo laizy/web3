@@ -23,13 +23,13 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/holiman/uint256"
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/crypto"
 	"github.com/laizy/web3/evm/storage/overlaydb"
 	"github.com/laizy/web3/evm/storage/schema"
 	"github.com/laizy/web3/utils/codec"
 	"github.com/laizy/web3/utils/common/hexutil"
+	"github.com/laizy/web3/utils/common/uint256"
 )
 
 type BalanceHandle interface {
@@ -230,7 +230,7 @@ func (self *EthAccount) Serialization(sink *codec.ZeroCopySink) {
 func (self *EthAccount) Deserialization(source *codec.ZeroCopySource) error {
 	self.Nonce, _ = source.NextUint64()
 	balance, _ := source.NextBytes(32)
-	self.Balance = uint256.NewInt(0).SetBytes32(balance)
+	self.Balance = uint256.NewInt().SetBytes32(balance)
 	self.Code, _ = source.ReadVarBytes()
 	hash, eof := source.NextHash()
 	if eof {

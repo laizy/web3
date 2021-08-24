@@ -20,8 +20,8 @@ package evm
 import (
 	"fmt"
 
-	"github.com/holiman/uint256"
 	"github.com/laizy/web3/evm/params"
+	"github.com/laizy/web3/utils/common/uint256"
 )
 
 var activators = map[int]func(*JumpTable){

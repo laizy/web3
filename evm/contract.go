@@ -20,8 +20,8 @@ package evm
 import (
 	"math/big"
 
-	"github.com/holiman/uint256"
 	"github.com/laizy/web3"
+	"github.com/laizy/web3/utils/common/uint256"
 )
 
 // ContractRef is a reference to the contract's backing object
