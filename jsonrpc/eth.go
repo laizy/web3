@@ -9,6 +9,8 @@ import (
 	"github.com/laizy/web3"
 )
 
+var HardhatNode = false // 临时方案 https://github.com/nomiclabs/hardhat/issues/1822
+
 // Eth is the eth namespace
 type Eth struct {
 	c *Client
@@ -152,10 +154,14 @@ func (e *Eth) GetNonce(addr web3.Address, blockNumber web3.BlockNumber) (uint64,
 }
 
 // StorageAt returns the value of key in the contract storage of the given account.
-// The block number can be nil, in which case the value is taken from the latest known block.
 func (ec *Eth) GetStorage(account web3.Address, key web3.Hash, blockNumber web3.BlockNumber) (web3.Hash, error) {
+	slot := key.String()
+	if HardhatNode {
+		value := big.NewInt(0).SetBytes(key.Bytes())
+		slot = fmt.Sprintf("0x%x", value)
+	}
 	var out string
-	if err := ec.c.Call("eth_getStorageAt", &out, account, key, blockNumber.String()); err != nil {
+	if err := ec.c.Call("eth_getStorageAt", &out, account, slot, blockNumber.String()); err != nil {
 		return web3.Hash{}, err
 	}
 
