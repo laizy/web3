@@ -2,8 +2,10 @@ package transport
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync/atomic"
 
+	"github.com/laizy/web3"
 	"github.com/laizy/web3/jsonrpc/codec"
 	"github.com/valyala/fasthttp"
 )
@@ -61,6 +63,10 @@ func (h *HTTP) Call(method string, out interface{}, params ...interface{}) error
 	defer fasthttp.ReleaseRequest(req)
 	defer fasthttp.ReleaseResponse(res)
 
+	if web3.TraceRpc {
+		fmt.Printf("http eth rpc request: %s\n", string(raw))
+	}
+
 	req.SetRequestURI(h.addr)
 	req.Header.SetMethod("POST")
 	req.Header.SetContentType("application/json")
@@ -72,7 +78,11 @@ func (h *HTTP) Call(method string, out interface{}, params ...interface{}) error
 
 	// Decode json-rpc response
 	var response codec.Response
-	if err := json.Unmarshal(res.Body(), &response); err != nil {
+	body := res.Body()
+	if web3.TraceRpc {
+		fmt.Printf("http eth rpc response: %s\n", string(body))
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
 		return err
 	}
 	if response.Error != nil {
