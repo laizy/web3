@@ -172,6 +172,7 @@ func (l *LogFilter) SetTo(b BlockNumber) {
 }
 
 type Receipt struct {
+	Status            uint64
 	TransactionHash   Hash
 	TransactionIndex  uint64
 	ContractAddress   Address
@@ -182,6 +183,15 @@ type Receipt struct {
 	CumulativeGasUsed uint64
 	LogsBloom         []byte
 	Logs              []*Log
+}
+
+const (
+	// ReceiptStatusSuccessful is the status code of a transaction if execution succeeded.
+	ReceiptStatusSuccessful = uint64(1)
+)
+
+func (self *Receipt) IsReverted() bool {
+	return self.Status != ReceiptStatusSuccessful
 }
 
 type ThinReceipt struct {

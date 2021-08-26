@@ -203,6 +203,9 @@ func (r *Receipt) UnmarshalJSON(buf []byte) error {
 	if r.GasUsed, err = decodeUint(v, "gasUsed"); err != nil {
 		return err
 	}
+	if r.Status, err = decodeUint(v, "status"); err != nil {
+		return err
+	}
 	if r.CumulativeGasUsed, err = decodeUint(v, "cumulativeGasUsed"); err != nil {
 		return err
 	}

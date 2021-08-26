@@ -206,7 +206,7 @@ func (self *SignedTx) Execute2(signer *Signer) *web3.Receipt {
 }
 
 func (self *SignedTx) SendTransaction(signer *Signer) *web3.Receipt {
-	fmt.Println("start sending transaction: ", self.Hash().String())
+	fmt.Printf("start sending transaction: %s, raw: %x\n", self.Hash().String(), self.Transaction.MarshalRLP())
 	if signer.Submit {
 		return signer.SendTransaction(self.Transaction)
 	}
