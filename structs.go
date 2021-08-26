@@ -185,6 +185,15 @@ type Receipt struct {
 	Logs              []*Log
 }
 
+const (
+	// ReceiptStatusSuccessful is the status code of a transaction if execution succeeded.
+	ReceiptStatusSuccessful = uint64(1)
+)
+
+func (self *Receipt) IsReverted() bool {
+	return self.Status == ReceiptStatusSuccessful
+}
+
 type ThinReceipt struct {
 	TransactionHash Hash
 	ContractAddress Address
