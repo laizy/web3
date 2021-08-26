@@ -264,6 +264,15 @@ func {{.Name}}Bin() []byte {
 	return bin{{.Name}}
 }
 {{end}}
+
+var binRuntime{{.Name}} []byte
+{{if .Contract.BinRuntime}}
+// {{.Name}}BinRuntime returns the runtime bin of the {{.Name}} contract
+func {{.Name}}BinRuntime() []byte {
+	return binRuntime{{.Name}}
+}
+{{end}}
+
 func init() {
 	var err error
 	abi{{.Name}}, err = abi.NewABI(abi{{.Name}}Str)
@@ -276,8 +285,16 @@ func init() {
 			panic(fmt.Errorf("cannot parse {{.Name}} bin: %v", err))
 		}
 	}
+	if len(binRuntime{{.Name}}Str) != 0 {
+		binRuntime{{.Name}}, err = hex.DecodeString(binRuntime{{.Name}}Str[2:])
+		if err != nil {
+			panic(fmt.Errorf("cannot parse {{.Name}} bin runtime: %v", err))
+		}
+	}
 }
 
 var bin{{.Name}}Str = "{{.Contract.Bin}}"
+
+var binRuntime{{.Name}}Str = "{{.Contract.BinRuntime}}"
 
 var abi{{.Name}}Str = ` + "`" + `{{.Contract.Abi}}` + "`\n"

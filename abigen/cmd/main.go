@@ -177,8 +177,9 @@ func processAbi(sources []string, config *abigen.Config) (map[string]*compiler.A
 }
 
 type JSONArtifact struct {
-	Bytecode string          `json:"bytecode"`
-	Abi      json.RawMessage `json:"abi"`
+	Bytecode     string          `json:"bytecode"`
+	Abi          json.RawMessage `json:"abi"`
+	DeployedCode string          `json:"deployedBytecode"`
 }
 
 func processJson(sources []string) (map[string]*compiler.Artifact, error) {
@@ -199,7 +200,7 @@ func processJson(sources []string) (map[string]*compiler.Artifact, error) {
 			return nil, err
 		}
 
-		artifacts[strings.Title(name)] = compiler.NewArtifact(string(art.Abi), art.Bytecode, "")
+		artifacts[strings.Title(name)] = compiler.NewArtifact(string(art.Abi), art.Bytecode, art.DeployedCode)
 	}
 	return artifacts, nil
 }
