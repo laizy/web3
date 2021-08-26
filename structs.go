@@ -324,6 +324,47 @@ type Receipt struct {
 	To                *Address
 }
 
+type ThinReceipt struct {
+	TransactionHash Hash
+	ContractAddress Address
+	From            Address
+	GasUsed         uint64
+	Logs            []*ThinLog
+}
+
+type ThinLog struct {
+	Address Address
+	Topics  []Hash `json:"topics,omitempty"`
+	Data    []byte `json:"data,omitempty"`
+	Event   *ParsedEvent
+}
+
+func (self *Receipt) Thin() *ThinReceipt {
+	var logs []*ThinLog
+	for _, log := range self.Logs {
+		topic := log.Topics
+		data := log.Data
+		if log.Event != nil {
+			topic = nil
+			data = nil
+		}
+		logs = append(logs, &ThinLog{
+			Address: log.Address,
+			Topics:  topic,
+			Data:    data,
+			Event:   log.Event,
+		})
+	}
+
+	return &ThinReceipt{
+		TransactionHash: self.TransactionHash,
+		ContractAddress: self.ContractAddress,
+		From:            self.From,
+		GasUsed:         self.GasUsed,
+		Logs:            logs,
+	}
+}
+
 func (r *Receipt) Copy() *Receipt {
 	rr := new(Receipt)
 	*rr = *r
