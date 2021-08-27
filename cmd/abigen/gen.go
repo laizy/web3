@@ -233,7 +233,7 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $val := tupleElem
 		err = fmt.Errorf("failed to encode output at index {{$index}}")
 		return
 	}
-	{{end}}
+{{end}}
 
 	return
 }
