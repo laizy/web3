@@ -28,6 +28,10 @@ func HexToAddress(str string) Address {
 	return a
 }
 
+func (self Address) ToHash() Hash {
+	return BytesToHash(self[:])
+}
+
 // UnmarshalText implements the unmarshal interface
 func (a *Address) UnmarshalText(b []byte) error {
 	return unmarshalTextByte(a[:], b, 20)
@@ -57,7 +61,8 @@ type Hash [32]byte
 // HexToHash converts an hex string value to a hash object
 func HexToHash(str string) Hash {
 	h := Hash{}
-	h.UnmarshalText([]byte(str))
+	err := h.UnmarshalText([]byte(str))
+	utils.Ensure(err)
 	return h
 }
 

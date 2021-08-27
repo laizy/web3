@@ -215,6 +215,8 @@ func ({{.Ptr}} *{{.Name}}) Contract() *contract.Contract {
 // {{funcName $key}} calls the {{$key}} method in the solidity contract
 func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $val := tupleElems .Inputs}}{{if .Name}}{{clean .Name}}{{else}}val{{$index}}{{end}} {{arg .}}, {{end}}block ...web3.BlockNumber) ({{range $index, $val := tupleElems .Outputs}}retval{{$index}} {{arg .}}, {{end}}err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	{{ $length := tupleLen .Outputs }}{{ if ne $length 0 }}var ok bool{{ end }}
 
 	out, err = {{$.Ptr}}.c.Call("{{$key}}", web3.EncodeBlock(block...){{range $index, $val := tupleElems .Inputs}}, {{if .Name}}{{clean .Name}}{{else}}val{{$index}}{{end}}{{end}})
@@ -229,6 +231,7 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $val := tupleElem
 		return
 	}
 	{{end}}
+
 	return
 }
 {{end}}{{end}}
