@@ -230,12 +230,11 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $val := tupleElem
 		err = fmt.Errorf("failed to encode output at index {{$index}}")
 		return
 	}
-	{{end}}
+{{end}}
 
 	return
 }
 {{end}}{{end}}
-
 // txns
 {{range $key, $value := .Abi.Methods}}{{if not .Const}}
 // {{funcName $key}} sends a {{$key}} transaction in the solidity contract
