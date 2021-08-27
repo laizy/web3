@@ -20,7 +20,7 @@ func (t *Transaction) MarshalRLPWith(arena *fastrlp.Arena) *fastrlp.Value {
 
 	// Address may be empty
 	if t.To != nil {
-		vv.Set(arena.NewBytes((*t.To)[:]))
+		vv.Set(arena.NewCopyBytes((*t.To)[:]))
 	} else {
 		vv.Set(arena.NewNull())
 	}
