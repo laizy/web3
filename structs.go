@@ -36,6 +36,10 @@ func HexToAddress(str string) Address {
 	return a
 }
 
+func (self Address) ToHash() Hash {
+	return BytesToHash(self[:])
+}
+
 // BytesToAddress converts bytes to an address object
 func BytesToAddress(b []byte) Address {
 	var a Address
@@ -310,7 +314,6 @@ func (l *LogFilter) SetTo(b BlockNumber) {
 }
 
 type Receipt struct {
-	Status            uint64
 	TransactionHash   Hash
 	TransactionIndex  uint64
 	ContractAddress   Address
