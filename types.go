@@ -30,10 +30,10 @@ import (
 // ExecutionResult includes all output after executing given evm
 // message no matter the execution itself is successful or not.
 type ExecutionResult struct {
-	UsedGas     uint64        // Total used gas but include the refunded gas
-	Err         error         // Any error encountered during the execution(listed in core/vm/errors.go)
-	ReturnData  hexutil.Bytes // Returned data from evm(function result or data supplied with revert opcode)
-	RevertReson string
+	UsedGas      uint64        // Total used gas but include the refunded gas
+	Err          error         // Any error encountered during the execution(listed in core/vm/errors.go)
+	ReturnData   hexutil.Bytes // Returned data from evm(function result or data supplied with revert opcode)
+	RevertReason string
 }
 
 func NewExecutionResult(usedGas uint64, err error, ret []byte) *ExecutionResult {
@@ -43,21 +43,29 @@ func NewExecutionResult(usedGas uint64, err error, ret []byte) *ExecutionResult 
 		ReturnData: ret,
 	}
 
-	// revert data signature is: Error(string) (0x08c379a0)
-	// https://ethereum.stackexchange.com/questions/83528/how-can-i-get-the-revert-reason-of-a-call-in-solidity-so-that-i-can-use-it-in-th
 	if err != nil {
 		//result.RevertReson = "Transaction reverted silently"
-		result.RevertReson = err.Error()
-		if len(result.ReturnData) >= 68 && hex.EncodeToString(result.ReturnData[:4]) == "08c379a0" {
-			// data layout: sig(4bytes) + strpos(32bytes,should equal 2) + strlength(32bytes) + strdata
-			data := result.ReturnData[36:]
-			length, err := readLength(data)
-			utils.Ensure(err)
-			result.RevertReson = string(data[32 : 32+length])
+		result.RevertReason = err.Error()
+		if reason, ok := DecodeRevert(ret); ok {
+			result.RevertReason = reason
 		}
 	}
 
 	return result
+}
+
+// revert data signature is: Error(string) (0x08c379a0)
+// https://ethereum.stackexchange.com/questions/83528/how-can-i-get-the-revert-reason-of-a-call-in-solidity-so-that-i-can-use-it-in-th
+func DecodeRevert(ret []byte) (string, bool) {
+	if len(ret) >= 68 && hex.EncodeToString(ret[:4]) == "08c379a0" {
+		// data layout: sig(4bytes) + strpos(32bytes,should equal 2) + strlength(32bytes) + strdata
+		data := ret[36:]
+		length, err := readLength(data)
+		utils.Ensure(err)
+		return string(data[32 : 32+length]), true
+	}
+
+	return "", false
 }
 
 //copied from abi to avoid cycle dependencies

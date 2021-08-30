@@ -46,6 +46,10 @@ func applyTransaction(msg Message, statedb *storage.StateDB, tx *ethgo.Transacti
 
 	// Create a new receipt for the transaction, storing the intermediate root and gas used by the tx
 	// based on the eip phase, we're passing whether the root touch-delete accounts.
+	status := uint64(1)
+	if result.Failed() {
+		status = 0
+	}
 	receipt := &ethgo.Receipt{
 		TransactionHash:   tx.Hash,
 		TransactionIndex:  0,
@@ -56,6 +60,7 @@ func applyTransaction(msg Message, statedb *storage.StateDB, tx *ethgo.Transacti
 		CumulativeGasUsed: 0,
 		LogsBloom:         nil,
 		Logs:              nil,
+		Status:            status,
 	}
 	// if the transaction created a contract, store the creation address in the receipt.
 	if msg.To() == nil {

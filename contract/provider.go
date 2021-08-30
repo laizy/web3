@@ -2,6 +2,7 @@ package contract
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -31,7 +32,7 @@ func NewSigner(hexPrivKey string, client *jsonrpc.Client, chainId uint64) *Signe
 
 	signer := wallet.NewEIP155Signer(chainId)
 
-	nonce, err := client.Eth().GetNonce(account.Address(), web3.Latest)
+	nonce, err := client.Eth().GetNonce(account.Address(), ethgo.Latest)
 	utils.Ensure(err)
 
 	result := &Signer{
@@ -45,13 +46,21 @@ func NewSigner(hexPrivKey string, client *jsonrpc.Client, chainId uint64) *Signe
 	return result
 }
 
-func (self *Signer) SignTx(tx *web3.Transaction) *web3.Transaction {
+func (self *Signer) SignTx(tx *ethgo.Transaction) *ethgo.Transaction {
 	txn, err := self.signer.SignTx(tx, self.Key)
 	utils.Ensure(err)
 	return txn
 }
 
-func (self *Signer) SendTransaction(tx *web3.Transaction) *web3.Receipt {
+func (self *Signer) SendTransaction(tx *ethgo.Transaction) *ethgo.Receipt {
+	if self.Submit == false {
+		result, receipt := self.ExecuteTxn(tx)
+		if result.Err != nil {
+			panic(fmt.Errorf("execution reverted: %s", result.RevertReason))
+		}
+		return receipt
+	}
+
 	if len(tx.R) == 0 {
 		tx = self.SignTx(tx)
 	}
