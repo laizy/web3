@@ -2,6 +2,7 @@ package contract
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -52,6 +53,14 @@ func (self *Signer) SignTx(tx *web3.Transaction) *web3.Transaction {
 }
 
 func (self *Signer) SendTransaction(tx *web3.Transaction) *web3.Receipt {
+	if self.Submit == false {
+		result, receipt := self.ExecuteTxn(tx)
+		if result.Err != nil {
+			panic(fmt.Errorf("execution reverted: %s", result.RevertReason))
+		}
+		return receipt
+	}
+
 	if len(tx.R) == 0 {
 		tx = self.SignTx(tx)
 	}

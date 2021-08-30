@@ -46,7 +46,12 @@ func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transactio
 
 	// Create a new receipt for the transaction, storing the intermediate root and gas used by the tx
 	// based on the eip phase, we're passing whether the root touch-delete accounts.
+	status:= uint64(1)
+	if result.Failed() {
+		status = 0
+	}
 	receipt := &web3.Receipt{
+		Status:status,
 		TransactionHash:   tx.Hash(),
 		TransactionIndex:  0,
 		BlockHash:         web3.Hash{},

@@ -193,25 +193,9 @@ type SignedTx struct {
 	*web3.Transaction
 }
 
-func (self *SignedTx) Execute(signer *Signer) (*web3.ExecutionResult, *web3.Receipt) {
-	return signer.ExecuteTxn(self.Transaction)
-}
-
-func (self *SignedTx) Execute2(signer *Signer) *web3.Receipt {
-	result, receipt := signer.ExecuteTxn(self.Transaction)
-	if result.Err != nil {
-		panic(fmt.Errorf("execution reverted: %s", result.RevertReson))
-	}
-	return receipt
-}
-
 func (self *SignedTx) SendTransaction(signer *Signer) *web3.Receipt {
 	fmt.Printf("start sending transaction: %s, raw: %x\n", self.Hash().String(), self.Transaction.MarshalRLP())
-	if signer.Submit {
-		return signer.SendTransaction(self.Transaction)
-	}
-
-	return self.Execute2(signer)
+	return signer.SendTransaction(self.Transaction)
 }
 
 func (t *Txn) ToTransaction() (*web3.Transaction, error) {
