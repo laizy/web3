@@ -23,7 +23,3 @@ jobs:
 
     - name: Test
       run: go test -v ./...
-      
-    - name: Package
-      run: make build-abigen
-      
