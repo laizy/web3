@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/laizy/web3/utils"
 	"github.com/laizy/web3/evm/errors"
+	"github.com/laizy/web3/utils"
 	"github.com/laizy/web3/utils/common/hexutil"
 )
 

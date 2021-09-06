@@ -200,7 +200,7 @@ func (self *Receipt) IsReverted() bool {
 }
 
 type ThinReceipt struct {
-	Status uint64
+	Status          uint64
 	TransactionHash Hash
 	ContractAddress Address
 	From            Address
@@ -233,7 +233,7 @@ func (self *Receipt) Thin() *ThinReceipt {
 	}
 
 	return &ThinReceipt{
-		Status: self.Status,
+		Status:          self.Status,
 		TransactionHash: self.TransactionHash,
 		ContractAddress: self.ContractAddress,
 		From:            self.From,
