@@ -15,8 +15,14 @@ import (
 	"github.com/laizy/web3/utils"
 )
 
-func GetArtifacts() (map[string]*Artifact, error) {
-	pathes, err := getArtifactPathes()
+
+func GetArtifacts(artifactDirName ...string) (map[string]*Artifact, error) {
+	name := ""
+	if len(artifactDirName)!= 0 {
+		name = artifactDirName[0]
+	}
+	
+	pathes, err := getArtifactPathes(name)
 	if err != nil {
 		return nil, err
 	}
@@ -32,8 +38,8 @@ func GetArtifacts() (map[string]*Artifact, error) {
 	return results, nil
 }
 
-func GetArtifact(name string) (*Artifact, error) {
-	path, err := GetArtifactPath(name)
+func GetArtifact(name string, artifactDirName ...string) (*Artifact, error) {
+	path, err := GetArtifactPath(name, artifactDirName...)
 	if err != nil {
 		return nil, err
 	}
@@ -69,14 +75,17 @@ func getArtifactWithPath(path string) (*Artifact, error) {
 	}, nil
 }
 
-func getArtifactPathes() (map[string]string, error) {
+func getArtifactPathes(artifactDirName string) (map[string]string, error) {
+	if artifactDirName == "" {
+		artifactDirName = "artifacts"
+	}
 	dir, err := GetProjectRoot()
 	if err != nil {
 		return nil, err
 	}
 
 	result := make(map[string]string)
-	buildDir := filepath.Join(dir, "artifacts")
+	buildDir := filepath.Join(dir, artifactDirName)
 	err = filepath.Walk(buildDir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
@@ -98,8 +107,12 @@ func getArtifactPathes() (map[string]string, error) {
 	return result, nil
 }
 
-func GetArtifactPath(name string) (string, error) {
-	pathes, err := getArtifactPathes()
+func GetArtifactPath(name string, artifactDirName ...string) (string, error) {
+	artifactDir := ""
+	if len(artifactDirName)!= 0 {
+		artifactDir = artifactDirName[0]
+	}
+	pathes, err := getArtifactPathes(artifactDir)
 	if err != nil {
 		return "", err
 	}

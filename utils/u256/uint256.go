@@ -11,6 +11,10 @@ type Int struct {
 	value *big.Int
 }
 
+func (self Int) MarshalText() (text []byte, err error) {
+	return []byte(self.String()), nil
+}
+
 func (self *Int) val() *big.Int {
 	if self.value == nil {
 		self.value = big.NewInt(0)
