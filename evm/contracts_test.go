@@ -25,10 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/laizy/web3/utils/common/hexutil"
-
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/utils/common"
+	"github.com/laizy/web3/utils/common/hexutil"
 )
 
 // precompiledTest defines the input/output pairs for precompiled contract tests.
