@@ -34,6 +34,8 @@ func (a *ERC20) Contract() *contract.Contract {
 // Allowance calls the allowance method in the solidity contract
 func (a *ERC20) Allowance(owner web3.Address, spender web3.Address, block ...web3.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = a.c.Call("allowance", web3.EncodeBlock(block...), owner, spender)
@@ -47,13 +49,15 @@ func (a *ERC20) Allowance(owner web3.Address, spender web3.Address, block ...web
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-	
+
 	return
 }
 
 // BalanceOf calls the balanceOf method in the solidity contract
 func (a *ERC20) BalanceOf(owner web3.Address, block ...web3.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = a.c.Call("balanceOf", web3.EncodeBlock(block...), owner)
@@ -67,13 +71,15 @@ func (a *ERC20) BalanceOf(owner web3.Address, block ...web3.BlockNumber) (retval
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-	
+
 	return
 }
 
 // Decimals calls the decimals method in the solidity contract
 func (a *ERC20) Decimals(block ...web3.BlockNumber) (retval0 uint8, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = a.c.Call("decimals", web3.EncodeBlock(block...))
@@ -87,13 +93,15 @@ func (a *ERC20) Decimals(block ...web3.BlockNumber) (retval0 uint8, err error) {
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-	
+
 	return
 }
 
 // Name calls the name method in the solidity contract
 func (a *ERC20) Name(block ...web3.BlockNumber) (retval0 string, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = a.c.Call("name", web3.EncodeBlock(block...))
@@ -107,13 +115,15 @@ func (a *ERC20) Name(block ...web3.BlockNumber) (retval0 string, err error) {
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-	
+
 	return
 }
 
 // Symbol calls the symbol method in the solidity contract
 func (a *ERC20) Symbol(block ...web3.BlockNumber) (retval0 string, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = a.c.Call("symbol", web3.EncodeBlock(block...))
@@ -127,13 +137,15 @@ func (a *ERC20) Symbol(block ...web3.BlockNumber) (retval0 string, err error) {
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-	
+
 	return
 }
 
 // TotalSupply calls the totalSupply method in the solidity contract
 func (a *ERC20) TotalSupply(block ...web3.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = a.c.Call("totalSupply", web3.EncodeBlock(block...))
@@ -147,10 +159,9 @@ func (a *ERC20) TotalSupply(block ...web3.BlockNumber) (retval0 *big.Int, err er
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
 	}
-	
+
 	return
 }
-
 
 // txns
 

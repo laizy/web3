@@ -231,7 +231,6 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $val := tupleElem
 		return
 	}
 {{end}}
-
 	return
 }
 {{end}}{{end}}
@@ -266,7 +265,6 @@ func {{.Name}}Bin() []byte {
 	return bin{{.Name}}
 }
 {{end}}
-
 var binRuntime{{.Name}} []byte
 {{if .Contract.BinRuntime}}
 // {{.Name}}BinRuntime returns the runtime bin of the {{.Name}} contract
@@ -274,7 +272,6 @@ func {{.Name}}BinRuntime() []byte {
 	return binRuntime{{.Name}}
 }
 {{end}}
-
 func init() {
 	var err error
 	abi{{.Name}}, err = abi.NewABI(abi{{.Name}}Str)
