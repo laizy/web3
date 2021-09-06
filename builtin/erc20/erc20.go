@@ -32,6 +32,8 @@ func NewERC20(addr ethgo.Address, opts ...contract.ContractOption) *ERC20 {
 // Allowance calls the allowance method in the solidity contract
 func (e *ERC20) Allowance(owner ethgo.Address, spender ethgo.Address, block ...ethgo.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = e.c.Call("allowance", ethgo.EncodeBlock(block...), owner, spender)
@@ -52,6 +54,8 @@ func (e *ERC20) Allowance(owner ethgo.Address, spender ethgo.Address, block ...e
 // BalanceOf calls the balanceOf method in the solidity contract
 func (e *ERC20) BalanceOf(owner ethgo.Address, block ...ethgo.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = e.c.Call("balanceOf", ethgo.EncodeBlock(block...), owner)
@@ -72,6 +76,8 @@ func (e *ERC20) BalanceOf(owner ethgo.Address, block ...ethgo.BlockNumber) (retv
 // Decimals calls the decimals method in the solidity contract
 func (e *ERC20) Decimals(block ...ethgo.BlockNumber) (retval0 uint8, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = e.c.Call("decimals", ethgo.EncodeBlock(block...))
@@ -92,6 +98,8 @@ func (e *ERC20) Decimals(block ...ethgo.BlockNumber) (retval0 uint8, err error) 
 // Name calls the name method in the solidity contract
 func (e *ERC20) Name(block ...ethgo.BlockNumber) (retval0 string, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = e.c.Call("name", ethgo.EncodeBlock(block...))
@@ -112,6 +120,8 @@ func (e *ERC20) Name(block ...ethgo.BlockNumber) (retval0 string, err error) {
 // Symbol calls the symbol method in the solidity contract
 func (e *ERC20) Symbol(block ...ethgo.BlockNumber) (retval0 string, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = e.c.Call("symbol", ethgo.EncodeBlock(block...))
@@ -132,6 +142,8 @@ func (e *ERC20) Symbol(block ...ethgo.BlockNumber) (retval0 string, err error) {
 // TotalSupply calls the totalSupply method in the solidity contract
 func (e *ERC20) TotalSupply(block ...ethgo.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
 	var ok bool
 
 	out, err = e.c.Call("totalSupply", ethgo.EncodeBlock(block...))
