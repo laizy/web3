@@ -1,12 +1,9 @@
 package jsonrpc
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/laizy/web3/utils"
 
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/testutil"
@@ -72,16 +69,4 @@ func TestSubscribeNewHead(t *testing.T) {
 		// subscription already closed
 		assert.Error(t, cancel())
 	})
-}
-
-func TestPendingTx(t *testing.T) {
-	wssUrl := "ws://exchainrpc.okex.org:8546"
-	client, err := NewClient(wssUrl)
-	utils.Ensure(err)
-
-	_, err = client.Subscribe("newPendingTransactions", func(b []byte) {
-		fmt.Println(string(b))
-	})
-	utils.Ensure(err)
-
 }
