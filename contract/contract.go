@@ -20,6 +20,31 @@ type Contract struct {
 	Provider *jsonrpc.Client
 }
 
+func (c *Contract) FilterLogs(opts *web3.FilterOpts, name string, query ...[]interface{}) ([]*web3.Log, error) {
+	// Don't crash on a lazy user
+	if opts == nil {
+		opts = new(web3.FilterOpts)
+	}
+	// Append the event selector to the query parameters and construct the topic set
+	query = append([][]interface{}{{c.Abi.Events[name].ID()}}, query...)
+
+	topics, err := MakeTopics(query...)
+	if err != nil {
+		return nil, err
+	}
+	from := web3.BlockNumber(int(opts.Start))
+	filter := &web3.LogFilter{
+		Address: []web3.Address{c.addr},
+		Topics:  topics,
+		From:    &from,
+	}
+	if opts.End != nil {
+		to := web3.BlockNumber(*opts.End)
+		filter.To = &to
+	}
+	return c.Provider.Eth().GetLogs(filter)
+}
+
 // DeployContract deploys a contract
 func DeployContract(provider *jsonrpc.Client, from web3.Address, abiVal *abi.ABI, bin []byte, args ...interface{}) *Txn {
 	txn := &Txn{

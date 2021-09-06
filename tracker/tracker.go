@@ -63,9 +63,21 @@ func (f *FilterConfig) getFilterSearch() *web3.LogFilter {
 		filter.Address = f.Address
 	}
 	if len(f.Topics) != 0 {
-		filter.Topics = f.Topics
+		filter.Topics = parseTopic(f.Topics)
 	}
 	return filter
+}
+
+func parseTopic(topic []*web3.Hash) [][]web3.Hash {
+	res := make([][]web3.Hash, 0, len(topic))
+	for _, item := range topic {
+		var inner []web3.Hash
+		if item != nil {
+			inner = append(inner, *item)
+		}
+		res = append(res, inner)
+	}
+	return res
 }
 
 // Filter is a specific filter

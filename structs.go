@@ -154,12 +154,29 @@ type CallMsg struct {
 	Value    *big.Int
 }
 
+type FilterOpts struct {
+	Start uint64  // Start of the queried range
+	End   *uint64 // End of the range (nil = latest)
+}
+
 type LogFilter struct {
-	Address   []Address
-	Topics    []*Hash
-	BlockHash *Hash
-	From      *BlockNumber
-	To        *BlockNumber
+	BlockHash *Hash        // used by eth_getLogs, return logs only from block with this hash
+	From      *BlockNumber // beginning of the queried range, nil means genesis block
+	To        *BlockNumber // end of the range, nil means latest block
+	Address   []Address    // restricts matches to event created by specific contracts
+
+	// The Topic list restricts matches to particular event topics. Each event has a list
+	// of topics. Topics matches a prefix of that list. An empty element slice matches any
+	// topic. Non-empty elements represent an alternative that matches any of the
+	// contained topics.
+	//
+	// Examples:
+	// {} or nil          matches any topic list
+	// {{A}}              matches topic A in first position
+	// {{}, {B}}          matches any topic in first position AND B in second position
+	// {{A}, {B}}         matches topic A in first position AND B in second position
+	// {{A, B}, {C, D}}   matches topic (A OR B) in first position AND (C OR D) in second position
+	Topics [][]Hash
 }
 
 func (l *LogFilter) SetFromUint64(num uint64) {
