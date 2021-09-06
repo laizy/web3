@@ -25,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/laizy/web3/utils/common/hexutil"
+
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/utils/common"
 )
@@ -94,6 +96,7 @@ var blake2FMalformedInputTests = []precompiledFailureTest{
 }
 
 func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
+	addr = web3.BytesToAddress(hexutil.MustDecode(addr)).String()
 	p := allPrecompiles[web3.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in)
@@ -115,6 +118,7 @@ func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
 }
 
 func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
+	addr = web3.BytesToAddress(hexutil.MustDecode(addr)).String()
 	p := allPrecompiles[web3.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in) - 1
@@ -133,6 +137,7 @@ func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
 }
 
 func testPrecompiledFailure(addr string, test precompiledFailureTest, t *testing.T) {
+	addr = web3.BytesToAddress(hexutil.MustDecode(addr)).String()
 	p := allPrecompiles[web3.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in)
@@ -150,6 +155,7 @@ func testPrecompiledFailure(addr string, test precompiledFailureTest, t *testing
 }
 
 func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
+	addr = web3.BytesToAddress(hexutil.MustDecode(addr)).String()
 	if test.NoBenchmark {
 		return
 	}
