@@ -75,9 +75,120 @@ func (f *FilterConfig) getFilterSearch() *ethgo.LogFilter {
 		filter.Address = f.Address
 	}
 	if len(f.Topics) != 0 {
-		filter.Topics = f.Topics
+		filter.Topics = parseTopic(f.Topics)
 	}
 	return filter
+}
+
+func parseTopic(topic []*web3.Hash) [][]web3.Hash {
+	res := make([][]web3.Hash, 0, len(topic))
+	for _, item := range topic {
+		var inner []web3.Hash
+		if item != nil {
+			inner = append(inner, *item)
+		}
+		res = append(res, inner)
+	}
+	return res
+}
+
+// Filter is a specific filter
+type Filter struct {
+	synced  int32
+	config  *FilterConfig
+	SyncCh  chan uint64
+	EventCh chan *Event
+	DoneCh  chan struct{}
+	entry   store.Entry
+	tracker *Tracker
+}
+
+func (f *Filter) Entry() store.Entry {
+	return f.entry
+}
+
+// GetLastBlock returns the last block processed for this filter
+func (f *Filter) GetLastBlock() (*web3.Block, error) {
+	buf, err := f.tracker.store.Get(dbLastBlock + "_" + f.config.Hash)
+	if err != nil {
+		return nil, err
+	}
+	if len(buf) == 0 {
+		return nil, nil
+	}
+	raw, err := hex.DecodeString(buf)
+	if err != nil {
+		return nil, err
+	}
+	b := &web3.Block{}
+	if err := b.UnmarshalJSON(raw); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (f *Filter) storeLastBlock(b *web3.Block) error {
+	if b.Difficulty == nil {
+		b.Difficulty = big.NewInt(0)
+	}
+	buf, err := b.MarshalJSON()
+	if err != nil {
+		return err
+	}
+	raw := hex.EncodeToString(buf)
+	return f.tracker.store.Set(dbLastBlock+"_"+f.config.Hash, raw)
+}
+
+// SyncAsync syncs the filter asynchronously
+func (f *Filter) SyncAsync(ctx context.Context) {
+	f.tracker.SyncAsync(ctx, f)
+}
+
+// Sync syncs the filter
+func (f *Filter) Sync(ctx context.Context) error {
+	return f.tracker.Sync(ctx, f)
+}
+
+func (f *Filter) emitEvent(evnt *Event) {
+	if evnt == nil {
+		return
+	}
+	if f.config.Async {
+		select {
+		case f.EventCh <- evnt:
+		default:
+		}
+	} else {
+		f.EventCh <- evnt
+	}
+}
+
+// IsSynced returns true if the filter is synced to head
+func (f *Filter) IsSynced() bool {
+	return atomic.LoadInt32(&f.synced) != 0
+}
+
+// Wait waits the filter to finish
+func (f *Filter) Wait() {
+	f.WaitDuration(0)
+}
+
+// WaitDuration waits for the filter to finish up to duration
+func (f *Filter) WaitDuration(dur time.Duration) error {
+	if f.IsSynced() {
+		return nil
+	}
+
+	var waitCh <-chan time.Time
+	if dur == 0 {
+		waitCh = time.After(dur)
+	}
+	select {
+	case <-waitCh:
+		return fmt.Errorf("timeout")
+	case <-f.DoneCh:
+	}
+	return nil
 }
 
 // Config is the configuration of the tracker

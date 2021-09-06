@@ -291,6 +291,11 @@ type CallMsg struct {
 	Value    *big.Int
 }
 
+type FilterOpts struct {
+	Start uint64  // Start of the queried range
+	End   *uint64 // End of the range (nil = latest)
+}
+
 type LogFilter struct {
 	Address   []Address
 	Topics    [][]*Hash

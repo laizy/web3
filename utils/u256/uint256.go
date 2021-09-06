@@ -107,6 +107,12 @@ func (self Int) ToBigInt() *big.Int {
 	return self.val()
 }
 
+func (self Int) Bytes32() [32]byte {
+	self.val()
+	bigInt := uint256.NewInt().SetBytes(self.val().Bytes())
+	return bigInt.Bytes32()
+}
+
 func (a Int) MulUint64(rhs uint64) Int {
 	return a.Mul(New(rhs))
 }

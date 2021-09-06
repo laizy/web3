@@ -15,6 +15,78 @@ import (
 type Provider interface {
 	Call(ethgo.Address, []byte, *CallOpts) ([]byte, error)
 	Txn(ethgo.Address, ethgo.Key, []byte) (Txn, error)
+// Contract is an Ethereum contract
+type Contract struct {
+	addr     web3.Address
+	from     *web3.Address
+	Abi      *abi.ABI
+	Provider *jsonrpc.Client
+}
+
+func (c *Contract) FilterLogs(opts *web3.FilterOpts, name string, query ...[]interface{}) ([]*web3.Log, error) {
+	// Don't crash on a lazy user
+	if opts == nil {
+		opts = new(web3.FilterOpts)
+	}
+	// Append the event selector to the query parameters and construct the topic set
+	query = append([][]interface{}{{c.Abi.Events[name].ID()}}, query...)
+
+	topics, err := MakeTopics(query...)
+	if err != nil {
+		return nil, err
+	}
+	from := web3.BlockNumber(int(opts.Start))
+	filter := &web3.LogFilter{
+		Address: []web3.Address{c.addr},
+		Topics:  topics,
+		From:    &from,
+	}
+	if opts.End != nil {
+		to := web3.BlockNumber(*opts.End)
+		filter.To = &to
+	}
+	return c.Provider.Eth().GetLogs(filter)
+}
+
+// DeployContract deploys a contract
+func DeployContract(provider *jsonrpc.Client, from web3.Address, abiVal *abi.ABI, bin []byte, args ...interface{}) *Txn {
+	txn := &Txn{
+		from:     from,
+		provider: provider,
+	}
+	txn.Data = append(txn.Data, bin...)
+	if method := abiVal.Constructor; method != nil {
+		data, err := abi.Encode(args, method.Inputs)
+		utils.Ensure(err)
+		txn.Data = append(txn.Data, data...)
+	}
+
+	return txn
+}
+
+// NewContract creates a new contract instance
+func NewContract(addr web3.Address, abi *abi.ABI, provider *jsonrpc.Client) *Contract {
+	registry.Instance().RegisterFromAbi(abi)
+	return &Contract{
+		addr:     addr,
+		Abi:      abi,
+		Provider: provider,
+	}
+}
+
+// Addr returns the address of the contract
+func (c *Contract) Addr() web3.Address {
+	return c.addr
+}
+
+// SetFrom sets the origin of the calls
+func (c *Contract) SetFrom(addr web3.Address) {
+	c.from = &addr
+}
+
+// EstimateGas estimates the gas for a contract call
+func (c *Contract) EstimateGas(method string, args ...interface{}) (uint64, error) {
+	return c.Txn(method, args).EstimateGas()
 }
 
 type jsonRPCNodeProvider struct {
