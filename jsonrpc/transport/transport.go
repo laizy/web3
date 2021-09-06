@@ -21,7 +21,7 @@ type PubSubTransport interface {
 }
 
 const (
-	wsPrefix = "ws://"
+	wsPrefix  = "ws://"
 	wssPrefix = "wss://"
 )
 

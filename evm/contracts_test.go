@@ -25,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/laizy/web3/utils/common/hexutil"
+
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/utils/common"
 )
@@ -48,25 +50,25 @@ type precompiledFailureTest struct {
 // allPrecompiles does not map to the actual set of precompiles, as it also contains
 // repriced versions of precompiles at certain slots
 var allPrecompiles = map[web3.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}):    &ecrecover{},
-	common.BytesToAddress([]byte{2}):    &sha256hash{},
-	common.BytesToAddress([]byte{3}):    &ripemd160hash{},
-	common.BytesToAddress([]byte{4}):    &dataCopy{},
-	common.BytesToAddress([]byte{5}):    &bigModExp{eip2565: false},
-	common.BytesToAddress([]byte{0xf5}): &bigModExp{eip2565: true},
-	common.BytesToAddress([]byte{6}):    &bn256AddIstanbul{},
-	common.BytesToAddress([]byte{7}):    &bn256ScalarMulIstanbul{},
-	common.BytesToAddress([]byte{8}):    &bn256PairingIstanbul{},
-	common.BytesToAddress([]byte{9}):    &blake2F{},
-	common.BytesToAddress([]byte{10}):   &bls12381G1Add{},
-	common.BytesToAddress([]byte{11}):   &bls12381G1Mul{},
-	common.BytesToAddress([]byte{12}):   &bls12381G1MultiExp{},
-	common.BytesToAddress([]byte{13}):   &bls12381G2Add{},
-	common.BytesToAddress([]byte{14}):   &bls12381G2Mul{},
-	common.BytesToAddress([]byte{15}):   &bls12381G2MultiExp{},
-	common.BytesToAddress([]byte{16}):   &bls12381Pairing{},
-	common.BytesToAddress([]byte{17}):   &bls12381MapG1{},
-	common.BytesToAddress([]byte{18}):   &bls12381MapG2{},
+	web3.BytesToAddress([]byte{1}):    &ecrecover{},
+	web3.BytesToAddress([]byte{2}):    &sha256hash{},
+	web3.BytesToAddress([]byte{3}):    &ripemd160hash{},
+	web3.BytesToAddress([]byte{4}):    &dataCopy{},
+	web3.BytesToAddress([]byte{5}):    &bigModExp{eip2565: false},
+	web3.BytesToAddress([]byte{0xf5}): &bigModExp{eip2565: true},
+	web3.BytesToAddress([]byte{6}):    &bn256AddIstanbul{},
+	web3.BytesToAddress([]byte{7}):    &bn256ScalarMulIstanbul{},
+	web3.BytesToAddress([]byte{8}):    &bn256PairingIstanbul{},
+	web3.BytesToAddress([]byte{9}):    &blake2F{},
+	web3.BytesToAddress([]byte{10}):   &bls12381G1Add{},
+	web3.BytesToAddress([]byte{11}):   &bls12381G1Mul{},
+	web3.BytesToAddress([]byte{12}):   &bls12381G1MultiExp{},
+	web3.BytesToAddress([]byte{13}):   &bls12381G2Add{},
+	web3.BytesToAddress([]byte{14}):   &bls12381G2Mul{},
+	web3.BytesToAddress([]byte{15}):   &bls12381G2MultiExp{},
+	web3.BytesToAddress([]byte{16}):   &bls12381Pairing{},
+	web3.BytesToAddress([]byte{17}):   &bls12381MapG1{},
+	web3.BytesToAddress([]byte{18}):   &bls12381MapG2{},
 }
 
 // EIP-152 test vectors
@@ -94,7 +96,8 @@ var blake2FMalformedInputTests = []precompiledFailureTest{
 }
 
 func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
-	p := allPrecompiles[common.HexToAddress(addr)]
+	addr = web3.BytesToAddress(hexutil.MustDecode("0x" + addr)).String()
+	p := allPrecompiles[web3.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in)
 	t.Run(fmt.Sprintf("%s-Gas=%d", test.Name, gas), func(t *testing.T) {
@@ -115,7 +118,8 @@ func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
 }
 
 func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
-	p := allPrecompiles[common.HexToAddress(addr)]
+	addr = web3.BytesToAddress(hexutil.MustDecode("0x" + addr)).String()
+	p := allPrecompiles[web3.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in) - 1
 
@@ -133,7 +137,8 @@ func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
 }
 
 func testPrecompiledFailure(addr string, test precompiledFailureTest, t *testing.T) {
-	p := allPrecompiles[common.HexToAddress(addr)]
+	addr = web3.BytesToAddress(hexutil.MustDecode("0x" + addr)).String()
+	p := allPrecompiles[web3.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in)
 	t.Run(test.Name, func(t *testing.T) {
@@ -150,10 +155,11 @@ func testPrecompiledFailure(addr string, test precompiledFailureTest, t *testing
 }
 
 func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
+	addr = web3.BytesToAddress(hexutil.MustDecode("0x" + addr)).String()
 	if test.NoBenchmark {
 		return
 	}
-	p := allPrecompiles[common.HexToAddress(addr)]
+	p := allPrecompiles[web3.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
 	reqGas := p.RequiredGas(in)
 
