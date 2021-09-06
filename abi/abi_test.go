@@ -2,7 +2,6 @@ package abi
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,7 +21,7 @@ func TestAbi(t *testing.T) {
 			]`,
 			Output: &ABI{
 				Methods: map[string]*Method{
-					"abc": &Method{
+					"abc": {
 						Name:    "abc",
 						Inputs:  &Type{kind: KindTuple, raw: "tuple", tuple: []*TupleElem{}},
 						Outputs: &Type{kind: KindTuple, raw: "tuple", tuple: []*TupleElem{}},
@@ -40,9 +39,7 @@ func TestAbi(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if !reflect.DeepEqual(abi, c.Output) {
-				t.Fatal("bad")
-			}
+			assert.Equal(t, abi.Methods, c.Output.Methods)
 		})
 	}
 }
