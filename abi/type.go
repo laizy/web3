@@ -103,10 +103,14 @@ type Type struct {
 	size  int
 	elem  *Type
 	raw   string
+	tupleName string
 	tuple []*TupleElem
 	t     reflect.Type
 }
 
+func(t *Type)RawName()string{
+	return t.tupleName
+}
 // ParseLog parses a log using this type
 func (t *Type) ParseLog(log *web3.Log) (map[string]interface{}, error) {
 	return ParseLog(t, log)

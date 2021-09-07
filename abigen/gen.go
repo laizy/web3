@@ -83,6 +83,8 @@ func encodeSimpleArg(typ *abi.Type) string {
 	case abi.KindSlice:
 		return "[]" + encodeSimpleArg(typ.Elem())
 
+	case abi.KindTuple:
+		return typ.RawName()
 	default:
 		return fmt.Sprintf("input not done for type: %s", typ.String())
 	}
@@ -107,10 +109,9 @@ func tupleLen(tuple interface{}) interface{} {
 	return len(arg.TupleElems())
 }
 
-func tupleElems(tuple interface{}) []interface{} {
-	res := []interface{}{}
+func tupleElems(tuple interface{}) (res []interface{}) {
 	if isNil(tuple) {
-		return res
+		return
 	}
 
 	arg, ok := tuple.(*abi.Type)
@@ -120,7 +121,7 @@ func tupleElems(tuple interface{}) []interface{} {
 	for _, i := range arg.TupleElems() {
 		res = append(res, i)
 	}
-	return res
+	return
 }
 
 func isNil(c interface{}) bool {
@@ -152,6 +153,7 @@ func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, a
 	if err != nil {
 		return err
 	}
+
 	input := map[string]interface{}{
 		"Ptr":      "a",
 		"Config":   config,
@@ -190,17 +192,31 @@ func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, a
 		if err != nil {
 			return err
 		}
+		b.Reset()
 	}
+
 	return nil
 }
 
 func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
+	def, err := LoadStructDef(config.Output)
+	if err != nil {
+		return fmt.Errorf("read struct from json: %w", err)
+	}
+
 	for name, artifact := range artifacts {
+		// parse abi
+		abi, err := abi.NewABI(artifact.Abi)
+		if err != nil {
+			return err
+		}
+		def.ExtractFromAbi(abi)
+
 		filename := strings.ToLower(name)
 
 		abiBuffer := bytes.NewBuffer(nil)
 		binBuffer := bytes.NewBuffer(nil)
-		err := GenCodeToWriter(name, artifact, config, abiBuffer, binBuffer)
+		err = GenCodeToWriter(name, artifact, config, abiBuffer, binBuffer)
 		if err != nil {
 			return err
 		}
@@ -213,7 +229,8 @@ func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 			return err
 		}
 	}
-	return nil
+
+	return def.RenderGoCodeToFile(config.Package, config.Output)
 }
 
 var templateAbiStr = `package {{.Config.Package}}

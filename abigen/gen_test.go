@@ -2,18 +2,21 @@ package abigen
 
 import (
 	"bytes"
+	"fmt"
 	"go/format"
 	"testing"
 
+	"github.com/laizy/web3/abi"
 	"github.com/laizy/web3/compiler"
 	"github.com/laizy/web3/testutil"
 	"github.com/laizy/web3/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestEventGen(t *testing.T) {
+var Artifact = func() *compiler.Artifact {
 	if testutil.IsSolcInstalled() == false {
-		t.Skipf("skipping since solidity is not installed")
+		return nil
 	}
 	code := `
 pragma experimental ABIEncoderV2;
@@ -30,12 +33,34 @@ contract Sample {
 		address indexed to,
 		address indexed amount
 	);
+
+    struct Transaction {
+        uint256 timestamp;
+        QueueOrigin l1QueueOrigin;
+        address entrypoint;
+        bytes data;
+    }
+
+    enum QueueOrigin {
+        SEQUENCER_QUEUE,
+        L1TOL2_QUEUE
+    }
+
+    function TestStruct(Transaction memory a,bytes memory b) public returns (bytes memory){
+        return  b;
+    }
 }
 `
 	solc := &compiler.Solidity{Path: "solc"}
 	output, err := solc.CompileCode(code)
 	utils.Ensure(err)
-	artifact := output["<stdin>:Sample"]
+	return output["<stdin>:Sample"]
+}()
+
+func TestCodeGen(t *testing.T) {
+	if testutil.IsSolcInstalled() == false {
+		t.Skipf("skipping since solidity is not installed")
+	}
 	config := &Config{
 		Package: "binding",
 		Output:  "sample",
@@ -43,7 +68,7 @@ contract Sample {
 	}
 
 	b := bytes.NewBuffer(nil)
-	err = GenCodeToWriter(config.Name, artifact, config, b, nil)
+	err := GenCodeToWriter(config.Name, Artifact, config, b, nil)
 	assert.Nil(t, err)
 
 	expected, _ := format.Source([]byte(`package binding
@@ -88,6 +113,11 @@ func (a *Sample) Contract() *contract.Contract {
 // calls
 
 // txns
+
+// TestStruct sends a TestStruct transaction in the solidity contract
+func (a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
+	return a.c.Txn("TestStruct", a, b)
+}
 
 // events
 
@@ -181,5 +211,69 @@ func (a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address,
 	return res, nil
 }`))
 
+	fmt.Println(b.String())
 	assert.Equal(t, string(expected), b.String())
+}
+
+func TestTupleStructs(t *testing.T) {
+	if testutil.IsSolcInstalled() == false {
+		t.Skipf("skipping since solidity is not installed")
+	}
+	assert := require.New(t)
+	abi, err := abi.NewABI(Artifact.Abi)
+	assert.Nil(err)
+
+	code, err := NewStructDefExtractor().ExtractFromAbi(abi).RenderGoCode("binding")
+	assert.Nil(err)
+
+	expected, _ := format.Source([]byte(`package binding
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/laizy/web3"
+)
+
+var (
+	_ = big.NewInt
+	_ = fmt.Printf
+)
+
+type Transaction struct {
+	Timestamp     *big.Int
+	L1QueueOrigin uint8
+	Entrypoint    web3.Address
+	Data          []byte
+}
+`))
+
+	assert.Equal(string(expected), code)
+}
+
+func TestGenStruct(t *testing.T) {
+	if testutil.IsSolcInstalled() == false {
+		t.Skipf("skipping since solidity is not installed")
+	}
+	assert := require.New(t)
+
+	defs := NewStructDefExtractor()
+	abi1, err := abi.NewABI(Artifact.Abi)
+	assert.Nil(err)
+
+	defs.ExtractFromAbi(abi1)
+
+	old := len(defs.Defs)
+	defs.ExtractFromAbi(abi1)
+	assert.Equal(old, len(defs.Defs)) // test dulplicate case
+
+	var oldname string
+	for name := range defs.Defs {
+		oldname = name //read an struct from it
+		break
+	}
+	defs.Defs[oldname] = &StructDef{Name: oldname}
+	assert.PanicsWithError(ErrConflictDef.Error(), func() {
+		defs.ExtractFromAbi(abi1)
+	})
 }
