@@ -23,6 +23,11 @@ func cleanName(str string) string {
 	return handleSnakeCase(strings.Trim(str, "_"))
 }
 
+// ToCamelCase converts an under-score string to a camel-case string
+func toCamelCase(input string) string {
+	return strings.Title(strings.Trim(input, "_"))
+}
+
 func outputArg(str string) string {
 	if str == "" {
 
@@ -122,13 +127,14 @@ func isNil(c interface{}) bool {
 
 func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 	funcMap := template.FuncMap{
-		"title":      strings.Title,
-		"clean":      cleanName,
-		"arg":        encodeArg,
-		"outputArg":  outputArg,
-		"funcName":   funcName,
-		"tupleElems": tupleElems,
-		"tupleLen":   tupleLen,
+		"title":       strings.Title,
+		"clean":       cleanName,
+		"arg":         encodeArg,
+		"outputArg":   outputArg,
+		"funcName":    funcName,
+		"tupleElems":  tupleElems,
+		"tupleLen":    tupleLen,
+		"toCamelCase": toCamelCase,
 	}
 	tmplAbi, err := template.New("eth-abi").Funcs(funcMap).Parse(templateAbiStr)
 	if err != nil {
@@ -177,6 +183,7 @@ func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 var templateAbiStr = `package {{.Config.Package}}
 
 import (
+    "encoding/json"
 	"fmt"
 	"math/big"
 
@@ -240,7 +247,47 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $val := tupleElem
 func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleElems .Inputs}}{{if $index}}, {{end}}{{clean .Name}} {{arg .}}{{end}}) *contract.Txn {
 	return {{$.Ptr}}.c.Txn("{{$key}}"{{range $index, $elem := tupleElems .Inputs}}, {{clean $elem.Name}}{{end}})
 }
-{{end}}{{end}}`
+{{end}}{{end}}
+{{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
+//{{.Name}}
+type {{.Name}} struct { {{range $index, $input := tupleElems $value.Inputs}}
+    {{toCamelCase .Name}}  {{arg .}}{{end}}
+}
+
+func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{arg .}}{{end}}{{end}})([]*{{.Name}}, error){
+	{{range $index, $input := tupleElems .Inputs}}
+    {{if .Indexed}}var {{.Name}}Rule []interface{}
+    for _, {{.Name}}Item := range {{clean .Name}} {
+		{{.Name}}Rule = append({{.Name}}Rule, {{.Name}}Item)
+	}{{end}}{{end}}
+    logs, err := a.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}}Rule{{end}}{{end}})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*{{.Name}}, 0)
+	evts := a.c.Abi.Events["{{.Name}}"]
+	for _, log := range logs {
+		args, err := evts.ParseLog(log)
+		if err != nil {
+			return nil, err
+		}
+		var evtItem {{.Name}}
+		err = mapToStruct(args, &evtItem)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, &evtItem)
+	}
+	return res, nil
+}
+{{end}}{{end}}
+func mapToStruct(m map[string]interface{}, evt interface{}) error {
+	data, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, evt)
+}`
 
 var templateBinStr = `package {{.Config.Package}}
 
