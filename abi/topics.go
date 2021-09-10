@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/laizy/web3"
 )
 
-// ParseLog parses an event log
+// ParseLog parses an event log//fixme: should consider the condition of empty args name
 func ParseLog(args *Type, log *web3.Log) (map[string]interface{}, error) {
 	var indexed, nonIndexed []*TupleElem
 
@@ -40,12 +41,21 @@ func ParseLog(args *Type, log *web3.Log) (map[string]interface{}, error) {
 	}
 
 	res := map[string]interface{}{}
-	for _, arg := range args.TupleElems() {
+
+	nonIndexedNum :=0
+	for i, arg := range args.TupleElems() {
+		name := arg.Name
+		nonIndexedKey := name
+		if name == "" {
+			name = fmt.Sprintf("arg%d",i)//consistent with optimizeEvent
+			nonIndexedKey=strconv.Itoa(nonIndexedNum)
+		}
 		if arg.Indexed {
-			res[arg.Name] = indexedObjs[0]
+			res[name] = indexedObjs[0]
 			indexedObjs = indexedObjs[1:]
 		} else {
-			res[arg.Name] = nonIndexedObjs[arg.Name]
+			res[name] = nonIndexedObjs[nonIndexedKey]
+			nonIndexedNum++
 		}
 	}
 
