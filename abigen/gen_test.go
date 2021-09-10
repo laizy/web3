@@ -2,57 +2,69 @@ package abigen
 
 import (
 	"bytes"
-	"strings"
+	"fmt"
 	"testing"
-	"text/template"
 
-	"github.com/laizy/web3/abi"
 	"github.com/laizy/web3/compiler"
+	"github.com/laizy/web3/testutil"
+	"github.com/laizy/web3/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenCode(t *testing.T) {
+func TestEventGen(t *testing.T) {
+	if testutil.IsSolcInstalled() == false {
+		t.Skipf("skipping since solidity is not installed")
+	}
+	code := `
+pragma experimental ABIEncoderV2;
+contract Sample {
+    event Deposit (
+        address indexed _from,
+        address indexed _to,
+        uint256 _amount,
+        bytes _data
+    );
 
+	event Transfer (
+		address indexed from,
+		address indexed to,
+		address indexed amount
+	);
+}
+`
+	solc := &compiler.Solidity{Path: "solc"}
+	output, err := solc.CompileCode(code)
+	utils.Ensure(err)
+	artifact := output["<stdin>:Sample"]
+	config := &Config{
+		Package: "binding",
+		Output:  "sample",
+		Name:    "Sample",
+	}
+
+	b := bytes.NewBuffer(nil)
+	err = GenCodeToWriter(config.Name, artifact, config, b, nil)
+	assert.Nil(t, err)
+
+	fmt.Println(b.String())
+}
+
+func TestGenCode(t *testing.T) {
 	artifact := &compiler.Artifact{
-		Abi: `[{"anonymous":false,"inputs":[{"indexed":true,"name":"_owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]`,
+		Abi: `[{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]`,
 	}
 	config := &Config{
 		Package: "testPkg",
 		Output:  "testOutput",
-		Name:    "testName",
-	}
-	funcMap := template.FuncMap{
-		"title":       strings.Title,
-		"clean":       cleanName,
-		"arg":         encodeArg,
-		"outputArg":   outputArg,
-		"funcName":    funcName,
-		"tupleElems":  tupleElems,
-		"tupleLen":    tupleLen,
-		"toCamelCase": toCamelCase,
-	}
-	tmplAbi, err := template.New("eth-abi").Funcs(funcMap).Parse(templateAbiStr)
-	assert.Nil(t, err)
-	// parse abi
-	abi, err := abi.NewABI(artifact.Abi)
-	assert.Nil(t, err)
-	input := map[string]interface{}{
-		"Ptr":      "a",
-		"Config":   config,
-		"Contract": artifact,
-		"Abi":      abi,
-		"Name":     "ERC20",
+		Name:    "ERC20",
 	}
 
-	var b bytes.Buffer
-	if err := tmplAbi.Execute(&b, input); err != nil {
-		assert.Nil(t, err)
-	}
-
+	b := bytes.NewBuffer(nil)
+	err := GenCodeToWriter(config.Name, artifact, config, b, nil)
+	assert.Nil(t, err)
 	expected := `package testPkg
 
 import (
-    "encoding/json"
 	"fmt"
 	"math/big"
 
@@ -88,16 +100,16 @@ func (a *ERC20) Contract() *contract.Contract {
 
 //Approval
 type Approval struct { 
-    Owner  web3.Address
-    Spender  web3.Address
-    Value  *big.Int
+    owner  web3.Address
+    spender  web3.Address
+    value  *big.Int
 }
 
 func (a *ERC20) FilterApproval(opts *web3.FilterOpts, owner []web3.Address, spender []web3.Address)([]*Approval, error){
 	
-    var _ownerRule []interface{}
-    for _, _ownerItem := range owner {
-		_ownerRule = append(_ownerRule, _ownerItem)
+    var ownerRule []interface{}
+    for _, ownerItem := range owner {
+		ownerRule = append(ownerRule, ownerItem)
 	}
     var spenderRule []interface{}
     for _, spenderItem := range spender {
@@ -127,9 +139,9 @@ func (a *ERC20) FilterApproval(opts *web3.FilterOpts, owner []web3.Address, spen
 
 //Transfer
 type Transfer struct { 
-    From  web3.Address
-    To  web3.Address
-    Value  *big.Int
+    from  web3.Address
+    to  web3.Address
+    value  *big.Int
 }
 
 func (a *ERC20) FilterTransfer(opts *web3.FilterOpts, from []web3.Address, to []web3.Address)([]*Transfer, error){

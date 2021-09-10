@@ -26,7 +26,7 @@ type solcContract struct {
 
 // Solidity is the solidity compiler
 type Solidity struct {
-	path string
+	Path string
 }
 
 // NewSolidityCompiler instantiates a new solidity compiler
@@ -67,7 +67,7 @@ func (s *Solidity) compileImpl(code string, files ...string) (map[string]*Artifa
 	}
 
 	var stdout, stderr bytes.Buffer
-	cmd := exec.Command(s.path, args...)
+	cmd := exec.Command(s.Path, args...)
 	if code != "" {
 		cmd.Stdin = strings.NewReader(code)
 	}

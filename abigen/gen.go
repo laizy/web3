@@ -3,6 +3,7 @@ package abigen
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -125,7 +126,7 @@ func isNil(c interface{}) bool {
 	return c == nil || (reflect.ValueOf(c).Kind() == reflect.Ptr && reflect.ValueOf(c).IsNil())
 }
 
-func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
+func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, abiWriter, binWriter io.Writer) error {
 	funcMap := template.FuncMap{
 		"title":       strings.Title,
 		"clean":       cleanName,
@@ -145,35 +146,60 @@ func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 		return err
 	}
 
-	for name, artifact := range artifacts {
-		// parse abi
-		abi, err := abi.NewABI(artifact.Abi)
-		if err != nil {
-			return err
-		}
-		input := map[string]interface{}{
-			"Ptr":      "a",
-			"Config":   config,
-			"Contract": artifact,
-			"Abi":      abi,
-			"Name":     name,
-		}
+	// parse abi
+	abi, err := abi.NewABI(artifact.Abi)
+	if err != nil {
+		return err
+	}
+	input := map[string]interface{}{
+		"Ptr":      "a",
+		"Config":   config,
+		"Contract": artifact,
+		"Abi":      abi,
+		"Name":     name,
+	}
 
-		filename := strings.ToLower(name)
-
-		var b bytes.Buffer
+	var b bytes.Buffer
+	if abiWriter != nil {
 		if err := tmplAbi.Execute(&b, input); err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+".go"), []byte(b.Bytes()), 0644); err != nil {
+
+		_, err := abiWriter.Write(b.Bytes())
+		if err != nil {
 			return err
 		}
 
 		b.Reset()
+	}
+	if binWriter != nil {
 		if err := tmplBin.Execute(&b, input); err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+"_artifacts.go"), []byte(b.Bytes()), 0644); err != nil {
+		_, err := binWriter.Write(b.Bytes())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
+	for name, artifact := range artifacts {
+		filename := strings.ToLower(name)
+
+		abiBuffer := bytes.NewBuffer(nil)
+		binBuffer := bytes.NewBuffer(nil)
+		err := GenCodeToWriter(name, artifact, config, abiBuffer, binBuffer)
+		if err != nil {
+			return err
+		}
+
+		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+".go"), abiBuffer.Bytes(), 0644); err != nil {
+			return err
+		}
+
+		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+"_artifacts.go"), binBuffer.Bytes(), 0644); err != nil {
 			return err
 		}
 	}
@@ -251,7 +277,9 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleEl
 {{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
 //{{.Name}}
 type {{.Name}} struct { {{range $index, $input := tupleElems $value.Inputs}}
-    {{toCamelCase .Name}}  {{arg .}}{{end}}
+    {{toCamelCase .Name}} {{arg .}}
+{{end}}
+	Raw *web3.Log
 }
 
 func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{arg .}}{{end}}{{end}})([]*{{.Name}}, error){
@@ -276,6 +304,7 @@ func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}(opts *web3.FilterOpts{{range $index
 		if err != nil {
 			return nil, err
 		}
+		evtItem.Raw = log
 		res = append(res, &evtItem)
 	}
 	return res, nil
