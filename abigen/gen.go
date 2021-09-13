@@ -279,6 +279,7 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $val := tupleElem
 	return
 }
 {{end}}{{end}}
+
 // txns
 {{range $key, $value := .Abi.Methods}}{{if not .Const}}
 // {{funcName $key}} sends a {{$key}} transaction in the solidity contract
@@ -286,14 +287,16 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleEl
 	return {{$.Ptr}}.c.Txn("{{$key}}"{{range $index, $elem := tupleElems .Inputs}}, {{clean $elem.Name}}{{end}})
 }
 {{end}}{{end}}
+
+// events
 {{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
-//{{.Name}}
-type {{.Name}} struct { {{range $index, $input := tupleElems $value.Inputs}}
+//{{.Name}}Event
+type {{.Name}}Event struct { {{range $index, $input := tupleElems $value.Inputs}}
     {{toCamelCase .Name}} {{arg .}}{{end}}
 	Raw *web3.Log
 }
 
-func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{arg .}}{{end}}{{end}})([]*{{.Name}}, error){
+func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{arg .}}{{end}}{{end}})([]*{{.Name}}Event, error){
 	{{range $index, $input := tupleElems .Inputs}}
     {{if .Indexed}}var {{.Name}}Rule []interface{}
     for _, {{.Name}}Item := range {{clean .Name}} {
@@ -304,14 +307,14 @@ func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}(opts *web3.FilterOpts{{range $index
 	if err != nil {
 		return nil, err
 	}
-	res := make([]*{{.Name}}, 0)
+	res := make([]*{{.Name}}Event, 0)
 	evts := a.c.Abi.Events["{{.Name}}"]
 	for _, log := range logs {
 		args, err := evts.ParseLog(log)
 		if err != nil {
 			return nil, err
 		}
-		var evtItem {{.Name}}
+		var evtItem {{.Name}}Event
 		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
 		if err != nil {
 			return nil, err

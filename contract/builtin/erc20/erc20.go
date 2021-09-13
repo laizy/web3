@@ -1,17 +1,20 @@
 package erc20
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/contract"
 	"github.com/laizy/web3/jsonrpc"
+	"github.com/laizy/web3/utils"
 )
 
 var (
 	_ = big.NewInt
 	_ = fmt.Printf
+	_ = utils.JsonStr
 )
 
 // ERC20 is a solidity contract
@@ -178,4 +181,90 @@ func (a *ERC20) Transfer(to web3.Address, value *big.Int) *contract.Txn {
 // TransferFrom sends a transferFrom transaction in the solidity contract
 func (a *ERC20) TransferFrom(from web3.Address, to web3.Address, value *big.Int) *contract.Txn {
 	return a.c.Txn("transferFrom", from, to, value)
+}
+
+// events
+
+//ApprovalEvent
+type ApprovalEvent struct {
+	Owner   web3.Address
+	Spender web3.Address
+	Value   *big.Int
+	Raw     *web3.Log
+}
+
+func (a *ERC20) FilterApprovalEvent(opts *web3.FilterOpts, owner []web3.Address, spender []web3.Address) ([]*ApprovalEvent, error) {
+
+	var ownerRule []interface{}
+	for _, ownerItem := range owner {
+		ownerRule = append(ownerRule, ownerItem)
+	}
+
+	var spenderRule []interface{}
+	for _, spenderItem := range spender {
+		spenderRule = append(spenderRule, spenderItem)
+	}
+
+	logs, err := a.c.FilterLogs(opts, "Approval", ownerRule, spenderRule)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*ApprovalEvent, 0)
+	evts := a.c.Abi.Events["Approval"]
+	for _, log := range logs {
+		args, err := evts.ParseLog(log)
+		if err != nil {
+			return nil, err
+		}
+		var evtItem ApprovalEvent
+		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
+		if err != nil {
+			return nil, err
+		}
+		evtItem.Raw = log
+		res = append(res, &evtItem)
+	}
+	return res, nil
+}
+
+//TransferEvent
+type TransferEvent struct {
+	From  web3.Address
+	To    web3.Address
+	Value *big.Int
+	Raw   *web3.Log
+}
+
+func (a *ERC20) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*TransferEvent, error) {
+
+	var fromRule []interface{}
+	for _, fromItem := range from {
+		fromRule = append(fromRule, fromItem)
+	}
+
+	var toRule []interface{}
+	for _, toItem := range to {
+		toRule = append(toRule, toItem)
+	}
+
+	logs, err := a.c.FilterLogs(opts, "Transfer", fromRule, toRule)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*TransferEvent, 0)
+	evts := a.c.Abi.Events["Transfer"]
+	for _, log := range logs {
+		args, err := evts.ParseLog(log)
+		if err != nil {
+			return nil, err
+		}
+		var evtItem TransferEvent
+		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
+		if err != nil {
+			return nil, err
+		}
+		evtItem.Raw = log
+		res = append(res, &evtItem)
+	}
+	return res, nil
 }
