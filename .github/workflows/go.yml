@@ -21,9 +21,8 @@ jobs:
     - name: get solc binary
       run: |
         sudo apt-get install -y wget && \
-        sudo wget -c https://github.com/ethereum/solc-bin/blob/gh-pages/linux-amd64/solc-linux-amd64-v0.8.7%2Bcommit.e28d00a7 -O /usr/local/bin/solc && \
+        sudo wget -c https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/linux-amd64/solc-linux-amd64-v0.8.7%2Bcommit.e28d00a7 -O /usr/local/bin/solc && \
         sudo chmod +x /usr/local/bin/solc
-        echo $PATH
         solc --version
 
     - name: Format
@@ -34,3 +33,24 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+
+/home/runner/go/bin
+/opt/hostedtoolcache/go/1.15.15/x64/bin
+/home/linuxbrew/.linuxbrew/bin
+/home/linuxbrew/.linuxbrew/sbin
+/home/runner/.local/bin
+/opt/pipx_bin
+/usr/share/rust/.cargo/bin
+/home/runner/.config/composer/vendor/bin
+/usr/local/.ghcup/bin
+/home/runner/.dotnet/tools
+/snap/bin
+/usr/local/sbin
+/usr/local/bin
+/usr/sbin
+/usr/bin
+/sbin
+/bin
+/usr/games
+/usr/local/games
+/snap/bin
