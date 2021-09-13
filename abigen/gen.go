@@ -3,6 +3,7 @@ package abigen
 import (
 	"bytes"
 	"fmt"
+	"go/format"
 	"io"
 	"io/ioutil"
 	"path/filepath"
@@ -164,8 +165,12 @@ func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, a
 		if err := tmplAbi.Execute(&b, input); err != nil {
 			return err
 		}
+		code, err := format.Source(b.Bytes())
+		if err != nil {
+			return fmt.Errorf("format generated abi code err: %v", err)
+		}
 
-		_, err := abiWriter.Write(b.Bytes())
+		_, err = abiWriter.Write(code)
 		if err != nil {
 			return err
 		}
@@ -176,7 +181,12 @@ func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, a
 		if err := tmplBin.Execute(&b, input); err != nil {
 			return err
 		}
-		_, err := binWriter.Write(b.Bytes())
+
+		binCode, err := format.Source(b.Bytes())
+		if err != nil {
+			return fmt.Errorf("format generated bin code err: %v", err)
+		}
+		_, err = binWriter.Write(binCode)
 		if err != nil {
 			return err
 		}
@@ -216,11 +226,13 @@ import (
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/contract"
 	"github.com/laizy/web3/jsonrpc"
+	"github.com/laizy/web3/utils"
 )
 
 var (
 	_ = big.NewInt
 	_ = fmt.Printf
+	_ = utils.JsonStr
 )
 
 // {{.Name}} is a solidity contract
@@ -277,8 +289,7 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleEl
 {{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
 //{{.Name}}
 type {{.Name}} struct { {{range $index, $input := tupleElems $value.Inputs}}
-    {{toCamelCase .Name}} {{arg .}}
-{{end}}
+    {{toCamelCase .Name}} {{arg .}}{{end}}
 	Raw *web3.Log
 }
 
@@ -287,8 +298,9 @@ func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}(opts *web3.FilterOpts{{range $index
     {{if .Indexed}}var {{.Name}}Rule []interface{}
     for _, {{.Name}}Item := range {{clean .Name}} {
 		{{.Name}}Rule = append({{.Name}}Rule, {{.Name}}Item)
-	}{{end}}{{end}}
-    logs, err := a.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}}Rule{{end}}{{end}})
+	}
+	{{end}}{{end}}
+	logs, err := a.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}}Rule{{end}}{{end}})
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +312,7 @@ func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}(opts *web3.FilterOpts{{range $index
 			return nil, err
 		}
 		var evtItem {{.Name}}
-		err = mapToStruct(args, &evtItem)
+		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
 		if err != nil {
 			return nil, err
 		}
@@ -310,13 +322,7 @@ func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}(opts *web3.FilterOpts{{range $index
 	return res, nil
 }
 {{end}}{{end}}
-func mapToStruct(m map[string]interface{}, evt interface{}) error {
-	data, err := json.Marshal(m)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(data, evt)
-}`
+`
 
 var templateBinStr = `package {{.Config.Package}}
 
