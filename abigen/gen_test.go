@@ -54,9 +54,9 @@ import (
 	"math/big"
 
 	"github.com/laizy/web3"
-	"github.com/laizy/web3/utils"
 	"github.com/laizy/web3/contract"
 	"github.com/laizy/web3/jsonrpc"
+	"github.com/laizy/web3/utils"
 )
 
 var (
@@ -89,8 +89,10 @@ func (a *Sample) Contract() *contract.Contract {
 
 // txns
 
-//Deposit
-type Deposit struct {
+// events
+
+//DepositEvent
+type DepositEvent struct {
 	From   web3.Address
 	To     web3.Address
 	Amount *big.Int
@@ -98,7 +100,7 @@ type Deposit struct {
 	Raw    *web3.Log
 }
 
-func (a *Sample) FilterDeposit(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*Deposit, error) {
+func (a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*DepositEvent, error) {
 
 	var _fromRule []interface{}
 	for _, _fromItem := range from {
@@ -114,14 +116,14 @@ func (a *Sample) FilterDeposit(opts *web3.FilterOpts, from []web3.Address, to []
 	if err != nil {
 		return nil, err
 	}
-	res := make([]*Deposit, 0)
+	res := make([]*DepositEvent, 0)
 	evts := a.c.Abi.Events["Deposit"]
 	for _, log := range logs {
 		args, err := evts.ParseLog(log)
 		if err != nil {
 			return nil, err
 		}
-		var evtItem Deposit
+		var evtItem DepositEvent
 		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
 		if err != nil {
 			return nil, err
@@ -132,15 +134,15 @@ func (a *Sample) FilterDeposit(opts *web3.FilterOpts, from []web3.Address, to []
 	return res, nil
 }
 
-//Transfer
-type Transfer struct {
+//TransferEvent
+type TransferEvent struct {
 	From   web3.Address
 	To     web3.Address
 	Amount web3.Address
 	Raw    *web3.Log
 }
 
-func (a *Sample) FilterTransfer(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address) ([]*Transfer, error) {
+func (a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address) ([]*TransferEvent, error) {
 
 	var fromRule []interface{}
 	for _, fromItem := range from {
@@ -161,14 +163,14 @@ func (a *Sample) FilterTransfer(opts *web3.FilterOpts, from []web3.Address, to [
 	if err != nil {
 		return nil, err
 	}
-	res := make([]*Transfer, 0)
+	res := make([]*TransferEvent, 0)
 	evts := a.c.Abi.Events["Transfer"]
 	for _, log := range logs {
 		args, err := evts.ParseLog(log)
 		if err != nil {
 			return nil, err
 		}
-		var evtItem Transfer
+		var evtItem TransferEvent
 		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
 		if err != nil {
 			return nil, err

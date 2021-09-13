@@ -18,6 +18,13 @@ jobs:
       with:
         go-version: 1.15
 
+    - name: get solc binary
+      run: |
+        sudo apt-get install -y wget && \
+        sudo wget -c https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/linux-amd64/solc-linux-amd64-v0.8.7%2Bcommit.e28d00a7 -O /usr/local/bin/solc && \
+        sudo chmod +x /usr/local/bin/solc
+        solc --version
+
     - name: Format
       run: bash ./scripts/github-action.gofmt.sh
 
