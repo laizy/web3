@@ -49,6 +49,10 @@ contract Sample {
     function TestStruct(Transaction memory a,bytes memory b) public returns (bytes memory){
         return  b;
     }
+
+    function getTxes(Transaction[] memory txes) external view returns (Transaction[] memory) {
+        return txes;
+    }
 }
 `
 	solc := &compiler.Solidity{Path: "solc"}
@@ -220,10 +224,7 @@ func TestTupleStructs(t *testing.T) {
 		t.Skipf("skipping since solidity is not installed")
 	}
 	assert := require.New(t)
-	abi, err := abi.NewABI(Artifact.Abi)
-	assert.Nil(err)
-
-	code, err := NewStructDefExtractor().ExtractFromAbi(abi).RenderGoCode("binding")
+	code, err := NewStructDefExtractor().ExtractFromAbi(abi.MustNewABI(Artifact.Abi)).RenderGoCode("binding")
 	assert.Nil(err)
 
 	expected, _ := format.Source([]byte(`package binding

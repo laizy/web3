@@ -169,6 +169,7 @@ func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, a
 		}
 		code, err := format.Source(b.Bytes())
 		if err != nil {
+			fmt.Println(b.String())
 			return fmt.Errorf("format generated abi code err: %v", err)
 		}
 
