@@ -99,12 +99,17 @@ type TupleElem struct {
 
 // Type is an ABI type
 type Type struct {
-	kind  Kind
-	size  int
-	elem  *Type
-	raw   string
-	tuple []*TupleElem
-	t     reflect.Type
+	kind      Kind
+	size      int
+	elem      *Type
+	raw       string
+	tupleName string
+	tuple     []*TupleElem
+	t         reflect.Type
+}
+
+func (t *Type) RawName() string {
+	return t.tupleName
 }
 
 // ParseLog parses a log using this type

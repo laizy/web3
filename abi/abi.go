@@ -371,6 +371,16 @@ func (a *argument) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
+	if t.kind == KindTuple {
+		if arg.InternalType == "" {
+			t.tupleName = ""
+		} else {
+			tuples := strings.Split(arg.InternalType, ".")
+			tuplename := tuples[len(tuples)-1]
+			tuplename = strings.Title(tuplename)
+			t.tupleName = tuplename
+		}
+	}
 
 	a.Type = t
 	a.Name = arg.Name
@@ -380,10 +390,11 @@ func (a *argument) UnmarshalJSON(data []byte) error {
 
 // ArgumentStr encodes a type object
 type ArgumentStr struct {
-	Name       string
-	Type       string
-	Indexed    bool
-	Components []*ArgumentStr
+	Name         string
+	Type         string
+	InternalType string
+	Indexed      bool
+	Components   []*ArgumentStr
 }
 
 var keccakPool = sync.Pool{
