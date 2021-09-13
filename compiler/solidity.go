@@ -11,6 +11,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/laizy/web3/utils"
 )
 
 type solcOutput struct {
@@ -21,12 +23,12 @@ type solcOutput struct {
 type solcContract struct {
 	BinRuntime string `json:"bin-runtime"`
 	Bin        string
-	Abi        string
+	Abi        interface{}
 }
 
 // Solidity is the solidity compiler
 type Solidity struct {
-	path string
+	Path string
 }
 
 // NewSolidityCompiler instantiates a new solidity compiler
@@ -67,7 +69,7 @@ func (s *Solidity) compileImpl(code string, files ...string) (map[string]*Artifa
 	}
 
 	var stdout, stderr bytes.Buffer
-	cmd := exec.Command(s.path, args...)
+	cmd := exec.Command(s.Path, args...)
 	if code != "" {
 		cmd.Stdin = strings.NewReader(code)
 	}
@@ -86,7 +88,7 @@ func (s *Solidity) compileImpl(code string, files ...string) (map[string]*Artifa
 
 	artifacts := map[string]*Artifact{}
 	for name, i := range output.Contracts {
-		artifacts[name] = NewArtifact(i.Bin, i.BinRuntime, i.Abi)
+		artifacts[name] = NewArtifact(utils.JsonStr(i.Abi), i.Bin, i.BinRuntime)
 	}
 	return artifacts, nil
 }

@@ -51,7 +51,7 @@ func (v *Vyper) Compile(files ...string) (map[string]*Artifact, error) {
 			return nil, err
 		}
 
-		artifacts[name] = NewArtifact(contract["bytecode"].(string), contract["bytecode_runtime"].(string), string(abiStr))
+		artifacts[name] = NewArtifact(string(abiStr), contract["bytecode"].(string), contract["bytecode_runtime"].(string))
 	}
 	return artifacts, nil
 }

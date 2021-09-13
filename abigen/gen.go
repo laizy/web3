@@ -3,6 +3,8 @@ package abigen
 import (
 	"bytes"
 	"fmt"
+	"go/format"
+	"io"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -21,6 +23,11 @@ type Config struct {
 
 func cleanName(str string) string {
 	return handleSnakeCase(strings.Trim(str, "_"))
+}
+
+// ToCamelCase converts an under-score string to a camel-case string
+func toCamelCase(input string) string {
+	return strings.Title(strings.Trim(input, "_"))
 }
 
 func outputArg(str string) string {
@@ -120,15 +127,16 @@ func isNil(c interface{}) bool {
 	return c == nil || (reflect.ValueOf(c).Kind() == reflect.Ptr && reflect.ValueOf(c).IsNil())
 }
 
-func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
+func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, abiWriter, binWriter io.Writer) error {
 	funcMap := template.FuncMap{
-		"title":      strings.Title,
-		"clean":      cleanName,
-		"arg":        encodeArg,
-		"outputArg":  outputArg,
-		"funcName":   funcName,
-		"tupleElems": tupleElems,
-		"tupleLen":   tupleLen,
+		"title":       strings.Title,
+		"clean":       cleanName,
+		"arg":         encodeArg,
+		"outputArg":   outputArg,
+		"funcName":    funcName,
+		"tupleElems":  tupleElems,
+		"tupleLen":    tupleLen,
+		"toCamelCase": toCamelCase,
 	}
 	tmplAbi, err := template.New("eth-abi").Funcs(funcMap).Parse(templateAbiStr)
 	if err != nil {
@@ -139,35 +147,69 @@ func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 		return err
 	}
 
-	for name, artifact := range artifacts {
-		// parse abi
-		abi, err := abi.NewABI(artifact.Abi)
-		if err != nil {
-			return err
-		}
-		input := map[string]interface{}{
-			"Ptr":      "a",
-			"Config":   config,
-			"Contract": artifact,
-			"Abi":      abi,
-			"Name":     name,
-		}
+	// parse abi
+	abi, err := abi.NewABI(artifact.Abi)
+	if err != nil {
+		return err
+	}
+	input := map[string]interface{}{
+		"Ptr":      "a",
+		"Config":   config,
+		"Contract": artifact,
+		"Abi":      abi,
+		"Name":     name,
+	}
 
-		filename := strings.ToLower(name)
-
-		var b bytes.Buffer
+	var b bytes.Buffer
+	if abiWriter != nil {
 		if err := tmplAbi.Execute(&b, input); err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+".go"), []byte(b.Bytes()), 0644); err != nil {
+		code, err := format.Source(b.Bytes())
+		if err != nil {
+			return fmt.Errorf("format generated abi code err: %v", err)
+		}
+
+		_, err = abiWriter.Write(code)
+		if err != nil {
 			return err
 		}
 
 		b.Reset()
+	}
+	if binWriter != nil {
 		if err := tmplBin.Execute(&b, input); err != nil {
 			return err
 		}
-		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+"_artifacts.go"), []byte(b.Bytes()), 0644); err != nil {
+
+		binCode, err := format.Source(b.Bytes())
+		if err != nil {
+			return fmt.Errorf("format generated bin code err: %v", err)
+		}
+		_, err = binWriter.Write(binCode)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
+	for name, artifact := range artifacts {
+		filename := strings.ToLower(name)
+
+		abiBuffer := bytes.NewBuffer(nil)
+		binBuffer := bytes.NewBuffer(nil)
+		err := GenCodeToWriter(name, artifact, config, abiBuffer, binBuffer)
+		if err != nil {
+			return err
+		}
+
+		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+".go"), abiBuffer.Bytes(), 0644); err != nil {
+			return err
+		}
+
+		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+"_artifacts.go"), binBuffer.Bytes(), 0644); err != nil {
 			return err
 		}
 	}
@@ -177,17 +219,20 @@ func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 var templateAbiStr = `package {{.Config.Package}}
 
 import (
+    "encoding/json"
 	"fmt"
 	"math/big"
 
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/contract"
 	"github.com/laizy/web3/jsonrpc"
+	"github.com/laizy/web3/utils"
 )
 
 var (
 	_ = big.NewInt
 	_ = fmt.Printf
+	_ = utils.JsonStr
 )
 
 // {{.Name}} is a solidity contract
@@ -234,13 +279,53 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $val := tupleElem
 	return
 }
 {{end}}{{end}}
+
 // txns
 {{range $key, $value := .Abi.Methods}}{{if not .Const}}
 // {{funcName $key}} sends a {{$key}} transaction in the solidity contract
 func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleElems .Inputs}}{{if $index}}, {{end}}{{clean .Name}} {{arg .}}{{end}}) *contract.Txn {
 	return {{$.Ptr}}.c.Txn("{{$key}}"{{range $index, $elem := tupleElems .Inputs}}, {{clean $elem.Name}}{{end}})
 }
-{{end}}{{end}}`
+{{end}}{{end}}
+
+// events
+{{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
+//{{.Name}}Event
+type {{.Name}}Event struct { {{range $index, $input := tupleElems $value.Inputs}}
+    {{toCamelCase .Name}} {{arg .}}{{end}}
+	Raw *web3.Log
+}
+
+func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{arg .}}{{end}}{{end}})([]*{{.Name}}Event, error){
+	{{range $index, $input := tupleElems .Inputs}}
+    {{if .Indexed}}var {{.Name}}Rule []interface{}
+    for _, {{.Name}}Item := range {{clean .Name}} {
+		{{.Name}}Rule = append({{.Name}}Rule, {{.Name}}Item)
+	}
+	{{end}}{{end}}
+	logs, err := a.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}}Rule{{end}}{{end}})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*{{.Name}}Event, 0)
+	evts := a.c.Abi.Events["{{.Name}}"]
+	for _, log := range logs {
+		args, err := evts.ParseLog(log)
+		if err != nil {
+			return nil, err
+		}
+		var evtItem {{.Name}}Event
+		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
+		if err != nil {
+			return nil, err
+		}
+		evtItem.Raw = log
+		res = append(res, &evtItem)
+	}
+	return res, nil
+}
+{{end}}{{end}}
+`
 
 var templateBinStr = `package {{.Config.Package}}
 
