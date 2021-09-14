@@ -3,6 +3,7 @@ package abigen
 import (
 	"bytes"
 	"fmt"
+	"github.com/laizy/web3/utils"
 	"go/format"
 	"io"
 	"io/ioutil"
@@ -124,8 +125,95 @@ func tupleElems(tuple interface{}) (res []interface{}) {
 	return
 }
 
+func FuncMap() template.FuncMap {
+	return template.FuncMap{
+		"title":       strings.Title,
+		"clean":       cleanName,
+		"arg":         encodeArg,
+		"outputArg":   outputArg,
+		"funcName":    funcName,
+		"tupleElems":  tupleElems,
+		"tupleLen":    tupleLen,
+		"toCamelCase": toCamelCase,
+	}
+}
+
 func isNil(c interface{}) bool {
 	return c == nil || (reflect.ValueOf(c).Kind() == reflect.Ptr && reflect.ValueOf(c).IsNil())
+}
+
+func GenAbi(name string, artifact *compiler.Artifact, config *Config) (io.Reader, error) {
+	// parse abi
+	abi, err := abi.NewABI(artifact.Abi)
+	if err != nil {
+		return nil, err
+	}
+	input := map[string]interface{}{
+		"Ptr":      "a",
+		"Config":   config,
+		"Contract": artifact,
+		"Abi":      abi,
+		"Name":     name,
+	}
+	return GenCodeToReader("eth-abi", FuncMap(), templateAbiStr, input)
+}
+
+func GenBin(name string, artifact *compiler.Artifact, config *Config) (io.Reader, error) {
+	// parse abi
+	abi, err := abi.NewABI(artifact.Abi)
+	if err != nil {
+		return nil, err
+	}
+	input := map[string]interface{}{
+		"Ptr":      "a",
+		"Config":   config,
+		"Contract": artifact,
+		"Abi":      abi,
+		"Name":     name,
+	}
+	return GenCodeToReader("eth-bin", FuncMap(), templateBinStr, input)
+}
+func GenCodeToReader(name string, funcMap template.FuncMap, temp string, input map[string]interface{}) (io.Reader, error) {
+	tempExt, err := template.New(name).Funcs(funcMap).Parse(temp)
+	utils.Ensure(err)
+	b := bytes.NewBuffer(nil)
+	if err := tempExt.Execute(b, input); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func WriteCode(abiWriter, binWriter io.Writer, abiReader, binReader io.Reader) error {
+	if abiWriter != nil {
+		var b []byte
+		_, err := abiReader.Read(b)
+		utils.Ensure(err)
+		code, err := format.Source(b)
+		if err != nil {
+			fmt.Println(string(b))
+			return fmt.Errorf("format generated abi code err: %v", err)
+		}
+
+		_, err = abiWriter.Write(code)
+		if err != nil {
+			return err
+		}
+	}
+	if binWriter != nil {
+		var b []byte
+		_, err := binReader.Read(b)
+		utils.Ensure(err)
+		code, err := format.Source(b)
+		if err != nil {
+			fmt.Println(string(b))
+			return fmt.Errorf("format generated abi code err: %v", err)
+		}
+		_, err = binWriter.Write(code)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, abiWriter, binWriter io.Writer) error {

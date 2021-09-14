@@ -1,9 +1,9 @@
 package abigen
 
 import (
-	"bytes"
 	"fmt"
 	"go/format"
+	"io/ioutil"
 	"testing"
 
 	"github.com/laizy/web3/abi"
@@ -71,8 +71,11 @@ func TestCodeGen(t *testing.T) {
 		Name:    "Sample",
 	}
 
-	b := bytes.NewBuffer(nil)
-	err := GenCodeToWriter(config.Name, Artifact, config, b, nil)
+	abiReader, err := GenAbi(config.Name, Artifact, config)
+	assert.Nil(t, err)
+	//binReadr,err := GenBin(config.Name,Artifact,config)
+	//assert.Nil(err)
+	b, err := ioutil.ReadAll(abiReader)
 	assert.Nil(t, err)
 
 	expected, _ := format.Source([]byte(`package binding
@@ -215,8 +218,10 @@ func (a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address,
 	return res, nil
 }`))
 
-	fmt.Println(b.String())
-	assert.Equal(t, string(expected), b.String())
+	fmt.Println(string(b))
+	c, err := format.Source(b)
+	assert.Nil(t, err)
+	assert.Equal(t, string(expected), string(c))
 }
 
 func TestTupleStructs(t *testing.T) {
