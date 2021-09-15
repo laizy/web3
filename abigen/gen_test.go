@@ -61,6 +61,176 @@ contract Sample {
 	return output["<stdin>:Sample"]
 }()
 
+var testAbi = `
+[
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "_from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bytes",
+				"name": "_data",
+				"type": "bytes"
+			}
+		],
+		"name": "Deposit",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "amount",
+				"type": "address"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum Sample.QueueOrigin",
+						"name": "l1QueueOrigin",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "entrypoint",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					}
+				],
+				"internalType": "struct Sample.Transaction",
+				"name": "a",
+				"type": "tuple"
+			},
+			{
+				"internalType": "bytes",
+				"name": "b",
+				"type": "bytes"
+			}
+		],
+		"name": "TestStruct",
+		"outputs": [
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum Sample.QueueOrigin",
+						"name": "l1QueueOrigin",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "entrypoint",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					}
+				],
+				"internalType": "struct Sample.Transaction[]",
+				"name": "txes",
+				"type": "tuple[]"
+			}
+		],
+		"name": "getTxes",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum Sample.QueueOrigin",
+						"name": "l1QueueOrigin",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "entrypoint",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					}
+				],
+				"internalType": "struct Sample.Transaction[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+`
+
 func TestCodeGen(t *testing.T) {
 	if testutil.IsSolcInstalled() == false {
 		t.Skipf("skipping since solidity is not installed")
@@ -70,11 +240,9 @@ func TestCodeGen(t *testing.T) {
 		Output:  "sample",
 		Name:    "Sample",
 	}
-
+	//art := &compiler.Artifact{Abi: testAbi}
 	abiReader, err := GenAbi(config.Name, Artifact, config)
 	assert.Nil(t, err)
-	//binReadr,err := GenBin(config.Name,Artifact,config)
-	//assert.Nil(err)
 	b, err := ioutil.ReadAll(abiReader)
 	assert.Nil(t, err)
 
@@ -113,31 +281,55 @@ func NewSample(addr web3.Address, provider *jsonrpc.Client) *Sample {
 }
 
 // Contract returns the contract object
-func (a *Sample) Contract() *contract.Contract {
-	return a.c
+func (_a *Sample) Contract() *contract.Contract {
+	return _a.c
 }
 
 // calls
 
+// GetTxes calls the getTxes method in the solidity contract
+func (_a *Sample) GetTxes(txes []Transaction, block ...web3.BlockNumber) (retval0 []Transaction, err error) {
+	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
+	var ok bool
+
+	out, err = _a.c.Call("getTxes", web3.EncodeBlock(block...), txes)
+	if err != nil {
+		return
+	}
+
+	// decode outputs
+	retval0, ok = out["0"].([]Transaction)
+	if !ok {
+		err = fmt.Errorf("failed to encode output at index 0")
+		return
+	}
+
+	return
+}
+
+
 // txns
 
 // TestStruct sends a TestStruct transaction in the solidity contract
-func (a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
-	return a.c.Txn("TestStruct", a, b)
+func (_a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
+	return _a.c.Txn("TestStruct", a, b)
 }
+
 
 // events
 
 //DepositEvent
 type DepositEvent struct {
-	From   web3.Address
-	To     web3.Address
+	From web3.Address
+	To web3.Address
 	Amount *big.Int
-	Data   []byte
-	Raw    *web3.Log
+	Data []byte
+	Raw *web3.Log
 }
 
-func (a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*DepositEvent, error) {
+func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address)([]*DepositEvent, error){
 
 	var _fromRule []interface{}
 	for _, _fromItem := range from {
@@ -149,12 +341,14 @@ func (a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, 
 		_toRule = append(_toRule, _toItem)
 	}
 
-	logs, err := a.c.FilterLogs(opts, "Deposit", fromRule, toRule)
+
+
+	logs, err := _a.c.FilterLogs(opts, "Deposit", _fromRule, _toRule)
 	if err != nil {
 		return nil, err
 	}
 	res := make([]*DepositEvent, 0)
-	evts := a.c.Abi.Events["Deposit"]
+	evts := _a.c.Abi.Events["Deposit"]
 	for _, log := range logs {
 		args, err := evts.ParseLog(log)
 		if err != nil {
@@ -173,13 +367,13 @@ func (a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, 
 
 //TransferEvent
 type TransferEvent struct {
-	From   web3.Address
-	To     web3.Address
+	From web3.Address
+	To web3.Address
 	Amount web3.Address
-	Raw    *web3.Log
+	Raw *web3.Log
 }
 
-func (a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address) ([]*TransferEvent, error) {
+func (_a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address)([]*TransferEvent, error){
 
 	var fromRule []interface{}
 	for _, fromItem := range from {
@@ -196,12 +390,12 @@ func (a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address,
 		amountRule = append(amountRule, amountItem)
 	}
 
-	logs, err := a.c.FilterLogs(opts, "Transfer", fromRule, toRule, amountRule)
+	logs, err := _a.c.FilterLogs(opts, "Transfer", fromRule, toRule, amountRule)
 	if err != nil {
 		return nil, err
 	}
 	res := make([]*TransferEvent, 0)
-	evts := a.c.Abi.Events["Transfer"]
+	evts := _a.c.Abi.Events["Transfer"]
 	for _, log := range logs {
 		args, err := evts.ParseLog(log)
 		if err != nil {
@@ -216,9 +410,9 @@ func (a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address,
 		res = append(res, &evtItem)
 	}
 	return res, nil
-}`))
+}
+`))
 
-	fmt.Println(string(b))
 	c, err := format.Source(b)
 	assert.Nil(t, err)
 	assert.Equal(t, string(expected), string(c))
@@ -231,7 +425,7 @@ func TestTupleStructs(t *testing.T) {
 	assert := require.New(t)
 	code, err := NewStructDefExtractor().ExtractFromAbi(abi.MustNewABI(Artifact.Abi)).RenderGoCode("binding")
 	assert.Nil(err)
-
+	fmt.Println(string(code))
 	expected, _ := format.Source([]byte(`package binding
 
 import (

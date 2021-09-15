@@ -149,7 +149,7 @@ func GenAbi(name string, artifact *compiler.Artifact, config *Config) (io.Reader
 		return nil, err
 	}
 	input := map[string]interface{}{
-		"Ptr":      "a",
+		"Ptr":      "_a",
 		"Config":   config,
 		"Contract": artifact,
 		"Abi":      abi,
@@ -165,7 +165,7 @@ func GenBin(name string, artifact *compiler.Artifact, config *Config) (io.Reader
 		return nil, err
 	}
 	input := map[string]interface{}{
-		"Ptr":      "a",
+		"Ptr":      "_a",
 		"Config":   config,
 		"Contract": artifact,
 		"Abi":      abi,
@@ -243,7 +243,7 @@ func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, a
 	}
 
 	input := map[string]interface{}{
-		"Ptr":      "a",
+		"Ptr":      "_a",
 		"Config":   config,
 		"Contract": artifact,
 		"Abi":      abi,
@@ -409,12 +409,12 @@ func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $
 		{{.Name}}Rule = append({{.Name}}Rule, {{.Name}}Item)
 	}
 	{{end}}{{end}}
-	logs, err := a.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}}Rule{{end}}{{end}})
+	logs, err := {{$.Ptr}}.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{.Name}}Rule{{end}}{{end}})
 	if err != nil {
 		return nil, err
 	}
 	res := make([]*{{.Name}}Event, 0)
-	evts := a.c.Abi.Events["{{.Name}}"]
+	evts := {{$.Ptr}}.c.Abi.Events["{{.Name}}"]
 	for _, log := range logs {
 		args, err := evts.ParseLog(log)
 		if err != nil {
