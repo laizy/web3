@@ -1,9 +1,13 @@
 package abigen
 
 import (
+	"bytes"
 	"fmt"
+	"go/format"
 	"strings"
 	"text/template"
+
+	"github.com/laizy/web3/utils"
 
 	"github.com/laizy/web3/abi"
 	"github.com/laizy/web3/compiler"
@@ -47,13 +51,13 @@ func (g *Generator) Gen() (res Result, err error) {
 			"Abi":      abi,
 			"Name":     name,
 		}
-		abiCode, err := GenCodeToBytes("eth-abi", g.funcMap, templateAbiStr, input)
+		abiCode, err := genCodeToBytes("eth-abi", g.funcMap, templateAbiStr, input)
 		if err != nil {
 			return Result{}, fmt.Errorf("genCodeToBytes: %v", err)
 		}
 		res.AbiFiles = append(res.AbiFiles, CodeFile{fileName, abiCode})
 
-		binCode, err := GenCodeToBytes("eth-bin", g.funcMap, templateAbiStr, input)
+		binCode, err := genCodeToBytes("eth-bin", g.funcMap, templateAbiStr, input)
 		if err != nil {
 			return Result{}, fmt.Errorf("genCodeToBytes: %v", err)
 		}
@@ -61,4 +65,18 @@ func (g *Generator) Gen() (res Result, err error) {
 	}
 
 	return
+}
+
+func genCodeToBytes(name string, funcMap template.FuncMap, temp string, input map[string]interface{}) ([]byte, error) {
+	tempExt, err := template.New(name).Funcs(funcMap).Parse(temp)
+	utils.Ensure(err)
+	buffer := bytes.NewBuffer(nil)
+	if err := tempExt.Execute(buffer, input); err != nil {
+		return nil, err
+	}
+	b, err := format.Source(buffer.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }

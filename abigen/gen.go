@@ -1,16 +1,12 @@
 package abigen
 
 import (
-	"bytes"
 	"fmt"
-	"go/format"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"text/template"
-
-	"github.com/laizy/web3/utils"
 
 	"github.com/laizy/web3/abi"
 	"github.com/laizy/web3/compiler"
@@ -142,20 +138,6 @@ func isNil(c interface{}) bool {
 	return c == nil || (reflect.ValueOf(c).Kind() == reflect.Ptr && reflect.ValueOf(c).IsNil())
 }
 
-func GenCodeToBytes(name string, funcMap template.FuncMap, temp string, input map[string]interface{}) ([]byte, error) {
-	tempExt, err := template.New(name).Funcs(funcMap).Parse(temp)
-	utils.Ensure(err)
-	buffer := bytes.NewBuffer(nil)
-	if err := tempExt.Execute(buffer, input); err != nil {
-		return nil, err
-	}
-	b, err := format.Source(buffer.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
 func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 	def, err := LoadStructDef(config.Output)
 	if err != nil {
@@ -168,12 +150,12 @@ func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 		return fmt.Errorf("generateGen: %v", err)
 	}
 	for _, file := range result.BinFiles {
-		if err := ioutil.WriteFile(filepath.Join(config.Output, file.FileName+"_artifacts.go"), file.Code, 0644); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(generator.Config.Output, file.FileName+"_artifacts.go"), file.Code, 0644); err != nil {
 			return err
 		}
 	}
 	for _, file := range result.AbiFiles {
-		if err := ioutil.WriteFile(filepath.Join(config.Output, file.FileName+".go"), file.Code, 0644); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(generator.Config.Output, file.FileName+".go"), file.Code, 0644); err != nil {
 			return err
 		}
 	}
