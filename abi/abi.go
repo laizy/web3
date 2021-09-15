@@ -368,9 +368,7 @@ func (a *argument) UnmarshalJSON(data []byte) error {
 	}
 
 	t, err := NewTypeFromArgument(arg)
-	if err != nil {
-		return err
-	}
+	utils.Ensure(err)
 	if t.kind == KindTuple {
 		if arg.InternalType == "" {
 			t.tupleName = ""
