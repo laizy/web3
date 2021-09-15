@@ -197,7 +197,7 @@ func parseType(arg *ArgumentStr) (string, error) {
 	}
 
 	if len(arg.Components) == 0 {
-		return fmt.Sprintf("tuple%s()", internalTypeToArg(arg.InternalType)), nil
+		return "tuple()", nil
 	}
 
 	// parse the arg components from the tuple
@@ -288,7 +288,7 @@ func readType(l *lexer) (*Type, error) {
 		}
 
 		if l.nextToken().typ != lparenToken {
-			panic(expectedToken(lparenToken))
+			return nil, expectedToken(lparenToken)
 		}
 
 		var next token
@@ -353,7 +353,7 @@ func readType(l *lexer) (*Type, error) {
 		elem, err := decodeSimpleType(tok.literal)
 		fmt.Println(tok.literal)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		tt = elem
 	}
