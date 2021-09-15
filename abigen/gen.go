@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"io"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -143,7 +142,7 @@ func isNil(c interface{}) bool {
 	return c == nil || (reflect.ValueOf(c).Kind() == reflect.Ptr && reflect.ValueOf(c).IsNil())
 }
 
-func GenAbi(name string, artifact *compiler.Artifact, config *Config) (io.Reader, error) {
+func GenAbi(name string, artifact *compiler.Artifact, config *Config) ([]byte, error) {
 	// parse abi
 	abi, err := abi.NewABI(artifact.Abi)
 	if err != nil {
@@ -156,10 +155,10 @@ func GenAbi(name string, artifact *compiler.Artifact, config *Config) (io.Reader
 		"Abi":      abi,
 		"Name":     name,
 	}
-	return GenCodeToReader("eth-abi", FuncMap(), templateAbiStr, input)
+	return GenCodeToBytes("eth-abi", FuncMap(), templateAbiStr, input)
 }
 
-func GenBin(name string, artifact *compiler.Artifact, config *Config) (io.Reader, error) {
+func GenBin(name string, artifact *compiler.Artifact, config *Config) ([]byte, error) {
 	// parse abi
 	abi, err := abi.NewABI(artifact.Abi)
 	if err != nil {
@@ -172,120 +171,20 @@ func GenBin(name string, artifact *compiler.Artifact, config *Config) (io.Reader
 		"Abi":      abi,
 		"Name":     name,
 	}
-	return GenCodeToReader("eth-bin", FuncMap(), templateBinStr, input)
+	return GenCodeToBytes("eth-bin", FuncMap(), templateBinStr, input)
 }
-func GenCodeToReader(name string, funcMap template.FuncMap, temp string, input map[string]interface{}) (io.Reader, error) {
+func GenCodeToBytes(name string, funcMap template.FuncMap, temp string, input map[string]interface{}) ([]byte, error) {
 	tempExt, err := template.New(name).Funcs(funcMap).Parse(temp)
 	utils.Ensure(err)
-	b := bytes.NewBuffer(nil)
-	if err := tempExt.Execute(b, input); err != nil {
+	buffer := bytes.NewBuffer(nil)
+	if err := tempExt.Execute(buffer, input); err != nil {
+		return nil, err
+	}
+	b, err := format.Source(buffer.Bytes())
+	if err != nil {
 		return nil, err
 	}
 	return b, nil
-}
-
-func WriteCode(abiWriter, binWriter io.Writer, abiReader, binReader io.Reader) error {
-	if abiWriter != nil {
-		var b []byte
-		_, err := abiReader.Read(b)
-		utils.Ensure(err)
-		code, err := format.Source(b)
-		if err != nil {
-			fmt.Println(string(b))
-			return fmt.Errorf("format generated abi code err: %v", err)
-		}
-
-		_, err = abiWriter.Write(code)
-		if err != nil {
-			return err
-		}
-	}
-	if binWriter != nil {
-		var b []byte
-		_, err := binReader.Read(b)
-		utils.Ensure(err)
-		code, err := format.Source(b)
-		if err != nil {
-			fmt.Println(string(b))
-			return fmt.Errorf("format generated abi code err: %v", err)
-		}
-		_, err = binWriter.Write(code)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, abiWriter, binWriter io.Writer) error {
-	funcMap := template.FuncMap{
-		"title":       strings.Title,
-		"clean":       cleanName,
-		"arg":         encodeArg,
-		"outputArg":   outputArg,
-		"funcName":    funcName,
-		"tupleElems":  tupleElems,
-		"tupleLen":    tupleLen,
-		"toCamelCase": toCamelCase,
-	}
-	tmplAbi, err := template.New("eth-abi").Funcs(funcMap).Parse(templateAbiStr)
-	if err != nil {
-		return err
-	}
-	tmplBin, err := template.New("eth-abi").Funcs(funcMap).Parse(templateBinStr)
-	if err != nil {
-		return err
-	}
-
-	// parse abi
-	abi, err := abi.NewABI(artifact.Abi)
-	if err != nil {
-		return err
-	}
-
-	input := map[string]interface{}{
-		"Ptr":      "_a",
-		"Config":   config,
-		"Contract": artifact,
-		"Abi":      abi,
-		"Name":     name,
-	}
-
-	var b bytes.Buffer
-	if abiWriter != nil {
-		if err := tmplAbi.Execute(&b, input); err != nil {
-			return err
-		}
-		code, err := format.Source(b.Bytes())
-		if err != nil {
-			fmt.Println(b.String())
-			return fmt.Errorf("format generated abi code err: %v", err)
-		}
-
-		_, err = abiWriter.Write(code)
-		if err != nil {
-			return err
-		}
-
-		b.Reset()
-	}
-	if binWriter != nil {
-		if err := tmplBin.Execute(&b, input); err != nil {
-			return err
-		}
-
-		binCode, err := format.Source(b.Bytes())
-		if err != nil {
-			return fmt.Errorf("format generated bin code err: %v", err)
-		}
-		_, err = binWriter.Write(binCode)
-		if err != nil {
-			return err
-		}
-		b.Reset()
-	}
-
-	return nil
 }
 
 func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
@@ -294,30 +193,29 @@ func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 		return fmt.Errorf("read struct from json: %w", err)
 	}
 
-	for name, artifact := range artifacts {
+	generator := NewGenerator(config, artifacts)
+	result, err := generator.Gen()
+	if err != nil {
+		return fmt.Errorf("generateGen: %v", err)
+	}
+	for _, file := range result.BinFiles {
+		if err := ioutil.WriteFile(filepath.Join(config.Output, file.FileName+"_artifacts.go"), file.Code, 0644); err != nil {
+			return err
+		}
+	}
+	for _, file := range result.AbiFiles {
+		if err := ioutil.WriteFile(filepath.Join(config.Output, file.FileName+".go"), file.Code, 0644); err != nil {
+			return err
+		}
+	}
+
+	for _, artifact := range artifacts {
 		// parse abi
 		abi, err := abi.NewABI(artifact.Abi)
 		if err != nil {
 			return err
 		}
 		def.ExtractFromAbi(abi)
-
-		filename := strings.ToLower(name)
-
-		abiBuffer := bytes.NewBuffer(nil)
-		binBuffer := bytes.NewBuffer(nil)
-		err = GenCodeToWriter(name, artifact, config, abiBuffer, binBuffer)
-		if err != nil {
-			return err
-		}
-
-		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+".go"), abiBuffer.Bytes(), 0644); err != nil {
-			return err
-		}
-
-		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+"_artifacts.go"), binBuffer.Bytes(), 0644); err != nil {
-			return err
-		}
 	}
 
 	return def.RenderGoCodeToFile(config.Package, config.Output)
