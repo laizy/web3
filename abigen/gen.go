@@ -3,7 +3,6 @@ package abigen
 import (
 	"bytes"
 	"fmt"
-	"github.com/laizy/web3/utils"
 	"go/format"
 	"io"
 	"io/ioutil"
@@ -11,6 +10,8 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
+
+	"github.com/laizy/web3/utils"
 
 	"github.com/laizy/web3/abi"
 	"github.com/laizy/web3/compiler"
