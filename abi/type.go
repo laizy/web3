@@ -274,17 +274,19 @@ func readType(l *lexer) (*Type, error) {
 	tok := l.nextToken() //current: token, peek:
 	if tok.typ == tupleToken {
 		var internalName string
-		if l.nextToken().typ != strToken {
-			panic(expectedToken(strToken))
-		}
-		internalName = l.current.literal
-		if l.peek.typ == lbracketToken {
+		if l.peek.typ == strToken {
 			l.nextToken()
-			n := l.nextToken()
-			if n.typ == rbracketToken {
-			} else if n.typ == numberToken {
+
+			internalName = l.current.literal
+			if l.peek.typ == lbracketToken {
+				l.nextToken()
+				n := l.nextToken()
+				if n.typ == rbracketToken {
+				} else if n.typ == numberToken {
+				}
 			}
 		}
+
 		if l.nextToken().typ != lparenToken {
 			panic(expectedToken(lparenToken))
 		}
@@ -349,6 +351,7 @@ func readType(l *lexer) (*Type, error) {
 	} else {
 		// Check normal types
 		elem, err := decodeSimpleType(tok.literal)
+		fmt.Println(tok.literal)
 		if err != nil {
 			panic(err)
 		}
