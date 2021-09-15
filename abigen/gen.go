@@ -142,37 +142,6 @@ func isNil(c interface{}) bool {
 	return c == nil || (reflect.ValueOf(c).Kind() == reflect.Ptr && reflect.ValueOf(c).IsNil())
 }
 
-func GenAbi(name string, artifact *compiler.Artifact, config *Config) ([]byte, error) {
-	// parse abi
-	abi, err := abi.NewABI(artifact.Abi)
-	if err != nil {
-		return nil, err
-	}
-	input := map[string]interface{}{
-		"Ptr":      "_a",
-		"Config":   config,
-		"Contract": artifact,
-		"Abi":      abi,
-		"Name":     name,
-	}
-	return GenCodeToBytes("eth-abi", FuncMap(), templateAbiStr, input)
-}
-
-func GenBin(name string, artifact *compiler.Artifact, config *Config) ([]byte, error) {
-	// parse abi
-	abi, err := abi.NewABI(artifact.Abi)
-	if err != nil {
-		return nil, err
-	}
-	input := map[string]interface{}{
-		"Ptr":      "_a",
-		"Config":   config,
-		"Contract": artifact,
-		"Abi":      abi,
-		"Name":     name,
-	}
-	return GenCodeToBytes("eth-bin", FuncMap(), templateBinStr, input)
-}
 func GenCodeToBytes(name string, funcMap template.FuncMap, temp string, input map[string]interface{}) ([]byte, error) {
 	tempExt, err := template.New(name).Funcs(funcMap).Parse(temp)
 	utils.Ensure(err)
