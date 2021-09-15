@@ -333,7 +333,7 @@ func readType(l *lexer) (*Type, error) {
 			} else if next.typ == rparenToken {
 				break
 			} else {
-				panic(notExpectedToken(next.typ))
+				return nil, notExpectedToken(next.typ)
 			}
 		}
 
@@ -351,7 +351,6 @@ func readType(l *lexer) (*Type, error) {
 	} else {
 		// Check normal types
 		elem, err := decodeSimpleType(tok.literal)
-		fmt.Println(tok.literal)
 		if err != nil {
 			return nil, err
 		}

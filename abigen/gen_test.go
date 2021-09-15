@@ -1,7 +1,6 @@
 package abigen
 
 import (
-	"fmt"
 	"go/format"
 	"io/ioutil"
 	"testing"
@@ -60,176 +59,6 @@ contract Sample {
 	utils.Ensure(err)
 	return output["<stdin>:Sample"]
 }()
-
-var testAbi = `
-[
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "_from",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "_to",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "bytes",
-				"name": "_data",
-				"type": "bytes"
-			}
-		],
-		"name": "Deposit",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "amount",
-				"type": "address"
-			}
-		],
-		"name": "Transfer",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"components": [
-					{
-						"internalType": "uint256",
-						"name": "timestamp",
-						"type": "uint256"
-					},
-					{
-						"internalType": "enum Sample.QueueOrigin",
-						"name": "l1QueueOrigin",
-						"type": "uint8"
-					},
-					{
-						"internalType": "address",
-						"name": "entrypoint",
-						"type": "address"
-					},
-					{
-						"internalType": "bytes",
-						"name": "data",
-						"type": "bytes"
-					}
-				],
-				"internalType": "struct Sample.Transaction",
-				"name": "a",
-				"type": "tuple"
-			},
-			{
-				"internalType": "bytes",
-				"name": "b",
-				"type": "bytes"
-			}
-		],
-		"name": "TestStruct",
-		"outputs": [
-			{
-				"internalType": "bytes",
-				"name": "",
-				"type": "bytes"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"components": [
-					{
-						"internalType": "uint256",
-						"name": "timestamp",
-						"type": "uint256"
-					},
-					{
-						"internalType": "enum Sample.QueueOrigin",
-						"name": "l1QueueOrigin",
-						"type": "uint8"
-					},
-					{
-						"internalType": "address",
-						"name": "entrypoint",
-						"type": "address"
-					},
-					{
-						"internalType": "bytes",
-						"name": "data",
-						"type": "bytes"
-					}
-				],
-				"internalType": "struct Sample.Transaction[]",
-				"name": "txes",
-				"type": "tuple[]"
-			}
-		],
-		"name": "getTxes",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "uint256",
-						"name": "timestamp",
-						"type": "uint256"
-					},
-					{
-						"internalType": "enum Sample.QueueOrigin",
-						"name": "l1QueueOrigin",
-						"type": "uint8"
-					},
-					{
-						"internalType": "address",
-						"name": "entrypoint",
-						"type": "address"
-					},
-					{
-						"internalType": "bytes",
-						"name": "data",
-						"type": "bytes"
-					}
-				],
-				"internalType": "struct Sample.Transaction[]",
-				"name": "",
-				"type": "tuple[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-]
-`
 
 func TestCodeGen(t *testing.T) {
 	if testutil.IsSolcInstalled() == false {
@@ -425,7 +254,6 @@ func TestTupleStructs(t *testing.T) {
 	assert := require.New(t)
 	code, err := NewStructDefExtractor().ExtractFromAbi(abi.MustNewABI(Artifact.Abi)).RenderGoCode("binding")
 	assert.Nil(err)
-	fmt.Println(string(code))
 	expected, _ := format.Source([]byte(`package binding
 
 import (
