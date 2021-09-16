@@ -57,7 +57,7 @@ func (g *Generator) Gen() (res Result, err error) {
 		}
 		res.AbiFiles = append(res.AbiFiles, CodeFile{fileName, abiCode})
 
-		binCode, err := genCodeToBytes("eth-bin", g.funcMap, templateAbiStr, input)
+		binCode, err := genCodeToBytes("eth-bin", g.funcMap, templateBinStr, input)
 		if err != nil {
 			return Result{}, fmt.Errorf("genCodeToBytes: %v", err)
 		}
