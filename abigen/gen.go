@@ -121,6 +121,9 @@ func tupleElems(tuple interface{}) (res []interface{}) {
 	return
 }
 
+func nameToKey(name string, index int) string {
+	return abi.NameToKey(name, index)
+}
 func FuncMap() template.FuncMap {
 	return template.FuncMap{
 		"title":       strings.Title,
@@ -131,6 +134,7 @@ func FuncMap() template.FuncMap {
 		"tupleElems":  tupleElems,
 		"tupleLen":    tupleLen,
 		"toCamelCase": toCamelCase,
+		"nameToKey":   nameToKey,
 	}
 }
 
@@ -183,6 +187,7 @@ import (
 	"github.com/laizy/web3/contract"
 	"github.com/laizy/web3/jsonrpc"
 	"github.com/laizy/web3/utils"
+	"github.com/mitchellh/mapstructure"
 )
 
 var (
@@ -218,20 +223,17 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $val := tupleElem
 	var out map[string]interface{}
 	_ = out // avoid not used compiler error
 
-	{{ $length := tupleLen .Outputs }}{{ if ne $length 0 }}var ok bool{{ end }}
-
 	out, err = {{$.Ptr}}.c.Call("{{$key}}", web3.EncodeBlock(block...){{range $index, $val := tupleElems .Inputs}}, {{if .Name}}{{clean .Name}}{{else}}val{{$index}}{{end}}{{end}})
 	if err != nil {
 		return
 	}
 
 	// decode outputs
-	{{range $index, $val := tupleElems .Outputs}}retval{{$index}}, ok = out["{{if .Name}}{{.Name}}{{else}}{{$index}}{{end}}"].({{arg .}})
-	if !ok {
+	{{range $index,$val := tupleElems .Outputs}}
+	if err = mapstructure.Decode(out["{{nameToKey .Name $index}}"],&retval{{$index}}); err != nil {
 		err = fmt.Errorf("failed to encode output at index {{$index}}")
-		return
-	}
-{{end}}
+	}{{end}}
+
 	return
 }
 {{end}}{{end}}

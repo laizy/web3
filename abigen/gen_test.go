@@ -86,6 +86,7 @@ import (
 	"github.com/laizy/web3/contract"
 	"github.com/laizy/web3/jsonrpc"
 	"github.com/laizy/web3/utils"
+	"github.com/mitchellh/mapstructure"
 )
 
 var (
@@ -121,23 +122,19 @@ func (_a *Sample) GetTxes(txes []Transaction, block ...web3.BlockNumber) (retval
 	var out map[string]interface{}
 	_ = out // avoid not used compiler error
 
-	var ok bool
-
 	out, err = _a.c.Call("getTxes", web3.EncodeBlock(block...), txes)
 	if err != nil {
 		return
 	}
 
 	// decode outputs
-	retval0, ok = out["0"].([]Transaction)
-	if !ok {
+
+	if err = mapstructure.Decode(out["0"], &retval0); err != nil {
 		err = fmt.Errorf("failed to encode output at index 0")
-		return
 	}
 
 	return
 }
-
 
 // txns
 
@@ -146,19 +143,18 @@ func (_a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
 	return _a.c.Txn("TestStruct", a, b)
 }
 
-
 // events
 
 //DepositEvent
 type DepositEvent struct {
-	From web3.Address
-	To web3.Address
+	From   web3.Address
+	To     web3.Address
 	Amount *big.Int
-	Data []byte
-	Raw *web3.Log
+	Data   []byte
+	Raw    *web3.Log
 }
 
-func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address)([]*DepositEvent, error){
+func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*DepositEvent, error) {
 
 	var _fromRule []interface{}
 	for _, _fromItem := range from {
@@ -169,8 +165,6 @@ func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address,
 	for _, _toItem := range to {
 		_toRule = append(_toRule, _toItem)
 	}
-
-
 
 	logs, err := _a.c.FilterLogs(opts, "Deposit", _fromRule, _toRule)
 	if err != nil {
@@ -196,13 +190,13 @@ func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address,
 
 //TransferEvent
 type TransferEvent struct {
-	From web3.Address
-	To web3.Address
+	From   web3.Address
+	To     web3.Address
 	Amount web3.Address
-	Raw *web3.Log
+	Raw    *web3.Log
 }
 
-func (_a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address)([]*TransferEvent, error){
+func (_a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address) ([]*TransferEvent, error) {
 
 	var fromRule []interface{}
 	for _, fromItem := range from {
@@ -303,3 +297,83 @@ func TestGenStruct(t *testing.T) {
 		defs.ExtractFromAbi(abi1)
 	})
 }
+
+//
+//var testFile = struct {
+//	imports string
+//	name    string
+//	tester  string
+//}{
+//	`
+//	"github.com/ethereum/go-ethereum/common"
+//	"github.com/ethereum/go-ethereum/crypto"
+//	"github.com/laizy/web3"
+//	"github.com/laizy/web3/jsonrpc"
+//	"github.com/laizy/web3/testutil"
+//	"github.com/stretchr/testify/require"
+//	"testing"
+//`,
+//	"CallContract",
+//	`
+//
+//`,
+//}
+//
+//func TestBind(t *testing.T) {
+//	if testutil.IsSolcInstalled() == false {
+//		t.Skipf("skipping since solidity is not installed")
+//	}
+//	assert := require.New(t)
+//	// Skip the test if no Go command can be found
+//	gocmd := runtime.GOROOT() + "/bin/go"
+//	if !common.FileExist(gocmd) {
+//		t.Skip("go sdk not found for testing")
+//	}
+//	// Create a temporary workspace for the test suite
+//	ws, err := ioutil.TempDir("", "binding-test")
+//	if err != nil {
+//		t.Fatalf("failed to create temporary workspace: %v", err)
+//	}
+//	//defer os.RemoveAll(ws)
+//
+//	pkg := filepath.Join(ws, "bindtest")
+//	if err = os.MkdirAll(pkg, 0700); err != nil {
+//		t.Fatalf("failed to create package: %v", err)
+//	}
+//
+//	// Generate the test suite for all the contracts
+//
+//	artifacts := map[string]*compiler.Artifact{
+//		"Sample": Artifact,
+//	}
+//	config := &Config{
+//		Package: "bindtest",
+//		Output:  pkg,
+//		Name:    "Sample",
+//	}
+//	res, err := NewGenerator(config, artifacts).Gen()
+//	assert.Nil(err)
+//	for _, abif := range res.AbiFiles {
+//		err = ioutil.WriteFile(filepath.Join(pkg, strings.ToLower(abif.FileName)+"_abi.go"), abif.Code, 0666)
+//		assert.Nil(err)
+//	}
+//	for _, binf := range res.BinFiles {
+//		err = ioutil.WriteFile(filepath.Join(pkg, strings.ToLower(binf.FileName)+"_bin.go"), binf.Code, 0666)
+//		assert.Nil(err)
+//	}
+//
+//	code := fmt.Sprintf(`
+//			package bindtest
+//
+//			import (
+//				"testing"
+//				%s
+//			)
+//
+//			func Test%s(t *testing.T) {
+//				%s
+//			}
+//		`, testFile.imports, testFile.name, testFile.tester)
+//	err = ioutil.WriteFile(filepath.Join(pkg, strings.ToLower(testFile.name+"_test.go")), []byte(code), 06666)
+//	assert.Nil(err)
+//}

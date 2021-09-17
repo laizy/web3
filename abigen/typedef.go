@@ -36,27 +36,8 @@ func NewStructDefExtractor() *StructDefExtractor {
 	return &StructDefExtractor{Defs: make(map[string]*StructDef)}
 }
 
-func (self *StructDefExtractor) ExtractFromType(typ *abi.Type) string {
+func (self *StructDefExtractor) extractNormal(typ *abi.Type) string {
 	switch typ.Kind() {
-	case abi.KindTuple:
-		name := typ.RawName()
-		s := &StructDef{Name: name}
-		for _, ty := range typ.TupleElems() {
-			goType := self.ExtractFromType(ty.Elem)
-			name := ty.Name
-			s.Fields = append(s.Fields, &FieldDef{Name: name, Type: goType})
-		}
-
-		if name == "" { //input will have no rawName, just use Struct%d now.
-			return ""
-		}
-		if old, exist := self.Defs[name]; exist { // check if two struct have same name but different struct, panic.
-			if !reflect.DeepEqual(s, old) {
-				panic(ErrConflictDef)
-			}
-		}
-		self.Defs[name] = s
-		return name
 	case abi.KindAddress:
 		return "web3.Address"
 
@@ -79,19 +60,46 @@ func (self *StructDefExtractor) ExtractFromType(typ *abi.Type) string {
 		return "[]byte"
 
 	case abi.KindSlice:
-		return "[]" + encodeSimpleArg(typ.Elem())
+		return "[]" + self.ExtractFromType(typ.Elem())
 
 	default:
 		return fmt.Sprintf("input not done for type: %s", typ.String())
 	}
 }
 
+func (self *StructDefExtractor) ExtractFromType(typ *abi.Type) string {
+	switch typ.Kind() {
+	case abi.KindTuple:
+		name := typ.RawName()
+		s := &StructDef{Name: name}
+		for _, ty := range typ.TupleElems() {
+			goType := self.ExtractFromType(ty.Elem)
+			name := ty.Name
+			s.Fields = append(s.Fields, &FieldDef{Name: name, Type: goType})
+		}
+		if name == "" {
+			return ""
+		}
+		if old, exist := self.Defs[name]; exist { // check if two struct have same name but different struct, panic.
+			if !reflect.DeepEqual(s, old) {
+				panic(ErrConflictDef)
+			}
+		}
+		self.Defs[name] = s
+		return name
+	default:
+		return self.extractNormal(typ)
+	}
+}
+
 func (self *StructDefExtractor) ExtractFromAbi(abi *abi.ABI) *StructDefExtractor {
 	if abi.Constructor != nil {
 		self.ExtractFromType(abi.Constructor.Inputs)
+		//self.GetOutPutStructs(abi.Constructor.Outputs)
 	}
 	for _, method := range abi.Methods {
 		self.ExtractFromType(method.Inputs)
+		//self.GetOutPutStructs(method.Outputs)
 	}
 	for _, event := range abi.Events {
 		self.ExtractFromType(event.Inputs)
