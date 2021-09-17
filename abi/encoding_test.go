@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/compiler"
 	"github.com/laizy/web3/testutil"
@@ -473,10 +475,8 @@ func testTypeWithContract(t *testing.T, server *testutil.TestServer, typ *Type) 
 		return err
 	}
 
-	binBuf, err := hex.DecodeString(solcContract.Bin)
-	if err != nil {
-		return err
-	}
+	binBuf := web3.FromHex(solcContract.Bin)
+
 	txn := &web3.Transaction{
 		Input: binBuf,
 	}
@@ -534,5 +534,76 @@ func TestEncodingStruct(t *testing.T) {
 	}
 	if !reflect.DeepEqual(obj, obj2) {
 		t.Fatal("bad")
+	}
+}
+
+var abiSampleStr = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_from","type":"address"},{"indexed":true,"internalType":"address","name":"_to","type":"address"},{"indexed":false,"internalType":"uint256","name":"_amount","type":"uint256"},{"indexed":false,"internalType":"bytes","name":"_data","type":"bytes"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"address","name":"amount","type":"address"}],"name":"Transfer","type":"event"},{"inputs":[{"components":[{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"enum Sample.QueueOrigin","name":"l1QueueOrigin","type":"uint8"},{"internalType":"address","name":"entrypoint","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct Sample.Transaction","name":"a","type":"tuple"},{"internalType":"bytes","name":"b","type":"bytes"}],"name":"TestStruct","outputs":[{"internalType":"bytes","name":"","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"enum Sample.QueueOrigin","name":"l1QueueOrigin","type":"uint8"},{"internalType":"address","name":"entrypoint","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct Sample.Transaction[]","name":"txes","type":"tuple[]"}],"name":"getTxes","outputs":[{"components":[{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"enum Sample.QueueOrigin","name":"l1QueueOrigin","type":"uint8"},{"internalType":"address","name":"entrypoint","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct Sample.Transaction[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"}]`
+
+func TestSliceStruct(t *testing.T) {
+	assert := require.New(t)
+
+	testAbi, err := NewABI(abiSampleStr)
+	assert.Nil(err)
+	method, ok := testAbi.Methods["getTxes"]
+	assert.True(ok)
+	type Transaction struct {
+		Timestamp     *big.Int
+		L1QueueOrigin uint8
+		Entrypoint    web3.Address
+		Data          []byte
+	}
+
+	type RetOut struct {
+		Txes []Transaction
+	}
+
+	tests := []struct {
+		input      RetOut
+		wantOutPut interface{}
+	}{
+		{
+			RetOut{[]Transaction{}},
+			RetOut{[]Transaction(nil)},
+		},
+		{
+			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}}},
+			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}}},
+		},
+		{
+			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}, {Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}}},
+			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}, {Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}}},
+		},
+	}
+	for _, test := range tests {
+		encoded, err := method.Inputs.Encode(test.input)
+		assert.Nil(err)
+		var decodeTx RetOut
+		err = method.Inputs.DecodeStruct(encoded, &decodeTx)
+		assert.Nil(err)
+		assert.Equal(test.wantOutPut, decodeTx)
+	}
+}
+
+func TestEncodeDecodeCall(t *testing.T) {
+	rand.Seed(time.Now().UTC().UnixNano())
+
+	nStr := os.Getenv("RANDOM_TESTS")
+	n, err := strconv.Atoi(nStr)
+	if err != nil {
+		n = 100
+	}
+
+	server := testutil.NewTestServer(t, nil)
+	defer server.Close()
+
+	for i := 0; i < int(n); i++ {
+		t.Run("", func(t *testing.T) {
+			tt := generateRandomArgs(randomInt(1, 4))
+			input := generateRandomType(tt)
+
+			if err := testEncodeDecode(t, server, tt, input); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }

@@ -183,11 +183,17 @@ func internalTypeToArg(internalType string) string {
 	internalNames := strings.Split(internalName, ".")
 	internalName = internalNames[len(internalNames)-1]
 	internalName = strings.Title(internalName)
+	i := strings.Index(internalName, "[")
+	if i >= 0 {
+		internalName = internalName[:i]
+	}
+
 	if internalName == "" {
 		internalName = " "
 	} else {
 		internalName = " " + internalName //space to split the literal
 	}
+
 	return internalName
 }
 
@@ -283,7 +289,11 @@ func readType(l *lexer) (*Type, error) {
 				n := l.nextToken()
 				if n.typ == rbracketToken {
 				} else if n.typ == numberToken {
+					if l.nextToken().typ != rbracketToken {
+						return nil, expectedToken(rbracketToken)
+					}
 				}
+
 			}
 		}
 

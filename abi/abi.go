@@ -79,7 +79,7 @@ func (a *ABI) UnmarshalJSON(data []byte) error {
 	}
 
 	if err := json.Unmarshal(data, &fields); err != nil {
-		return err
+		return fmt.Errorf("unmarshal fields: %v", err)
 	}
 
 	a.Methods = make(map[string]*Method)

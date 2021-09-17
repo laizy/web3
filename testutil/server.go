@@ -2,7 +2,6 @@ package testutil
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -113,10 +112,7 @@ func NewTestServer(t *testing.T, cb ServerConfigCallback) *TestServer {
 	args := []string{"--dev"}
 
 	// add data dir
-	args = append(args, "--datadir", filepath.Join(dir, "data"))
-
-	// add ipcpath
-	args = append(args, "--ipcpath", filepath.Join(dir, "geth.ipc"))
+	args = append(args, "--datadir", dir)
 
 	// enable rpc
 	args = append(args, "--rpc", "--rpcport", config.HTTPPort)
@@ -202,6 +198,10 @@ func (t *TestServer) Call(msg *web3.CallMsg) (string, error) {
 	return resp, nil
 }
 
+func (t *TestServer) Client() *ethClient {
+	return t.client
+}
+
 func (t *TestServer) Transfer(address web3.Address, value *big.Int) *web3.Receipt {
 	receipt, err := t.SendTxn(&web3.Transaction{
 		From:  t.accounts[0],
@@ -277,7 +277,7 @@ func (t *TestServer) DeployContract(c *Contract) (*compiler.Artifact, web3.Addre
 	if err != nil {
 		panic(err)
 	}
-	buf, err := hex.DecodeString(solcContract.Bin)
+	buf := web3.FromHex(solcContract.Bin)
 	if err != nil {
 		panic(err)
 	}

@@ -21,11 +21,20 @@ const (
 type Address [20]byte
 
 // HexToAddress converts an hex string value to an address object
-func HexToAddress(str string) Address {
+func HexToAddress(s string) Address {
 	a := Address{}
-	err := a.UnmarshalText([]byte(str))
-	utils.Ensure(err)
+	a.SetBytes(FromHex(s))
 	return a
+}
+
+func FromHex(s string) []byte {
+	if has0xPrefix(s) {
+		s = s[2:]
+	}
+	if len(s)%2 == 1 { //odd
+		s = "0" + s
+	}
+	return Hex2Bytes(s)
 }
 
 func (self Address) ToHash() Hash {
@@ -35,6 +44,15 @@ func (self Address) ToHash() Hash {
 // UnmarshalText implements the unmarshal interface
 func (a *Address) UnmarshalText(b []byte) error {
 	return unmarshalTextByte(a[:], b, 20)
+}
+
+// SetBytes sets the address to the value of b.
+// If b is larger than len(a), b will be cropped from the left.
+func (a *Address) SetBytes(b []byte) {
+	if len(b) > len(a) {
+		b = b[len(b)-AddressLength:]
+	}
+	copy(a[AddressLength-len(b):], b)
 }
 
 func (a *Address) IsZero() bool {
@@ -361,13 +379,6 @@ func BytesToAddress(b []byte) Address {
 	var a Address
 	a.SetBytes(b)
 	return a
-}
-
-func (a *Address) SetBytes(b []byte) {
-	if len(b) > len(a) {
-		b = b[len(b)-AddressLength:]
-	}
-	copy(a[AddressLength-len(b):], b)
 }
 
 func CopyBytes(b []byte) (copiedBytes []byte) {
