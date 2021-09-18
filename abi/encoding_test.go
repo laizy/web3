@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/laizy/web3"
@@ -475,7 +477,7 @@ func testTypeWithContract(t *testing.T, server *testutil.TestServer, typ *Type) 
 		return err
 	}
 
-	binBuf := web3.FromHex(solcContract.Bin)
+	binBuf := decodeHex(solcContract.Bin)
 
 	txn := &web3.Transaction{
 		Input: binBuf,
@@ -559,19 +561,19 @@ func TestSliceStruct(t *testing.T) {
 
 	tests := []struct {
 		input      RetOut
-		wantOutPut interface{}
+		wantOutPut RetOut
 	}{
 		{
 			RetOut{[]Transaction{}},
 			RetOut{[]Transaction(nil)},
 		},
 		{
-			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}}},
-			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}}},
+			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.BytesToAddress([]byte("0x666")), Data: []byte{1, 2, 45}}}},
+			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.BytesToAddress([]byte("0x666")), Data: []byte{1, 2, 45}}}},
 		},
 		{
-			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}, {Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}}},
-			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}, {Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.HexToAddress("0x666"), Data: []byte{1, 2, 45}}}},
+			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.BytesToAddress([]byte("0x666")), Data: []byte{1, 2, 45}}, {Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.BytesToAddress([]byte("0x666")), Data: []byte{1, 2, 45}}}},
+			RetOut{[]Transaction{{Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.BytesToAddress([]byte("0x666")), Data: []byte{1, 2, 45}}, {Timestamp: big.NewInt(20), L1QueueOrigin: 1, Entrypoint: web3.BytesToAddress([]byte("0x666")), Data: []byte{1, 2, 45}}}},
 		},
 	}
 	for _, test := range tests {
@@ -581,6 +583,17 @@ func TestSliceStruct(t *testing.T) {
 		err = method.Inputs.DecodeStruct(encoded, &decodeTx)
 		assert.Nil(err)
 		assert.Equal(test.wantOutPut, decodeTx)
+
+		_structMap, err := Decode(method.Inputs, encoded)
+		structMap, ok := _structMap.(map[string]interface{})
+		assert.True(ok)
+		assert.Nil(err)
+
+		k := NameToKey(method.Inputs.tuple[0].Name, 0)
+		var result []Transaction
+		err = mapstructure.Decode(structMap[k], &result)
+		assert.Nil(err)
+		assert.Equal(test.wantOutPut.Txes, result)
 	}
 }
 
@@ -607,3 +620,43 @@ func TestEncodeDecodeCall(t *testing.T) {
 		})
 	}
 }
+
+//
+//func TestParseLog(t *testing.T) {
+//
+//	assert := require.New(t)
+//
+//	testAbi, err := NewABI(abiSampleStr)
+//	assert.Nil(err)
+//
+//	evts := testAbi.Events["Deposit"]
+//
+//	//DepositEvent
+//	type DepositEvent struct {
+//		From   web3.Address
+//		To     web3.Address
+//		Amount *big.Int
+//		Data   []byte
+//		Raw    *web3.Log
+//	}
+//
+//	tests := []struct {
+//		log     web3.Log
+//		wantOut interface{}
+//	}{
+//		{
+//			web3.Log{Topics: []web3.Hash{evts.ID()}},
+//			DepositEvent{},
+//		},
+//	}
+//	for _, test := range tests {
+//		t.Log(evts.ID())
+//		args, err := evts.ParseLog(&test.log)
+//		assert.Nil(err)
+//		var evtItem DepositEvent
+//		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
+//		assert.Nil(err)
+//		assert.Equal(test.wantOut, evtItem)
+//		encode
+//	}
+//}

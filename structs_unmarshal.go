@@ -404,9 +404,7 @@ func unmarshalTextByte(dst, src []byte, size int) error {
 		return fmt.Errorf("0x prefix not found")
 	}
 	str = str[2:]
-	if len(str)%2 == 1 {
-		str = "0" + str
-	}
+
 	b, err := hex.DecodeString(str)
 	if err != nil {
 		return err

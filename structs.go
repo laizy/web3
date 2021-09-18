@@ -21,20 +21,11 @@ const (
 type Address [20]byte
 
 // HexToAddress converts an hex string value to an address object
-func HexToAddress(s string) Address {
+func HexToAddress(str string) Address {
 	a := Address{}
-	a.SetBytes(FromHex(s))
+	err := a.UnmarshalText([]byte(str))
+	utils.Ensure(err)
 	return a
-}
-
-func FromHex(s string) []byte {
-	if has0xPrefix(s) {
-		s = s[2:]
-	}
-	if len(s)%2 == 1 { //odd
-		s = "0" + s
-	}
-	return Hex2Bytes(s)
 }
 
 func (self Address) ToHash() Hash {
