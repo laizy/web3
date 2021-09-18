@@ -40,12 +40,12 @@ func ParseLog(args *Type, log *web3.Log) (map[string]interface{}, error) {
 	}
 
 	res := map[string]interface{}{}
-	for _, arg := range args.TupleElems() {
+	for i, arg := range args.TupleElems() {
 		if arg.Indexed {
-			res[arg.Name] = indexedObjs[0]
+			res[ToStructName(arg.Name, i)] = indexedObjs[0]
 			indexedObjs = indexedObjs[1:]
 		} else {
-			res[arg.Name] = nonIndexedObjs[arg.Name]
+			res[ToStructName(arg.Name, i)] = nonIndexedObjs[arg.Name]
 		}
 	}
 

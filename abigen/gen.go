@@ -95,6 +95,16 @@ func encodeArg(str interface{}) string {
 	return encodeSimpleArg(arg.Elem)
 }
 
+//transfer indexed arg to hash
+func encodeTopicArg(str interface{}) string {
+	arg := encodeArg(str)
+	if arg == "string" || arg == "[]byte" {
+		arg = "web3.Hash"
+	}
+
+	return arg
+}
+
 func tupleLen(tuple interface{}) interface{} {
 	if isNil(tuple) {
 		return 0
@@ -126,16 +136,29 @@ func nameToKey(name string, index int) string {
 }
 func FuncMap() template.FuncMap {
 	return template.FuncMap{
-		"title":       strings.Title,
-		"clean":       cleanName,
-		"arg":         encodeArg,
-		"outputArg":   outputArg,
-		"funcName":    funcName,
-		"tupleElems":  tupleElems,
-		"tupleLen":    tupleLen,
-		"toCamelCase": toCamelCase,
-		"nameToKey":   nameToKey,
+		"title":        strings.Title,
+		"clean":        cleanName,
+		"arg":          encodeArg,
+		"outputArg":    outputArg,
+		"funcName":     funcName,
+		"tupleElems":   tupleElems,
+		"tupleLen":     tupleLen,
+		"toCamelCase":  toCamelCase,
+		"nameToKey":    nameToKey,
+		"toStructName": abi.ToStructName,
+		"topic":        encodeTopicArg,
 	}
+}
+
+//optimizeEvent change inner empty name to arg%d.
+func optimizeEvent(event *abi.Event) *abi.Event {
+	ev := event.Copy()
+	for j, e := range ev.Inputs.TupleElems() {
+		if e.Name == "" {
+			e.Name = fmt.Sprintf("arg%d", j)
+		}
+	}
+	return event
 }
 
 func isNil(c interface{}) bool {
@@ -196,6 +219,7 @@ var (
 	_ = utils.JsonStr
 )
 
+{{$cname := .Name}}
 // {{.Name}} is a solidity contract
 type {{.Name}} struct {
 	c *contract.Contract
@@ -250,11 +274,11 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleEl
 {{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
 //{{.Name}}Event
 type {{.Name}}Event struct { {{range $index, $input := tupleElems $value.Inputs}}
-    {{toCamelCase .Name}} {{arg .}}{{end}}
+    {{toStructName .Name $index}} {{if .Indexed}} {{topic .}} {{else}} {{arg .}}{{end}}{{end}}
 	Raw *web3.Log
 }
 
-func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{arg .}}{{end}}{{end}})([]*{{.Name}}Event, error){
+func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{topic .}}{{end}}{{end}})([]*{{.Name}}Event, error){
 	{{range $index, $input := tupleElems .Inputs}}
     {{if .Indexed}}var {{.Name}}Rule []interface{}
     for _, {{.Name}}Item := range {{clean .Name}} {
