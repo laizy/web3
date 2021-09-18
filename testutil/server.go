@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +14,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -270,6 +272,17 @@ func (t *TestServer) WaitForReceipt(hash web3.Hash) (*web3.Receipt, error) {
 	return receipt, nil
 }
 
+func decodeHex(str string) []byte {
+	if strings.HasPrefix(str, "0x") {
+		str = str[2:]
+	}
+	buf, err := hex.DecodeString(str)
+	if err != nil {
+		panic(fmt.Errorf("could not decode hex: %v", err))
+	}
+	return buf
+}
+
 // DeployContract deploys a contract with account 0 and returns the address
 func (t *TestServer) DeployContract(c *Contract) (*compiler.Artifact, web3.Address) {
 	// solcContract := compile(c.Print())
@@ -277,10 +290,9 @@ func (t *TestServer) DeployContract(c *Contract) (*compiler.Artifact, web3.Addre
 	if err != nil {
 		panic(err)
 	}
-	buf := web3.FromHex(solcContract.Bin)
-	if err != nil {
-		panic(err)
-	}
+
+	buf := decodeHex(solcContract.Bin)
+
 	receipt, err := t.SendTxn(&web3.Transaction{
 		Input: buf,
 	})
