@@ -95,14 +95,12 @@ func (self *StructDefExtractor) ExtractFromType(typ *abi.Type) string {
 func (self *StructDefExtractor) ExtractFromAbi(abi *abi.ABI) *StructDefExtractor {
 	if abi.Constructor != nil {
 		self.ExtractFromType(abi.Constructor.Inputs)
-		//self.GetOutPutStructs(abi.Constructor.Outputs)
 	}
 	for _, method := range abi.Methods {
 		self.ExtractFromType(method.Inputs)
-		//self.GetOutPutStructs(method.Outputs)
 	}
 	for _, event := range abi.Events {
-		self.ExtractFromType(event.Inputs)
+		self.ExtractFromType(optimizeEvent(event).Inputs)
 	}
 
 	return self
