@@ -1,6 +1,7 @@
 package abigen
 
 import (
+	"fmt"
 	"go/format"
 	"testing"
 
@@ -25,6 +26,11 @@ contract Sample {
         uint256 _amount,
         bytes _data
     );
+	
+event NoName(
+address indexed
+);
+
 
 	event Transfer (
 		address indexed from,
@@ -49,6 +55,8 @@ contract Sample {
         SEQUENCER_QUEUE,
         L1TOL2_QUEUE
     }
+
+	 constructor(){ emit Deposit(msg.sender,msg.sender,100000,bytes("test"));}
 
     function TestStruct(Transaction memory a,bytes memory b) public returns (bytes memory){
         return  b;
@@ -85,6 +93,7 @@ func TestCodeGen(t *testing.T) {
 	}
 	res, err := NewGenerator(config, artifacts).Gen()
 	assert.Nil(t, err)
+	fmt.Println(string(res.BinFiles[0].Code))
 
 	expected, _ := format.Source([]byte(`package binding
 

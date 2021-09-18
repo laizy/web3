@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"text/template"
 
 	"github.com/laizy/web3/abi"
@@ -115,7 +116,7 @@ func (self *StructDefExtractor) ExtractFromAbi(abi *abi.ABI) *StructDefExtractor
 		self.ExtractFromType(method.Outputs)
 	}
 	for _, event := range abi.Events {
-		self.ExtractFromType(event.Inputs)
+		self.ExtractFromType(optimizeEvent(event).Inputs)
 		self.ExtractEvent(event)
 	}
 
@@ -153,7 +154,7 @@ func (self *StructDefExtractor) RenderGoCodeToFile(packageName string, outputDir
 }
 
 func (self *StructDefExtractor) RenderGoCode(packageName string) (string, error) {
-	tempStruct, err := template.New("eth-structs").Funcs(map[string]interface{}{"title": toCamelCase}).Parse(templateStructStr)
+	tempStruct, err := template.New("eth-structs").Funcs(map[string]interface{}{"title": strings.Title}).Parse(templateStructStr)
 	utils.Ensure(err)
 
 	input := map[string]interface{}{

@@ -243,6 +243,15 @@ func (e *Event) Sig() string {
 	return buildSignature(e.Name, e.Inputs)
 }
 
+//Copy is lightly copy inside inputs, do not modify inner pointer objects.
+func (e *Event) Copy() *Event {
+	return &Event{
+		Name:      e.Name,
+		Anonymous: e.Anonymous,
+		Inputs:    e.Inputs.Copy(),
+	}
+}
+
 func (e *Event) DetailedSig() string {
 	return buildHumanSignature(e.Name, e.Inputs)
 }

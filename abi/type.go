@@ -112,6 +112,21 @@ func (t *Type) RawName() string {
 	return t.tupleName
 }
 
+//just light copy
+func (t *Type) Copy() *Type {
+	a := Type{
+		kind:      t.kind,
+		size:      t.size,
+		elem:      t.elem,
+		raw:       t.raw,
+		tupleName: t.tupleName,
+		tuple:     make([]*TupleElem, len(t.tuple)),
+		t:         t.t,
+	}
+	copy(a.tuple, t.tuple)
+	return &a
+}
+
 // ParseLog parses a log using this type
 func (t *Type) ParseLog(log *web3.Log) (map[string]interface{}, error) {
 	return ParseLog(t, log)
