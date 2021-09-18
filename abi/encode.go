@@ -120,7 +120,7 @@ func encodeTuple(v reflect.Value, t *Type) ([]byte, error) {
 	}
 
 	if v.Len() < len(t.tuple) {
-		return nil, fmt.Errorf("expected at least the same length")
+		return nil, fmt.Errorf("expected at least the same length,expected %d but %d", len(t.tuple), v.Len())
 	}
 
 	offset := 0
@@ -136,13 +136,11 @@ func encodeTuple(v reflect.Value, t *Type) ([]byte, error) {
 			aux = v.Index(i)
 		} else {
 			name := elem.Name
-			if name == "" {
-				name = strconv.Itoa(i)
-			}
-			aux = v.MapIndex(reflect.ValueOf(name))
+			key := NameToKey(name, i)
+			aux = v.MapIndex(reflect.ValueOf(key))
 		}
 		if aux.Kind() == reflect.Invalid {
-			return nil, fmt.Errorf("cannot get key %s", elem.Name)
+			return nil, fmt.Errorf("cannot get key %s", NameToKey(elem.Name, i))
 		}
 
 		val, err := encode(aux, elem.Elem)
@@ -159,6 +157,13 @@ func encodeTuple(v reflect.Value, t *Type) ([]byte, error) {
 	}
 
 	return append(ret, tail...), nil
+}
+
+func NameToKey(name string, index int) string {
+	if name == "" {
+		return strconv.Itoa(index)
+	}
+	return strings.ToLower(name)
 }
 
 func convertArrayToBytes(value reflect.Value) reflect.Value {
@@ -255,14 +260,14 @@ func mapFromStruct(v reflect.Value) (reflect.Value, error) {
 			continue
 		}
 
-		name := f.Name
-		name = strings.ToLower(name)
+		key := NameToKey(f.Name, i)
+
 		if tagValue != "" {
-			name = tagValue
+			key = tagValue
 		}
 
-		if _, ok := res[name]; !ok {
-			res[name] = v.Field(i).Interface()
+		if _, ok := res[key]; !ok {
+			res[key] = v.Field(i).Interface()
 		}
 	}
 	return reflect.ValueOf(res), nil

@@ -193,7 +193,7 @@ func (g *generateContractImpl) run(t *Type) string {
 		body = append(body, fmt.Sprintf("arg%d", indx))
 	}
 
-	contractTemplate := `pragma solidity ^0.5.5;
+	contractTemplate := `pragma solidity >0.5.0;
 pragma experimental ABIEncoderV2;
 
 contract Sample {

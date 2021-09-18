@@ -1,10 +1,7 @@
 package abigen
 
 import (
-	"bytes"
 	"fmt"
-	"go/format"
-	"io"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -124,12 +121,11 @@ func tupleElems(tuple interface{}) (res []interface{}) {
 	return
 }
 
-func isNil(c interface{}) bool {
-	return c == nil || (reflect.ValueOf(c).Kind() == reflect.Ptr && reflect.ValueOf(c).IsNil())
+func nameToKey(name string, index int) string {
+	return abi.NameToKey(name, index)
 }
-
-func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, abiWriter, binWriter io.Writer) error {
-	funcMap := template.FuncMap{
+func FuncMap() template.FuncMap {
+	return template.FuncMap{
 		"title":       strings.Title,
 		"clean":       cleanName,
 		"arg":         encodeArg,
@@ -138,64 +134,12 @@ func GenCodeToWriter(name string, artifact *compiler.Artifact, config *Config, a
 		"tupleElems":  tupleElems,
 		"tupleLen":    tupleLen,
 		"toCamelCase": toCamelCase,
+		"nameToKey":   nameToKey,
 	}
-	tmplAbi, err := template.New("eth-abi").Funcs(funcMap).Parse(templateAbiStr)
-	if err != nil {
-		return err
-	}
-	tmplBin, err := template.New("eth-abi").Funcs(funcMap).Parse(templateBinStr)
-	if err != nil {
-		return err
-	}
+}
 
-	// parse abi
-	abi, err := abi.NewABI(artifact.Abi)
-	if err != nil {
-		return err
-	}
-
-	input := map[string]interface{}{
-		"Ptr":      "a",
-		"Config":   config,
-		"Contract": artifact,
-		"Abi":      abi,
-		"Name":     name,
-	}
-
-	var b bytes.Buffer
-	if abiWriter != nil {
-		if err := tmplAbi.Execute(&b, input); err != nil {
-			return err
-		}
-		code, err := format.Source(b.Bytes())
-		if err != nil {
-			return fmt.Errorf("format generated abi code err: %v", err)
-		}
-
-		_, err = abiWriter.Write(code)
-		if err != nil {
-			return err
-		}
-
-		b.Reset()
-	}
-	if binWriter != nil {
-		if err := tmplBin.Execute(&b, input); err != nil {
-			return err
-		}
-
-		binCode, err := format.Source(b.Bytes())
-		if err != nil {
-			return fmt.Errorf("format generated bin code err: %v", err)
-		}
-		_, err = binWriter.Write(binCode)
-		if err != nil {
-			return err
-		}
-		b.Reset()
-	}
-
-	return nil
+func isNil(c interface{}) bool {
+	return c == nil || (reflect.ValueOf(c).Kind() == reflect.Ptr && reflect.ValueOf(c).IsNil())
 }
 
 func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
@@ -204,30 +148,29 @@ func GenCode(artifacts map[string]*compiler.Artifact, config *Config) error {
 		return fmt.Errorf("read struct from json: %w", err)
 	}
 
-	for name, artifact := range artifacts {
+	generator := NewGenerator(config, artifacts)
+	result, err := generator.Gen()
+	if err != nil {
+		return fmt.Errorf("generateGen: %v", err)
+	}
+	for _, file := range result.BinFiles {
+		if err := ioutil.WriteFile(filepath.Join(generator.Config.Output, file.FileName+"_artifacts.go"), file.Code, 0644); err != nil {
+			return err
+		}
+	}
+	for _, file := range result.AbiFiles {
+		if err := ioutil.WriteFile(filepath.Join(generator.Config.Output, file.FileName+".go"), file.Code, 0644); err != nil {
+			return err
+		}
+	}
+
+	for _, artifact := range artifacts {
 		// parse abi
 		abi, err := abi.NewABI(artifact.Abi)
 		if err != nil {
 			return err
 		}
 		def.ExtractFromAbi(abi)
-
-		filename := strings.ToLower(name)
-
-		abiBuffer := bytes.NewBuffer(nil)
-		binBuffer := bytes.NewBuffer(nil)
-		err = GenCodeToWriter(name, artifact, config, abiBuffer, binBuffer)
-		if err != nil {
-			return err
-		}
-
-		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+".go"), abiBuffer.Bytes(), 0644); err != nil {
-			return err
-		}
-
-		if err := ioutil.WriteFile(filepath.Join(config.Output, filename+"_artifacts.go"), binBuffer.Bytes(), 0644); err != nil {
-			return err
-		}
 	}
 
 	return def.RenderGoCodeToFile(config.Package, config.Output)
@@ -244,6 +187,7 @@ import (
 	"github.com/laizy/web3/contract"
 	"github.com/laizy/web3/jsonrpc"
 	"github.com/laizy/web3/utils"
+	"github.com/mitchellh/mapstructure"
 )
 
 var (
@@ -279,20 +223,17 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $val := tupleElem
 	var out map[string]interface{}
 	_ = out // avoid not used compiler error
 
-	{{ $length := tupleLen .Outputs }}{{ if ne $length 0 }}var ok bool{{ end }}
-
 	out, err = {{$.Ptr}}.c.Call("{{$key}}", web3.EncodeBlock(block...){{range $index, $val := tupleElems .Inputs}}, {{if .Name}}{{clean .Name}}{{else}}val{{$index}}{{end}}{{end}})
 	if err != nil {
 		return
 	}
 
 	// decode outputs
-	{{range $index, $val := tupleElems .Outputs}}retval{{$index}}, ok = out["{{if .Name}}{{.Name}}{{else}}{{$index}}{{end}}"].({{arg .}})
-	if !ok {
+	{{range $index,$val := tupleElems .Outputs}}
+	if err = mapstructure.Decode(out["{{nameToKey .Name $index}}"],&retval{{$index}}); err != nil {
 		err = fmt.Errorf("failed to encode output at index {{$index}}")
-		return
-	}
-{{end}}
+	}{{end}}
+
 	return
 }
 {{end}}{{end}}
@@ -320,12 +261,12 @@ func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $
 		{{.Name}}Rule = append({{.Name}}Rule, {{.Name}}Item)
 	}
 	{{end}}{{end}}
-	logs, err := a.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}}Rule{{end}}{{end}})
+	logs, err := {{$.Ptr}}.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{.Name}}Rule{{end}}{{end}})
 	if err != nil {
 		return nil, err
 	}
 	res := make([]*{{.Name}}Event, 0)
-	evts := a.c.Abi.Events["{{.Name}}"]
+	evts := {{$.Ptr}}.c.Abi.Events["{{.Name}}"]
 	for _, log := range logs {
 		args, err := evts.ParseLog(log)
 		if err != nil {
