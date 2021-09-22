@@ -178,6 +178,25 @@ func (t *Type) isDynamicType() bool {
 	return t.kind == KindString || t.kind == KindBytes || t.kind == KindSlice || (t.kind == KindArray && t.elem.isDynamicType())
 }
 
+func internalTypeToArg(internalType string) string {
+	internalName := internalType
+	internalNames := strings.Split(internalName, ".")
+	internalName = internalNames[len(internalNames)-1]
+	internalName = strings.Title(internalName)
+	i := strings.Index(internalName, "[")
+	if i >= 0 {
+		internalName = internalName[:i]
+	}
+
+	if internalName == "" {
+		internalName = " "
+	} else {
+		internalName = " " + internalName //space to split the literal
+	}
+
+	return internalName
+}
+
 func parseType(arg *ArgumentStr) (string, error) {
 	if !strings.HasPrefix(arg.Type, "tuple") {
 		return arg.Type, nil
@@ -200,7 +219,7 @@ func parseType(arg *ArgumentStr) (string, error) {
 			str = append(str, aux+" "+i.Name)
 		}
 	}
-	return fmt.Sprintf("tuple(%s)%s", strings.Join(str, ","), strings.TrimPrefix(arg.Type, "tuple")), nil
+	return fmt.Sprintf("tuple%s(%s)%s", internalTypeToArg(arg.InternalType), strings.Join(str, ","), strings.TrimPrefix(arg.Type, "tuple")), nil
 }
 
 // NewTypeFromArgument parses an abi type from an argument
@@ -258,8 +277,26 @@ func notExpectedToken(t tokenType) error {
 func readType(l *lexer) (*Type, error) {
 	var tt *Type
 
-	tok := l.nextToken()
+	tok := l.nextToken() //current: token, peek:
 	if tok.typ == tupleToken {
+		var internalName string
+		if l.peek.typ == strToken {
+			l.nextToken()
+
+			internalName = l.current.literal
+			if l.peek.typ == lbracketToken {
+				l.nextToken()
+				n := l.nextToken()
+				if n.typ == rbracketToken {
+				} else if n.typ == numberToken {
+					if l.nextToken().typ != rbracketToken {
+						return nil, expectedToken(rbracketToken)
+					}
+				}
+
+			}
+		}
+
 		if l.nextToken().typ != lparenToken {
 			return nil, expectedToken(lparenToken)
 		}
@@ -316,7 +353,7 @@ func readType(l *lexer) (*Type, error) {
 		}
 		raw := fmt.Sprintf("(%s)", strings.Join(rawAux, ","))
 
-		tt = &Type{kind: KindTuple, raw: raw, tuple: elems, t: tupleT}
+		tt = &Type{kind: KindTuple, raw: raw, tuple: elems, t: tupleT, tupleName: internalName}
 
 	} else if tok.typ != strToken {
 		return nil, expectedToken(strToken)

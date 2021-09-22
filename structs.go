@@ -37,6 +37,15 @@ func (a *Address) UnmarshalText(b []byte) error {
 	return unmarshalTextByte(a[:], b, 20)
 }
 
+// SetBytes sets the address to the value of b.
+// If b is larger than len(a), b will be cropped from the left.
+func (a *Address) SetBytes(b []byte) {
+	if len(b) > len(a) {
+		b = b[len(b)-AddressLength:]
+	}
+	copy(a[AddressLength-len(b):], b)
+}
+
 func (a *Address) IsZero() bool {
 	var zero Address
 	return *a == zero
@@ -361,13 +370,6 @@ func BytesToAddress(b []byte) Address {
 	var a Address
 	a.SetBytes(b)
 	return a
-}
-
-func (a *Address) SetBytes(b []byte) {
-	if len(b) > len(a) {
-		b = b[len(b)-AddressLength:]
-	}
-	copy(a[AddressLength-len(b):], b)
 }
 
 func CopyBytes(b []byte) (copiedBytes []byte) {

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
-	"strconv"
 
 	"github.com/laizy/web3"
 	"github.com/mitchellh/mapstructure"
@@ -192,12 +191,9 @@ func decodeTuple(t *Type, data []byte) (interface{}, []byte, error) {
 			data = data[32:]
 		}
 
-		name := arg.Name
-		if name == "" {
-			name = strconv.Itoa(indx)
-		}
-		if _, ok := res[name]; !ok {
-			res[name] = val
+		key := NameToKey(arg.Name, indx)
+		if _, ok := res[key]; !ok {
+			res[key] = val
 		} else {
 			return nil, nil, fmt.Errorf("tuple with repeated values")
 		}
