@@ -1,7 +1,6 @@
 package abigen
 
 import (
-	"fmt"
 	"go/format"
 	"testing"
 
@@ -28,7 +27,8 @@ contract Sample {
     );
 	
 event NoName(
-address indexed
+address indexed,
+address
 );
 
 
@@ -56,7 +56,7 @@ address indexed
         L1TOL2_QUEUE
     }
 
-	 constructor(){ emit Deposit(msg.sender,msg.sender,100000,bytes("test"));}
+	 constructor(){ emit Deposit(msg.sender,msg.sender,100000,bytes("test")); emit NoName(msg.sender,msg.sender);}
 
     function TestStruct(Transaction memory a,bytes memory b) public returns (bytes memory){
         return  b;
@@ -93,7 +93,6 @@ func TestCodeGen(t *testing.T) {
 	}
 	res, err := NewGenerator(config, artifacts).Gen()
 	assert.Nil(t, err)
-	fmt.Println(string(res.BinFiles[0].Code))
 
 	expected, _ := format.Source([]byte(`package binding
 
@@ -187,17 +186,17 @@ func (_a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
 
 func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*DepositEvent, error) {
 
-	var _fromRule []interface{}
+	var fromRule []interface{}
 	for _, _fromItem := range from {
-		_fromRule = append(_fromRule, _fromItem)
+		fromRule = append(fromRule, _fromItem)
 	}
 
-	var _toRule []interface{}
+	var toRule []interface{}
 	for _, _toItem := range to {
-		_toRule = append(_toRule, _toItem)
+		toRule = append(toRule, _toItem)
 	}
 
-	logs, err := _a.c.FilterLogs(opts, "Deposit", _fromRule, _toRule)
+	logs, err := _a.c.FilterLogs(opts, "Deposit", fromRule, toRule)
 	if err != nil {
 		return nil, err
 	}

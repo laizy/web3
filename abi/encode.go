@@ -159,14 +159,15 @@ func encodeTuple(v reflect.Value, t *Type) ([]byte, error) {
 	return append(ret, tail...), nil
 }
 
-func ToStructName(name string, index int) string {
-
+func ToName(name string, index int) string {
 	if name == "" {
-		return strings.Title(fmt.Sprintf("arg%d", index))
+		return fmt.Sprintf("arg%d", index)
 	}
 
-	return strings.Title(strings.Trim(name, "_"))
+	return strings.Trim(name, "_")
 }
+
+func ToStructName(name string, index int) string { return strings.Title(ToName(name, index)) }
 
 func NameToLowerKey(name string, index int) string {
 	if name == "" {
