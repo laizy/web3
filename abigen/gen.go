@@ -136,17 +136,16 @@ func nameToKey(name string, index int) string {
 }
 func FuncMap() template.FuncMap {
 	return template.FuncMap{
-		"title":        strings.Title,
-		"clean":        cleanName,
-		"arg":          encodeArg,
-		"outputArg":    outputArg,
-		"funcName":     funcName,
-		"tupleElems":   tupleElems,
-		"tupleLen":     tupleLen,
-		"toCamelCase":  toCamelCase,
-		"nameToKey":    nameToKey,
-		"toStructName": abi.ToStructName,
-		"topic":        encodeTopicArg,
+		"title":       strings.Title,
+		"clean":       cleanName,
+		"arg":         encodeArg,
+		"outputArg":   outputArg,
+		"funcName":    funcName,
+		"tupleElems":  tupleElems,
+		"tupleLen":    tupleLen,
+		"toCamelCase": toCamelCase,
+		"nameToKey":   nameToKey,
+		"topic":       encodeTopicArg,
 	}
 }
 
@@ -274,18 +273,18 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleEl
 {{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
 //{{.Name}}Event
 type {{.Name}}Event struct { {{range $index, $input := tupleElems $value.Inputs}}
-    {{toStructName .Name $index}} {{if .Indexed}} {{topic .}} {{else}} {{arg .}}{{end}}{{end}}
+    {{toCamelCase .Name}} {{if .Indexed}} {{topic .}} {{else}} {{arg .}}{{end}}{{end}}
 	Raw *web3.Log
 }
 
 func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{topic .}}{{end}}{{end}})([]*{{.Name}}Event, error){
 	{{range $index, $input := tupleElems .Inputs}}
-    {{if .Indexed}}var {{.Name}}Rule []interface{}
+    {{if .Indexed}}var {{clean .Name}}Rule []interface{}
     for _, {{.Name}}Item := range {{clean .Name}} {
-		{{.Name}}Rule = append({{.Name}}Rule, {{.Name}}Item)
+		{{clean .Name}}Rule = append({{clean .Name}}Rule, {{.Name}}Item)
 	}
 	{{end}}{{end}}
-	logs, err := {{$.Ptr}}.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{.Name}}Rule{{end}}{{end}})
+	logs, err := {{$.Ptr}}.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}}Rule{{end}}{{end}})
 	if err != nil {
 		return nil, err
 	}
