@@ -191,7 +191,7 @@ func decodeTuple(t *Type, data []byte) (interface{}, []byte, error) {
 			data = data[32:]
 		}
 
-		key := ToStructName(arg.Name, indx)
+		key := NameToKey(arg.Name, indx)
 		if _, ok := res[key]; !ok {
 			res[key] = val
 		} else {
