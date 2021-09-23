@@ -346,3 +346,29 @@ func TestGenStruct(t *testing.T) {
 		defs.ExtractFromAbi(abi1)
 	})
 }
+
+func TestEncodeTopic(t *testing.T) {
+	arg := &abi.ArgumentStr{
+		Type: "tuple",
+		Components: []*abi.ArgumentStr{
+			{
+				Name:    "",
+				Indexed: true,
+				Type:    "string",
+			},
+			{
+				Name:    "",
+				Indexed: true,
+				Type:    "bytes",
+			},
+		},
+	}
+
+	assert := require.New(t)
+	typ, err := abi.NewTypeFromArgument(arg)
+	assert.Nil(err)
+
+	assert.Equal("web3.Hash", encodeTopicArg(typ.TupleElems()[0]))
+	assert.Equal("web3.Hash", encodeTopicArg(typ.TupleElems()[1]))
+
+}
