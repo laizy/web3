@@ -247,7 +247,6 @@ func (t *Txn) ToTransaction() (*web3.Transaction, error) {
 		if err != nil {
 			return nil, err
 		}
-		t.gasLimit = t.gasLimit*130/100 + 500000
 	}
 
 	// send transaction

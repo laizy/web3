@@ -8,6 +8,12 @@ import (
 type Client struct {
 	transport transport.Transport
 	endpoints endpoints
+
+	GasLimitFactor func(gasLimit uint64) uint64
+}
+
+func DefaultGasFactor(i uint64) uint64 {
+	return i*130/100 + 500000
 }
 
 type endpoints struct {
@@ -18,7 +24,7 @@ type endpoints struct {
 
 // NewClient creates a new client
 func NewClient(addr string) (*Client, error) {
-	c := &Client{}
+	c := &Client{GasLimitFactor: DefaultGasFactor}
 	c.endpoints.w = &Web3{c}
 	c.endpoints.e = &Eth{c}
 	c.endpoints.n = &Net{c}
