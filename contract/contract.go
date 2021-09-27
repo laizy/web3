@@ -139,6 +139,9 @@ func (c *Contract) Txn(method string, args ...interface{}) *Txn {
 		to:       &c.addr,
 		provider: c.Provider,
 		Data:     data,
+		gasLimitFactorFn: func(i uint64) uint64 {
+			return i*130/100 + 500000
+		},
 	}
 }
 
@@ -146,14 +149,15 @@ func (c *Contract) Txn(method string, args ...interface{}) *Txn {
 type Txn struct {
 	provider *jsonrpc.Client
 
-	from     web3.Address
-	to       *web3.Address
-	value    *big.Int
-	nonce    uint64
-	gasLimit uint64
-	gasPrice uint64
-	Data     []byte
-	hash     web3.Hash
+	from             web3.Address
+	to               *web3.Address
+	value            *big.Int
+	nonce            uint64
+	gasLimit         uint64
+	gasPrice         uint64
+	Data             []byte
+	hash             web3.Hash
+	gasLimitFactorFn func(uint642 uint64) uint64
 }
 
 func (t *Txn) isContractDeployment() bool {
@@ -223,6 +227,10 @@ func (self *SignedTx) SendTransaction(signer *Signer) *web3.Receipt {
 	return signer.SendTransaction(self.Transaction)
 }
 
+func (t *Txn) SetGasLimitFactor(fn func(uint642 uint64) uint64) {
+	t.gasLimitFactorFn = fn
+}
+
 func (t *Txn) ToTransaction() (*web3.Transaction, error) {
 	var err error
 	// estimate gas price
@@ -247,7 +255,9 @@ func (t *Txn) ToTransaction() (*web3.Transaction, error) {
 		if err != nil {
 			return nil, err
 		}
-		t.gasLimit = t.gasLimit*130/100 + 500000
+		if t.gasLimitFactorFn != nil {
+			t.gasLimit = t.gasLimitFactorFn(t.gasLimit)
+		}
 	}
 
 	// send transaction
