@@ -204,7 +204,18 @@ func (e *Eth) EstimateGasContract(bin []byte) (uint64, error) {
 	if err := e.c.Call("eth_estimateGas", &out, msg); err != nil {
 		return 0, err
 	}
-	return parseUint64orHex(out)
+	return e.parseAndApplyFactor(out)
+}
+
+func (e *Eth) parseAndApplyFactor(out string) (uint64, error) {
+	gas, err := parseUint64orHex(out)
+	if err != nil {
+		return 0, err
+	}
+	if e.c.GasLimitFactor != nil {
+		gas = e.c.GasLimitFactor(gas)
+	}
+	return gas, nil
 }
 
 // EstimateGas generates and returns an estimate of how much gas is necessary to allow the transaction to complete.
@@ -213,7 +224,7 @@ func (e *Eth) EstimateGas(msg *web3.CallMsg) (uint64, error) {
 	if err := e.c.Call("eth_estimateGas", &out, msg); err != nil {
 		return 0, err
 	}
-	return parseUint64orHex(out)
+	return e.parseAndApplyFactor(out)
 }
 
 // GetLogs returns an array of all logs matching a given filter object
