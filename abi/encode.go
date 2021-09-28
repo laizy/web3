@@ -140,7 +140,7 @@ func encodeTuple(v reflect.Value, t *Type) ([]byte, error) {
 			aux = v.MapIndex(reflect.ValueOf(key))
 		}
 		if aux.Kind() == reflect.Invalid {
-			return nil, fmt.Errorf("cannot get key %s", NameToKey(elem.Name, i))
+			return nil, fmt.Errorf("cannot get key %s", NameToLowerKey(elem.Name, i))
 		}
 
 		val, err := encode(aux, elem.Elem)
