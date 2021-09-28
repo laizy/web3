@@ -136,11 +136,11 @@ func encodeTuple(v reflect.Value, t *Type) ([]byte, error) {
 			aux = v.Index(i)
 		} else {
 			name := elem.Name
-			key := NameToKey(name, i)
+			key := NameToLowerKey(name, i)
 			aux = v.MapIndex(reflect.ValueOf(key))
 		}
 		if aux.Kind() == reflect.Invalid {
-			return nil, fmt.Errorf("cannot get key %s", NameToKey(elem.Name, i))
+			return nil, fmt.Errorf("cannot get key %s", NameToLowerKey(elem.Name, i))
 		}
 
 		val, err := encode(aux, elem.Elem)
@@ -159,11 +159,18 @@ func encodeTuple(v reflect.Value, t *Type) ([]byte, error) {
 	return append(ret, tail...), nil
 }
 
-func NameToKey(name string, index int) string {
+func NameToLowerKey(name string, index int) string {
 	if name == "" {
 		return strconv.Itoa(index)
 	}
 	return strings.ToLower(name)
+}
+
+func NameToKey(name string, index int) string {
+	if name == "" {
+		return strconv.Itoa(index)
+	}
+	return name
 }
 
 func convertArrayToBytes(value reflect.Value) reflect.Value {
@@ -260,10 +267,10 @@ func mapFromStruct(v reflect.Value) (reflect.Value, error) {
 			continue
 		}
 
-		key := NameToKey(f.Name, i)
+		key := NameToLowerKey(f.Name, i)
 
 		if tagValue != "" {
-			key = tagValue
+			key = NameToLowerKey(tagValue, i)
 		}
 
 		if _, ok := res[key]; !ok {

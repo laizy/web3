@@ -539,6 +539,32 @@ func TestEncodingStruct(t *testing.T) {
 	}
 }
 
+func TestEncodeStructWithFlag(t *testing.T) {
+	typ := MustNewType("tuple(address l1Queue, uint256 queueOrigin)")
+
+	type Obj struct {
+		L1Queue     web3.Address `abi:"l1Queue"`
+		QueueOrigin *big.Int     `abi:"queueOrigin"`
+	}
+	obj := Obj{
+		L1Queue:     web3.Address{0x1},
+		QueueOrigin: big.NewInt(1),
+	}
+
+	encoded, err := typ.Encode(&obj)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var obj2 Obj
+	if err := typ.DecodeStruct(encoded, &obj2); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(obj, obj2) {
+		t.Fatal("bad")
+	}
+}
+
 var abiSampleStr = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_from","type":"address"},{"indexed":true,"internalType":"address","name":"_to","type":"address"},{"indexed":false,"internalType":"uint256","name":"_amount","type":"uint256"},{"indexed":false,"internalType":"bytes","name":"_data","type":"bytes"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"address","name":"amount","type":"address"}],"name":"Transfer","type":"event"},{"inputs":[{"components":[{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"enum Sample.QueueOrigin","name":"l1QueueOrigin","type":"uint8"},{"internalType":"address","name":"entrypoint","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct Sample.Transaction","name":"a","type":"tuple"},{"internalType":"bytes","name":"b","type":"bytes"}],"name":"TestStruct","outputs":[{"internalType":"bytes","name":"","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"enum Sample.QueueOrigin","name":"l1QueueOrigin","type":"uint8"},{"internalType":"address","name":"entrypoint","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct Sample.Transaction[]","name":"txes","type":"tuple[]"}],"name":"getTxes","outputs":[{"components":[{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"enum Sample.QueueOrigin","name":"l1QueueOrigin","type":"uint8"},{"internalType":"address","name":"entrypoint","type":"address"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct Sample.Transaction[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"}]`
 
 func TestSliceStruct(t *testing.T) {
