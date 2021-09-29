@@ -194,6 +194,7 @@ var (
 	_ = big.NewInt
 	_ = fmt.Printf
 	_ = utils.JsonStr
+	_ = mapstructure.Decode
 )
 
 // {{.Name}} is a solidity contract

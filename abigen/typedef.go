@@ -169,6 +169,7 @@ import (
 var (
 	_ = big.NewInt
 	_ = fmt.Printf
+	_ = web3.HexToAddress
 )
 
 {{$structs := .Structs}}
