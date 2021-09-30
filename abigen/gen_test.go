@@ -1,7 +1,6 @@
 package abigen
 
 import (
-	"fmt"
 	"go/format"
 	"testing"
 
