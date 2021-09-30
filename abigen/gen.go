@@ -216,6 +216,7 @@ import (
 )
 
 var (
+	_ = json.Unmarshal
 	_ = big.NewInt
 	_ = fmt.Printf
 	_ = utils.JsonStr
