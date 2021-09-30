@@ -87,8 +87,6 @@ func TestCodeGen(t *testing.T) {
 	res, err := NewGenerator(config, artifacts).Gen()
 	assert.Nil(t, err)
 
-	fmt.Println(string(res.AbiFiles[0].Code))
-
 	expected, _ := format.Source([]byte(`package binding
 
 import (
