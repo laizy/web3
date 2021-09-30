@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"text/template"
 
 	"github.com/laizy/web3/abi"
@@ -96,8 +95,12 @@ func (self *StructDefExtractor) ExtractFromType(typ *abi.Type) string {
 //ExtractEvent generate event type, and record it for not duplicated.
 func (self *StructDefExtractor) ExtractEvent(e *abi.Event) {
 	s := &StructDef{Name: e.Name + "Event", IsEvent: true}
-	for i, elem := range e.Inputs.TupleElems() {
-		s.Fields = append(s.Fields, &FieldDef{Name: abi.EventArgName(elem.Name, i), Type: self.ExtractFromType(elem.Elem)})
+	for _, elem := range e.Inputs.TupleElems() {
+		typ := self.ExtractFromType(elem.Elem)
+		if elem.Indexed {
+			typ = transferToTopic(typ)
+		}
+		s.Fields = append(s.Fields, &FieldDef{Name: elem.Name, Type: typ})
 	}
 	if old, exist := self.Defs[s.Name]; exist { // check if two struct have same name but different struct, panic.
 		if !reflect.DeepEqual(s, old) {
@@ -116,8 +119,9 @@ func (self *StructDefExtractor) ExtractFromAbi(abi *abi.ABI) *StructDefExtractor
 		self.ExtractFromType(method.Outputs)
 	}
 	for _, event := range abi.Events {
-		self.ExtractFromType(optimizeEvent(event).Inputs)
-		self.ExtractEvent(event)
+		ev := optimizeEvent(event)
+		self.ExtractFromType(ev.Inputs)
+		self.ExtractEvent(ev)
 	}
 
 	return self
@@ -154,7 +158,7 @@ func (self *StructDefExtractor) RenderGoCodeToFile(packageName string, outputDir
 }
 
 func (self *StructDefExtractor) RenderGoCode(packageName string) (string, error) {
-	tempStruct, err := template.New("eth-structs").Funcs(map[string]interface{}{"title": strings.Title}).Parse(templateStructStr)
+	tempStruct, err := template.New("eth-structs").Funcs(map[string]interface{}{"title": toCamelCase}).Parse(templateStructStr)
 	utils.Ensure(err)
 
 	input := map[string]interface{}{

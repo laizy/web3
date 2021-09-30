@@ -98,11 +98,14 @@ func encodeArg(str interface{}) string {
 //transfer indexed arg to hash
 func encodeTopicArg(str interface{}) string {
 	arg := encodeArg(str)
-	if arg == "string" || arg == "[]byte" {
-		arg = "web3.Hash"
-	}
+	return transferToTopic(arg)
+}
 
-	return arg
+func transferToTopic(s string) string {
+	if s == "string" || s == "[]byte" {
+		s = "web3.Hash"
+	}
+	return s
 }
 
 func tupleLen(tuple interface{}) interface{} {
@@ -272,11 +275,6 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleEl
 
 // events
 {{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
-//{{.Name}}Event
-type {{.Name}}Event struct { {{range $index, $input := tupleElems $value.Inputs}}
-    {{toCamelCase .Name}} {{if .Indexed}} {{topic .}} {{else}} {{arg .}}{{end}}{{end}}
-	Raw *web3.Log
-}
 
 func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{topic .}}{{end}}{{end}})([]*{{.Name}}Event, error){
 	{{range $index, $input := tupleElems .Inputs}}

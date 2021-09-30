@@ -1,8 +1,17 @@
 package abigen
 
 import (
+	"fmt"
 	"go/format"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
+
+	"github.com/laizy/web3/utils/common"
 
 	"github.com/laizy/web3/abi"
 	"github.com/laizy/web3/compiler"
@@ -20,8 +29,8 @@ var Artifact = func() *compiler.Artifact {
 pragma experimental ABIEncoderV2;
 contract Sample {
     event Deposit (
-        address indexed _from, // test name with _ will translate to From
-        address indexed _to,
+        address  indexed _from, // test name with _ will translate to From
+        address  indexed _to,
         uint256 _amount,
         bytes _data
     );
@@ -218,6 +227,35 @@ func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address,
 	return res, nil
 }
 
+func (_a *Sample) FilterNoNameEvent(opts *web3.FilterOpts, arg0 []web3.Address) ([]*NoNameEvent, error) {
+
+	var arg0Rule []interface{}
+	for _, arg0Item := range arg0 {
+		arg0Rule = append(arg0Rule, arg0Item)
+	}
+
+	logs, err := _a.c.FilterLogs(opts, "NoName", arg0Rule)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*NoNameEvent, 0)
+	evts := _a.c.Abi.Events["NoName"]
+	for _, log := range logs {
+		args, err := evts.ParseLog(log)
+		if err != nil {
+			return nil, err
+		}
+		var evtItem NoNameEvent
+		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
+		if err != nil {
+			return nil, err
+		}
+		evtItem.Raw = log
+		res = append(res, &evtItem)
+	}
+	return res, nil
+}
+
 func (_a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address) ([]*TransferEvent, error) {
 
 	var fromRule []interface{}
@@ -268,6 +306,7 @@ func TestTupleStructs(t *testing.T) {
 	assert := require.New(t)
 	code, err := NewStructDefExtractor().ExtractFromAbi(abi.MustNewABI(Artifact.Abi)).RenderGoCode("binding")
 	assert.Nil(err)
+
 	expected, _ := format.Source([]byte(`package binding
 
 import (
@@ -288,6 +327,13 @@ type DepositEvent struct {
 	To     web3.Address
 	Amount *big.Int
 	Data   []byte
+
+	Raw *web3.Log
+}
+
+type NoNameEvent struct {
+	Arg0 web3.Address
+	Arg1 web3.Address
 
 	Raw *web3.Log
 }
@@ -371,4 +417,130 @@ func TestEncodeTopic(t *testing.T) {
 	assert.Equal("web3.Hash", encodeTopicArg(typ.TupleElems()[0]))
 	assert.Equal("web3.Hash", encodeTopicArg(typ.TupleElems()[1]))
 
+}
+
+var testFile = struct {
+	imports string
+	name    string
+	tester  string
+}{`
+	"math/big"
+	"time"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/jsonrpc"
+	"github.com/laizy/web3/testutil"
+	"github.com/stretchr/testify/require"
+`,
+	"ParseEvent",
+
+	`
+assert := require.New(t)
+	server := testutil.NewTestServer(t, nil)
+	defer server.Close()
+	client, err := jsonrpc.NewClient(server.HTTPAddr())
+	assert.Nil(err)
+	sender := server.Account(0)
+	nonce, err := client.Eth().GetNonce(sender, web3.Latest)
+	assert.Nil(err)
+	txn := DeploySample(client, server.Account(0))
+	err = txn.Do()
+	assert.Nil(err)
+	creationAddress := crypto.CreateAddress(common.BytesToAddress(sender.Bytes()), nonce)
+	sss := NewSample(web3.BytesToAddress(creationAddress.Bytes()), client)
+	sss.Contract().SetFrom(sender)
+	time.Sleep(5 * time.Second)
+	events, err := sss.FilterDepositEvent(&web3.FilterOpts{Start: 0}, nil, nil)
+	assert.Nil(err)
+	eveent2, err := sss.FilterNoNameEvent(&web3.FilterOpts{Start: 0}, nil)
+	assert.Nil(err)
+	want1 := DepositEvent{From: sender, To: sender, Amount: big.NewInt(100000), Data: []byte("test")}
+	for _, eve := range events {
+		assert.Equal(want1.From, eve.From)
+		assert.Equal(want1.To, eve.To)
+		assert.Equal(want1.Amount, eve.Amount)
+		assert.Equal(want1.Data, eve.Data)
+	}
+	want2 := NoNameEvent{Arg0: sender, Arg1: sender}
+	for _, eve := range eveent2 {
+		assert.Equal(want2.Arg0, eve.Arg0)
+		assert.Equal(want2.Arg1, eve.Arg1)
+	}
+`,
+}
+
+func TestBind(t *testing.T) {
+	t.Skip() //This is for integration binding test. to use it, just note out this line.
+	if testutil.IsSolcInstalled() == false {
+		t.Skipf("skipping since solidity is not installed")
+	}
+	assert := require.New(t)
+	// Skip the test if no Go command can be found
+	gocmd := runtime.GOROOT() + "/bin/go"
+	if !common.FileExist(gocmd) {
+		t.Skip("go sdk not found for testing")
+	}
+	// Create a temporary workspace for the test suite
+	ws, err := ioutil.TempDir("", "binding-test")
+	if err != nil {
+		t.Fatalf("failed to create temporary workspace: %v", err)
+	}
+	//defer os.RemoveAll(ws)
+
+	pkg := filepath.Join(ws, "bindtest")
+	if err = os.MkdirAll(pkg, 0700); err != nil {
+		t.Fatalf("failed to create package: %v", err)
+	}
+
+	// Generate the test suite for all the contracts
+
+	artifacts := map[string]*compiler.Artifact{
+		"Sample": Artifact,
+	}
+	config := &Config{
+		Package: "bindtest",
+		Output:  pkg,
+		Name:    "Sample",
+	}
+	if err := GenCode(artifacts, config); err != nil {
+		t.Fatalf("genCode: %v", err)
+	}
+
+	code := fmt.Sprintf(`
+			package bindtest
+			import (
+				"testing"
+				%s
+			)
+			func Test%s(t *testing.T) {
+				%s
+			}
+		`, testFile.imports, testFile.name, testFile.tester)
+	err = ioutil.WriteFile(filepath.Join(pkg, strings.ToLower(testFile.name+"_test.go")), []byte(code), 06666)
+	assert.Nil(err)
+
+	// Convert the package to go modules and use the current source for go-ethereum
+	moder := exec.Command(gocmd, "mod", "init", "bindtest")
+	moder.Dir = pkg
+	if out, err := moder.CombinedOutput(); err != nil {
+		t.Fatalf("failed to convert binding test to modules: %v\n%s", err, out)
+	}
+	pwd, _ := os.Getwd()
+	replacer := exec.Command(gocmd, "mod", "edit", "-x", "-require", "github.com/laizy/web3@v0.0.0", "-replace", "github.com/laizy/web3="+filepath.Join(pwd, "..")) // Repo root
+	replacer.Dir = pkg
+	if out, err := replacer.CombinedOutput(); err != nil {
+		t.Fatalf("failed to replace binding test dependency to current source tree: %v\n%s", err, out)
+	}
+	tidier := exec.Command(gocmd, "mod", "tidy")
+	tidier.Dir = pkg
+	if out, err := tidier.CombinedOutput(); err != nil {
+		t.Fatalf("failed to tidy Go module file: %v\n%s", err, out)
+	}
+	// Test the entire package and report any failures
+	cmd := exec.Command(gocmd, "test", "-v", "-count", "1")
+	cmd.Dir = pkg
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("failed to run binding test: %v\n%s", err, out)
+	}
 }
