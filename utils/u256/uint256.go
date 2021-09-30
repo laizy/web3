@@ -117,6 +117,11 @@ func (self Int) Bytes32() [32]byte {
 	return bigInt.Bytes32()
 }
 
+func FromBytes32(val [32]byte) Int {
+	bigInt := uint256.NewInt().SetBytes32(val[:])
+	return New(bigInt)
+}
+
 func (a Int) MulUint64(rhs uint64) Int {
 	return a.Mul(New(rhs))
 }
