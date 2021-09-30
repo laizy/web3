@@ -111,6 +111,7 @@ func (self *StructDefExtractor) ExtractFromAbi(abi *abi.ABI) *StructDefExtractor
 	}
 	for _, event := range abi.Events {
 		self.ExtractFromType(event.Inputs)
+		self.ExtractEvent(event)
 	}
 
 	return self

@@ -93,6 +93,7 @@ var (
 	_ = big.NewInt
 	_ = fmt.Printf
 	_ = utils.JsonStr
+	_ = mapstructure.Decode
 )
 
 // Sample is a solidity contract
@@ -146,13 +147,7 @@ func (_a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
 // events
 
 //DepositEvent
-type DepositEvent struct {
-	From   web3.Address
-	To     web3.Address
-	Amount *big.Int
-	Data   []byte
-	Raw    *web3.Log
-}
+//DepositEvent is in struct.go file
 
 func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*DepositEvent, error) {
 
@@ -189,12 +184,7 @@ func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address,
 }
 
 //TransferEvent
-type TransferEvent struct {
-	From   web3.Address
-	To     web3.Address
-	Amount web3.Address
-	Raw    *web3.Log
-}
+//TransferEvent is in struct.go file
 
 func (_a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address) ([]*TransferEvent, error) {
 
@@ -261,11 +251,28 @@ var (
 	_ = web3.HexToAddress
 )
 
+type DepositEvent struct {
+	From   web3.Address
+	To     web3.Address
+	Amount *big.Int
+	Data   []byte
+
+	Raw *web3.Log
+}
+
 type Transaction struct {
 	Timestamp     *big.Int
 	L1QueueOrigin uint8
 	Entrypoint    web3.Address
 	Data          []byte
+}
+
+type TransferEvent struct {
+	From   web3.Address
+	To     web3.Address
+	Amount web3.Address
+
+	Raw *web3.Log
 }
 `))
 
