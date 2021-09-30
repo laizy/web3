@@ -391,11 +391,6 @@ func decodeBool(v *fastjson.Value, key string) (bool, error) {
 	return false, fmt.Errorf("field '%s' with content '%s' cannot be decoded as bool", key, str)
 }
 
-// has0xPrefix validates str begins with '0x' or '0X'.
-func has0xPrefix(str string) bool {
-	return len(str) >= 2 && str[0] == '0' && (str[1] == 'x' || str[1] == 'X')
-}
-
 func unmarshalTextByte(dst, src []byte, size int) error {
 	str := string(src)
 

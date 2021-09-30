@@ -95,6 +95,19 @@ func encodeArg(str interface{}) string {
 	return encodeSimpleArg(arg.Elem)
 }
 
+//transfer indexed arg to hash
+func encodeTopicArg(str interface{}) string {
+	arg := encodeArg(str)
+	return transferToTopic(arg)
+}
+
+func transferToTopic(s string) string {
+	if s == "string" || s == "[]byte" {
+		s = "web3.Hash"
+	}
+	return s
+}
+
 func tupleLen(tuple interface{}) interface{} {
 	if isNil(tuple) {
 		return 0
@@ -135,7 +148,19 @@ func FuncMap() template.FuncMap {
 		"tupleLen":    tupleLen,
 		"toCamelCase": toCamelCase,
 		"nameToKey":   nameToKey,
+		"topic":       encodeTopicArg,
 	}
+}
+
+//optimizeEvent change inner empty name to arg%d.
+func optimizeEvent(event *abi.Event) *abi.Event {
+	ev := event.Copy()
+	for j, e := range ev.Inputs.TupleElems() {
+		if e.Name == "" {
+			e.Name = fmt.Sprintf("arg%d", j)
+		}
+	}
+	return event
 }
 
 func isNil(c interface{}) bool {
@@ -197,6 +222,7 @@ var (
 	_ = mapstructure.Decode
 )
 
+{{$cname := .Name}}
 // {{.Name}} is a solidity contract
 type {{.Name}} struct {
 	c *contract.Contract
@@ -250,14 +276,14 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleEl
 // events
 {{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
 
-func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{arg .}}{{end}}{{end}})([]*{{.Name}}Event, error){
+func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{topic .}}{{end}}{{end}})([]*{{.Name}}Event, error){
 	{{range $index, $input := tupleElems .Inputs}}
-    {{if .Indexed}}var {{.Name}}Rule []interface{}
+    {{if .Indexed}}var {{clean .Name}}Rule []interface{}
     for _, {{.Name}}Item := range {{clean .Name}} {
-		{{.Name}}Rule = append({{.Name}}Rule, {{.Name}}Item)
+		{{clean .Name}}Rule = append({{clean .Name}}Rule, {{.Name}}Item)
 	}
 	{{end}}{{end}}
-	logs, err := {{$.Ptr}}.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{.Name}}Rule{{end}}{{end}})
+	logs, err := {{$.Ptr}}.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}}Rule{{end}}{{end}})
 	if err != nil {
 		return nil, err
 	}

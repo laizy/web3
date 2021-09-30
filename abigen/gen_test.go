@@ -20,11 +20,17 @@ var Artifact = func() *compiler.Artifact {
 pragma experimental ABIEncoderV2;
 contract Sample {
     event Deposit (
-        address indexed _from, // test name with _ will translate to From
-        address indexed _to,
+        address  indexed _from, // test name with _ will translate to From
+        address  indexed _to,
         uint256 _amount,
         bytes _data
     );
+	
+event NoName(
+address indexed,
+address
+);
+
 
 	event Transfer (
 		address indexed from,
@@ -49,6 +55,8 @@ contract Sample {
         SEQUENCER_QUEUE,
         L1TOL2_QUEUE
     }
+
+	 constructor(){ emit Deposit(msg.sender,msg.sender,100000,bytes("test")); emit NoName(msg.sender,msg.sender);}
 
     function TestStruct(Transaction memory a,bytes memory b) public returns (bytes memory){
         return  b;
@@ -178,17 +186,17 @@ func (_a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
 
 func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*DepositEvent, error) {
 
-	var _fromRule []interface{}
+	var fromRule []interface{}
 	for _, _fromItem := range from {
-		_fromRule = append(_fromRule, _fromItem)
+		fromRule = append(fromRule, _fromItem)
 	}
 
-	var _toRule []interface{}
+	var toRule []interface{}
 	for _, _toItem := range to {
-		_toRule = append(_toRule, _toItem)
+		toRule = append(toRule, _toItem)
 	}
 
-	logs, err := _a.c.FilterLogs(opts, "Deposit", _fromRule, _toRule)
+	logs, err := _a.c.FilterLogs(opts, "Deposit", fromRule, toRule)
 	if err != nil {
 		return nil, err
 	}
@@ -200,6 +208,35 @@ func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address,
 			return nil, err
 		}
 		var evtItem DepositEvent
+		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
+		if err != nil {
+			return nil, err
+		}
+		evtItem.Raw = log
+		res = append(res, &evtItem)
+	}
+	return res, nil
+}
+
+func (_a *Sample) FilterNoNameEvent(opts *web3.FilterOpts, arg0 []web3.Address) ([]*NoNameEvent, error) {
+
+	var arg0Rule []interface{}
+	for _, arg0Item := range arg0 {
+		arg0Rule = append(arg0Rule, arg0Item)
+	}
+
+	logs, err := _a.c.FilterLogs(opts, "NoName", arg0Rule)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*NoNameEvent, 0)
+	evts := _a.c.Abi.Events["NoName"]
+	for _, log := range logs {
+		args, err := evts.ParseLog(log)
+		if err != nil {
+			return nil, err
+		}
+		var evtItem NoNameEvent
 		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
 		if err != nil {
 			return nil, err
@@ -260,6 +297,7 @@ func TestTupleStructs(t *testing.T) {
 	assert := require.New(t)
 	code, err := NewStructDefExtractor().ExtractFromAbi(abi.MustNewABI(Artifact.Abi)).RenderGoCode("binding")
 	assert.Nil(err)
+
 	expected, _ := format.Source([]byte(`package binding
 
 import (
@@ -280,6 +318,13 @@ type DepositEvent struct {
 	To     web3.Address
 	Amount *big.Int
 	Data   []byte
+
+	Raw *web3.Log
+}
+
+type NoNameEvent struct {
+	Arg0 web3.Address
+	Arg1 web3.Address
 
 	Raw *web3.Log
 }
@@ -337,4 +382,30 @@ func TestGenStruct(t *testing.T) {
 	assert.PanicsWithError(ErrConflictDef.Error(), func() {
 		defs.ExtractFromAbi(abi1)
 	})
+}
+
+func TestEncodeTopic(t *testing.T) {
+	arg := &abi.ArgumentStr{
+		Type: "tuple",
+		Components: []*abi.ArgumentStr{
+			{
+				Name:    "",
+				Indexed: true,
+				Type:    "string",
+			},
+			{
+				Name:    "",
+				Indexed: true,
+				Type:    "bytes",
+			},
+		},
+	}
+
+	assert := require.New(t)
+	typ, err := abi.NewTypeFromArgument(arg)
+	assert.Nil(err)
+
+	assert.Equal("web3.Hash", encodeTopicArg(typ.TupleElems()[0]))
+	assert.Equal("web3.Hash", encodeTopicArg(typ.TupleElems()[1]))
+
 }

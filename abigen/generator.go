@@ -43,6 +43,10 @@ func (g *Generator) Gen() (res Result, err error) {
 		if err != nil {
 			return Result{}, err
 		}
+
+		for n, e := range abi.Events { //repalace old event to get event nil arg's name
+			abi.Events[n] = optimizeEvent(e)
+		}
 		fileName := strings.ToLower(name)
 		input := map[string]interface{}{
 			"Ptr":      "_a",
