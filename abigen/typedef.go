@@ -98,6 +98,11 @@ func (self *StructDefExtractor) ExtractEvent(e *abi.Event) {
 	for i, elem := range e.Inputs.TupleElems() {
 		s.Fields = append(s.Fields, &FieldDef{Name: abi.EventArgName(elem.Name, i), Type: self.ExtractFromType(elem.Elem)})
 	}
+	if old, exist := self.Defs[s.Name]; exist { // check if two struct have same name but different struct, panic.
+		if !reflect.DeepEqual(s, old) {
+			panic(ErrConflictDef)
+		}
+	}
 	self.Defs[s.Name] = s
 }
 
