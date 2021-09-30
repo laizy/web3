@@ -162,8 +162,6 @@ func (_a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
 
 // events
 
-//DepositEvent
-
 func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*DepositEvent, error) {
 
 	var _fromRule []interface{}
@@ -197,8 +195,6 @@ func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address,
 	}
 	return res, nil
 }
-
-//TransferEvent
 
 func (_a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address) ([]*TransferEvent, error) {
 
