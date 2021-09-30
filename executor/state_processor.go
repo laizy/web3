@@ -64,7 +64,8 @@ func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transactio
 	}
 	// if the transaction created a contract, store the creation address in the receipt.
 	if msg.To() == nil {
-		receipt.ContractAddress = crypto.CreateAddress(evm.TxContext.Origin, msg.Nonce())
+		nonce := statedb.GetNonce(evm.TxContext.Origin) - 1
+		receipt.ContractAddress = crypto.CreateAddress(evm.TxContext.Origin, nonce)
 	}
 	// Set the receipt logs and create a bloom for filtering
 	receipt.BlockHash = statedb.BlockHash()
