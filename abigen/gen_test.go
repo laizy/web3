@@ -1,6 +1,7 @@
 package abigen
 
 import (
+	"fmt"
 	"go/format"
 	"testing"
 
@@ -54,7 +55,7 @@ contract Sample {
         return  b;
     }
 
-	function TestOutPut() public returns (Output memory){
+	function TestOutPut() public view returns (Output memory){
 		Output memory haha;
 		return haha;
 	}
@@ -85,6 +86,8 @@ func TestCodeGen(t *testing.T) {
 	}
 	res, err := NewGenerator(config, artifacts).Gen()
 	assert.Nil(t, err)
+
+	fmt.Println(string(res.AbiFiles[0].Code))
 
 	expected, _ := format.Source([]byte(`package binding
 
@@ -129,6 +132,25 @@ func (_a *Sample) Contract() *contract.Contract {
 
 // calls
 
+// TestOutPut calls the TestOutPut method in the solidity contract
+func (_a *Sample) TestOutPut(block ...web3.BlockNumber) (retval0 Output, err error) {
+	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
+	out, err = _a.c.Call("TestOutPut", web3.EncodeBlock(block...))
+	if err != nil {
+		return
+	}
+
+	// decode outputs
+
+	if err = mapstructure.Decode(out["0"], &retval0); err != nil {
+		err = fmt.Errorf("failed to encode output at index 0")
+	}
+
+	return
+}
+
 // GetTxes calls the getTxes method in the solidity contract
 func (_a *Sample) GetTxes(txes []Transaction, block ...web3.BlockNumber) (retval0 []Transaction, err error) {
 	var out map[string]interface{}
@@ -149,11 +171,6 @@ func (_a *Sample) GetTxes(txes []Transaction, block ...web3.BlockNumber) (retval
 }
 
 // txns
-
-// TestOutPut sends a TestOutPut transaction in the solidity contract
-func (_a *Sample) TestOutPut() *contract.Txn {
-	return _a.c.Txn("TestOutPut")
-}
 
 // TestStruct sends a TestStruct transaction in the solidity contract
 func (_a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
