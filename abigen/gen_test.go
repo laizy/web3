@@ -39,6 +39,12 @@ contract Sample {
         bytes data;
     }
 
+	struct Output {
+		uint256 num;
+		bytes data;
+		address l1QueueOriginAddress;
+	}
+
     enum QueueOrigin {
         SEQUENCER_QUEUE,
         L1TOL2_QUEUE
@@ -47,6 +53,11 @@ contract Sample {
     function TestStruct(Transaction memory a,bytes memory b) public returns (bytes memory){
         return  b;
     }
+
+	function TestOutPut() public view returns (Output memory){
+		Output memory haha;
+		return haha;
+	}
 
     function getTxes(Transaction[] memory txes) external view returns (Transaction[] memory) {
         return txes;
@@ -93,6 +104,7 @@ var (
 	_ = big.NewInt
 	_ = fmt.Printf
 	_ = utils.JsonStr
+	_ = mapstructure.Decode
 )
 
 // Sample is a solidity contract
@@ -116,6 +128,25 @@ func (_a *Sample) Contract() *contract.Contract {
 }
 
 // calls
+
+// TestOutPut calls the TestOutPut method in the solidity contract
+func (_a *Sample) TestOutPut(block ...web3.BlockNumber) (retval0 Output, err error) {
+	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
+	out, err = _a.c.Call("TestOutPut", web3.EncodeBlock(block...))
+	if err != nil {
+		return
+	}
+
+	// decode outputs
+
+	if err = mapstructure.Decode(out["0"], &retval0); err != nil {
+		err = fmt.Errorf("failed to encode output at index 0")
+	}
+
+	return
+}
 
 // GetTxes calls the getTxes method in the solidity contract
 func (_a *Sample) GetTxes(txes []Transaction, block ...web3.BlockNumber) (retval0 []Transaction, err error) {
@@ -144,15 +175,6 @@ func (_a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
 }
 
 // events
-
-//DepositEvent
-type DepositEvent struct {
-	From   web3.Address
-	To     web3.Address
-	Amount *big.Int
-	Data   []byte
-	Raw    *web3.Log
-}
 
 func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*DepositEvent, error) {
 
@@ -186,14 +208,6 @@ func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address,
 		res = append(res, &evtItem)
 	}
 	return res, nil
-}
-
-//TransferEvent
-type TransferEvent struct {
-	From   web3.Address
-	To     web3.Address
-	Amount web3.Address
-	Raw    *web3.Log
 }
 
 func (_a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address) ([]*TransferEvent, error) {
@@ -258,13 +272,37 @@ import (
 var (
 	_ = big.NewInt
 	_ = fmt.Printf
+	_ = web3.HexToAddress
 )
+
+type DepositEvent struct {
+	From   web3.Address
+	To     web3.Address
+	Amount *big.Int
+	Data   []byte
+
+	Raw *web3.Log
+}
+
+type Output struct {
+	Num                  *big.Int
+	Data                 []byte
+	L1QueueOriginAddress web3.Address
+}
 
 type Transaction struct {
 	Timestamp     *big.Int
 	L1QueueOrigin uint8
 	Entrypoint    web3.Address
 	Data          []byte
+}
+
+type TransferEvent struct {
+	From   web3.Address
+	To     web3.Address
+	Amount web3.Address
+
+	Raw *web3.Log
 }
 `))
 
@@ -283,6 +321,8 @@ func TestGenStruct(t *testing.T) {
 
 	defs.ExtractFromAbi(abi1)
 
+	assert.NotNil(defs.Defs["Output"]) //output struct is generated
+
 	old := len(defs.Defs)
 	defs.ExtractFromAbi(abi1)
 	assert.Equal(old, len(defs.Defs)) // test dulplicate case
@@ -292,88 +332,9 @@ func TestGenStruct(t *testing.T) {
 		oldname = name //read an struct from it
 		break
 	}
-	defs.Defs[oldname] = &StructDef{Name: oldname}
+
+	defs.Defs[oldname] = &StructDef{Name: oldname, IsEvent: defs.Defs[oldname].IsEvent}
 	assert.PanicsWithError(ErrConflictDef.Error(), func() {
 		defs.ExtractFromAbi(abi1)
 	})
 }
-
-//
-//var testFile = struct {
-//	imports string
-//	name    string
-//	tester  string
-//}{
-//	`
-//	"github.com/ethereum/go-ethereum/common"
-//	"github.com/ethereum/go-ethereum/crypto"
-//	"github.com/laizy/web3"
-//	"github.com/laizy/web3/jsonrpc"
-//	"github.com/laizy/web3/testutil"
-//	"github.com/stretchr/testify/require"
-//	"testing"
-//`,
-//	"CallContract",
-//	`
-//
-//`,
-//}
-//
-//func TestBind(t *testing.T) {
-//	if testutil.IsSolcInstalled() == false {
-//		t.Skipf("skipping since solidity is not installed")
-//	}
-//	assert := require.New(t)
-//	// Skip the test if no Go command can be found
-//	gocmd := runtime.GOROOT() + "/bin/go"
-//	if !common.FileExist(gocmd) {
-//		t.Skip("go sdk not found for testing")
-//	}
-//	// Create a temporary workspace for the test suite
-//	ws, err := ioutil.TempDir("", "binding-test")
-//	if err != nil {
-//		t.Fatalf("failed to create temporary workspace: %v", err)
-//	}
-//	//defer os.RemoveAll(ws)
-//
-//	pkg := filepath.Join(ws, "bindtest")
-//	if err = os.MkdirAll(pkg, 0700); err != nil {
-//		t.Fatalf("failed to create package: %v", err)
-//	}
-//
-//	// Generate the test suite for all the contracts
-//
-//	artifacts := map[string]*compiler.Artifact{
-//		"Sample": Artifact,
-//	}
-//	config := &Config{
-//		Package: "bindtest",
-//		Output:  pkg,
-//		Name:    "Sample",
-//	}
-//	res, err := NewGenerator(config, artifacts).Gen()
-//	assert.Nil(err)
-//	for _, abif := range res.AbiFiles {
-//		err = ioutil.WriteFile(filepath.Join(pkg, strings.ToLower(abif.FileName)+"_abi.go"), abif.Code, 0666)
-//		assert.Nil(err)
-//	}
-//	for _, binf := range res.BinFiles {
-//		err = ioutil.WriteFile(filepath.Join(pkg, strings.ToLower(binf.FileName)+"_bin.go"), binf.Code, 0666)
-//		assert.Nil(err)
-//	}
-//
-//	code := fmt.Sprintf(`
-//			package bindtest
-//
-//			import (
-//				"testing"
-//				%s
-//			)
-//
-//			func Test%s(t *testing.T) {
-//				%s
-//			}
-//		`, testFile.imports, testFile.name, testFile.tester)
-//	err = ioutil.WriteFile(filepath.Join(pkg, strings.ToLower(testFile.name+"_test.go")), []byte(code), 06666)
-//	assert.Nil(err)
-//}

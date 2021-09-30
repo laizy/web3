@@ -173,6 +173,13 @@ func NameToKey(name string, index int) string {
 	return name
 }
 
+func EventArgName(name string, index int) string {
+	if name == "" {
+		return fmt.Sprintf("arg%d", index)
+	}
+	return name
+}
+
 func convertArrayToBytes(value reflect.Value) reflect.Value {
 	slice := reflect.MakeSlice(reflect.TypeOf([]byte{}), value.Len(), value.Len())
 	reflect.Copy(slice, value)
