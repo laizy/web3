@@ -250,10 +250,7 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleEl
 // events
 {{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
 //{{.Name}}Event
-type {{.Name}}Event struct { {{range $index, $input := tupleElems $value.Inputs}}
-    {{toCamelCase .Name}} {{arg .}}{{end}}
-	Raw *web3.Log
-}
+//{{.Name}}Event is in struct.go file
 
 func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{arg .}}{{end}}{{end}})([]*{{.Name}}Event, error){
 	{{range $index, $input := tupleElems .Inputs}}
