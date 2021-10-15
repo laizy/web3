@@ -13,11 +13,11 @@ func (c *Client) SubscriptionEnabled() bool {
 }
 
 // Subscribe starts a new subscription
-func (c *Client) Subscribe(method string, callback func(b []byte)) (func() error, error) {
+func (c *Client) Subscribe(method string, param interface{}, callback func(b []byte)) (func() error, error) {
 	pub, ok := c.transport.(transport.PubSubTransport)
 	if !ok {
 		return nil, fmt.Errorf("Transport does not support the subscribe method")
 	}
-	close, err := pub.Subscribe(method, callback)
+	close, err := pub.Subscribe(method, param, callback)
 	return close, err
 }

@@ -163,7 +163,7 @@ func (s *stream) setHandler(id uint64, ack chan *ackMessage) {
 	s.handler[id] = callback
 	s.handlerLock.Unlock()
 
-	s.timer = time.AfterFunc(5*time.Second, func() {
+	s.timer = time.AfterFunc(10*time.Second, func() {
 		s.handlerLock.Lock()
 		delete(s.handler, id)
 		s.handlerLock.Unlock()
@@ -179,8 +179,9 @@ func (s *stream) setHandler(id uint64, ack chan *ackMessage) {
 func (s *stream) Call(method string, out interface{}, params ...interface{}) error {
 	seq := s.incSeq()
 	request := codec.Request{
-		ID:     seq,
-		Method: method,
+		JsonRpc: "2.0",
+		ID:      seq,
+		Method:  method,
 	}
 	if len(params) > 0 {
 		data, err := json.Marshal(params)
@@ -238,9 +239,13 @@ func (s *stream) setSubscription(id string, callback func(b []byte)) {
 }
 
 // Subscribe implements the PubSubTransport interface
-func (s *stream) Subscribe(method string, callback func(b []byte)) (func() error, error) {
+func (s *stream) Subscribe(method string, param interface{}, callback func(b []byte)) (func() error, error) {
+	callParam := []interface{}{method}
+	if param != nil {
+		callParam = append(callParam, param)
+	}
 	var out string
-	if err := s.Call("eth_subscribe", &out, method); err != nil {
+	if err := s.Call("eth_subscribe", &out, callParam...); err != nil {
 		return nil, err
 	}
 

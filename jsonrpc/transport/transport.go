@@ -17,7 +17,7 @@ type Transport interface {
 // PubSubTransport is a transport that allows subscriptions
 type PubSubTransport interface {
 	// Subscribe starts a subscription to a new event
-	Subscribe(method string, callback func(b []byte)) (func() error, error)
+	Subscribe(method string, param interface{}, callback func(b []byte)) (func() error, error)
 }
 
 const (

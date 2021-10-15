@@ -24,7 +24,7 @@ func TestSubscribeNewHead(t *testing.T) {
 		defer c.Close()
 
 		data := make(chan []byte)
-		cancel, err := c.Subscribe("newHeads", func(b []byte) {
+		cancel, err := c.Subscribe("newHeads", nil, func(b []byte) {
 			data <- b
 		})
 		if err != nil {
