@@ -107,7 +107,7 @@ func (t *Transaction) MarshalJSON() ([]byte, error) {
 	}
 	o.Set("v", a.NewString("0x"+hex.EncodeToString(t.V)))
 	o.Set("r", a.NewString("0x"+hex.EncodeToString(t.R)))
-	o.Set("s", a.NewString("0x"+hex.EncodeToString(t.R)))
+	o.Set("s", a.NewString("0x"+hex.EncodeToString(t.S)))
 
 	o.Set("blockHash", a.NewString(t.BlockHash.String()))
 	o.Set("blockNumber", a.NewString(fmt.Sprintf("0x%x", t.BlockNumber)))

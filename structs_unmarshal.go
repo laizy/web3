@@ -158,13 +158,14 @@ func (t *Transaction) unmarshalJSON(v *fastjson.Value) error {
 		panic(err)
 	}
 
-	if err = decodeHash(&t.BlockHash, v, "blockHash"); err != nil {
+	// those fields are null for pending transaction
+	if err = decodeHashOrNull(&t.BlockHash, v, "blockHash"); err != nil {
 		return err
 	}
-	if t.BlockNumber, err = decodeUint(v, "blockNumber"); err != nil {
+	if t.BlockNumber, err = decodeUintOrNull(v, "blockNumber"); err != nil {
 		return err
 	}
-	if t.TxnIndex, err = decodeUint(v, "transactionIndex"); err != nil {
+	if t.TxnIndex, err = decodeUintOrNull(v, "transactionIndex"); err != nil {
 		return err
 	}
 	return nil
@@ -357,6 +358,22 @@ func decodeUint(v *fastjson.Value, key string) (uint64, error) {
 		return 0, fmt.Errorf("field %s does not have 0x prefix", str)
 	}
 	return strconv.ParseUint(str[2:], 16, 64)
+}
+
+func decodeUintOrNull(v *fastjson.Value, key string) (uint64, error) {
+	if val := v.Get(key); val != nil && val.Type() == fastjson.TypeNull {
+		return 0, nil
+	}
+
+	return decodeUint(v, key)
+}
+
+func decodeHashOrNull(h *Hash, v *fastjson.Value, key string) error {
+	if val := v.Get(key); val != nil && val.Type() == fastjson.TypeNull {
+		*h = Hash{}
+		return nil
+	}
+	return decodeHash(h, v, key)
 }
 
 func decodeHash(h *Hash, v *fastjson.Value, key string) error {
