@@ -1,0 +1,138 @@
+{
+  "definitions": {
+    "ABIChangedEvent": {
+      "Name": "ABIChangedEvent",
+      "Fields": [
+        {
+          "Name": "node",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "contentType",
+          "Type": "*big.Int"
+        }
+      ],
+      "IsEvent": true
+    },
+    "AddrChangedEvent": {
+      "Name": "AddrChangedEvent",
+      "Fields": [
+        {
+          "Name": "node",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "a",
+          "Type": "web3.Address"
+        }
+      ],
+      "IsEvent": true
+    },
+    "ContentChangedEvent": {
+      "Name": "ContentChangedEvent",
+      "Fields": [
+        {
+          "Name": "node",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "hash",
+          "Type": "[32]byte"
+        }
+      ],
+      "IsEvent": true
+    },
+    "NameChangedEvent": {
+      "Name": "NameChangedEvent",
+      "Fields": [
+        {
+          "Name": "node",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "name",
+          "Type": "string"
+        }
+      ],
+      "IsEvent": true
+    },
+    "NewOwnerEvent": {
+      "Name": "NewOwnerEvent",
+      "Fields": [
+        {
+          "Name": "node",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "label",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "owner",
+          "Type": "web3.Address"
+        }
+      ],
+      "IsEvent": true
+    },
+    "NewResolverEvent": {
+      "Name": "NewResolverEvent",
+      "Fields": [
+        {
+          "Name": "node",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "resolver",
+          "Type": "web3.Address"
+        }
+      ],
+      "IsEvent": true
+    },
+    "NewTTLEvent": {
+      "Name": "NewTTLEvent",
+      "Fields": [
+        {
+          "Name": "node",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "ttl",
+          "Type": "uint64"
+        }
+      ],
+      "IsEvent": true
+    },
+    "PubkeyChangedEvent": {
+      "Name": "PubkeyChangedEvent",
+      "Fields": [
+        {
+          "Name": "node",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "x",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "y",
+          "Type": "[32]byte"
+        }
+      ],
+      "IsEvent": true
+    },
+    "TransferEvent": {
+      "Name": "TransferEvent",
+      "Fields": [
+        {
+          "Name": "node",
+          "Type": "[32]byte"
+        },
+        {
+          "Name": "owner",
+          "Type": "web3.Address"
+        }
+      ],
+      "IsEvent": true
+    }
+  }
+}
