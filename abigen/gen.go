@@ -134,21 +134,33 @@ func tupleElems(tuple interface{}) (res []interface{}) {
 	return
 }
 
+func buildSignature(name string, typ *abi.Type) string {
+	types := make([]string, len(typ.TupleElems()))
+	for i, input := range typ.TupleElems() {
+		types[i] = input.Elem.String()
+	}
+	return fmt.Sprintf("%v(%v)", name, strings.Join(types, ","))
+}
+
 func nameToKey(name string, index int) string {
 	return abi.NameToKey(name, index)
 }
 func FuncMap() template.FuncMap {
 	return template.FuncMap{
-		"title":       strings.Title,
-		"clean":       cleanName,
-		"arg":         encodeArg,
-		"outputArg":   outputArg,
-		"funcName":    funcName,
-		"tupleElems":  tupleElems,
-		"tupleLen":    tupleLen,
-		"toCamelCase": toCamelCase,
-		"nameToKey":   nameToKey,
-		"topic":       encodeTopicArg,
+		"title":               strings.Title,
+		"clean":               cleanName,
+		"arg":                 encodeArg,
+		"outputArg":           outputArg,
+		"funcName":            funcName,
+		"tupleElems":          tupleElems,
+		"tupleLen":            tupleLen,
+		"toCamelCase":         toCamelCase,
+		"nameToKey":           nameToKey,
+		"topic":               encodeTopicArg,
+		"sig":                 buildSignature,
+		"getTopicFilterParam": getTopicFilterParam,
+		"getTopicFilterInput": getTopicFilterInput,
+		"getFilterEventParam": getFilterEventParam,
 	}
 }
 
@@ -161,6 +173,37 @@ func optimizeEvent(event *abi.Event) *abi.Event {
 		}
 	}
 	return event
+}
+
+func getTopicFilterParam(event *abi.Event) string {
+	var params []string
+	for _, v := range event.Inputs.TupleElems() {
+		if v.Indexed {
+			params = append(params, fmt.Sprintf("%s []%s", cleanName(v.Name), encodeTopicArg(v)))
+		}
+	}
+	return strings.Join(params, ",")
+}
+
+func getTopicFilterInput(event *abi.Event) string {
+	var params []string
+	for _, v := range event.Inputs.TupleElems() {
+		if v.Indexed {
+			params = append(params, cleanName(v.Name))
+		}
+	}
+	return strings.Join(params, ",")
+}
+
+func getFilterEventParam(event *abi.Event) string {
+	var params []string
+	for _, v := range event.Inputs.TupleElems() {
+		if v.Indexed {
+			params = append(params, fmt.Sprintf("%s []%s", cleanName(v.Name), encodeTopicArg(v)))
+		}
+	}
+	params = append(params, "startBlock uint64", "endBlock ...uint64")
+	return strings.Join(params, ",")
 }
 
 func isNil(c interface{}) bool {
@@ -211,6 +254,7 @@ import (
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/contract"
 	"github.com/laizy/web3/jsonrpc"
+	"github.com/laizy/web3/crypto"
 	"github.com/laizy/web3/utils"
 	"github.com/mitchellh/mapstructure"
 )
@@ -221,6 +265,7 @@ var (
 	_ = fmt.Printf
 	_ = utils.JsonStr
 	_ = mapstructure.Decode
+	_ = crypto.Keccak256Hash
 )
 
 {{$cname := .Name}}
@@ -277,14 +322,29 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleEl
 // events
 {{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
 
-func ({{$.Ptr}} *{{$.Name}}) Filter{{.Name}}Event(opts *web3.FilterOpts{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}} []{{topic .}}{{end}}{{end}})([]*{{.Name}}Event, error){
+var {{title .Name}}EventID = crypto.Keccak256Hash([]byte("{{sig .Name .Inputs}}"))
+
+func({{$.Ptr}} *{{$.Name}}) {{title .Name}}TopicFilter({{getTopicFilterParam $value}})[][]web3.Hash{
 	{{range $index, $input := tupleElems .Inputs}}
     {{if .Indexed}}var {{clean .Name}}Rule []interface{}
     for _, {{.Name}}Item := range {{clean .Name}} {
 		{{clean .Name}}Rule = append({{clean .Name}}Rule, {{.Name}}Item)
 	}
 	{{end}}{{end}}
-	logs, err := {{$.Ptr}}.c.FilterLogs(opts, "{{.Name}}"{{range $index, $input := tupleElems .Inputs}}{{if .Indexed}}, {{clean .Name}}Rule{{end}}{{end}})
+
+	var query [][]interface{}
+	query = append(query,[]interface{}{ {{title .Name}}EventID} {{range $index, $input := tupleElems .Inputs}} {{if .Indexed}}, {{clean .Name}}Rule {{end}}{{end}})
+
+	topics, err := contract.MakeTopics(query...)
+	utils.Ensure(err)
+
+	return topics
+}
+
+func ({{$.Ptr}} *{{$.Name}}) Filter{{title .Name}}Event({{getFilterEventParam $value}})([]*{{.Name}}Event, error){
+	topic :={{$.Ptr}}.{{title .Name}}TopicFilter({{getTopicFilterInput $value}})	
+
+	logs, err := {{$.Ptr}}.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
 	if err != nil {
 		return nil, err
 	}
