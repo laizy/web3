@@ -10,12 +10,16 @@ import (
 	"github.com/laizy/web3/crypto"
 	"github.com/laizy/web3/jsonrpc"
 	"github.com/laizy/web3/utils"
+	"github.com/mitchellh/mapstructure"
 )
 
 var (
+	_ = json.Unmarshal
 	_ = big.NewInt
 	_ = fmt.Printf
 	_ = utils.JsonStr
+	_ = mapstructure.Decode
+	_ = crypto.Keccak256Hash
 )
 
 // ERC20 is a solidity contract
@@ -29,139 +33,121 @@ func NewERC20(addr web3.Address, provider *jsonrpc.Client) *ERC20 {
 }
 
 // Contract returns the contract object
-func (a *ERC20) Contract() *contract.Contract {
-	return a.c
+func (_a *ERC20) Contract() *contract.Contract {
+	return _a.c
 }
 
 // calls
 
 // Allowance calls the allowance method in the solidity contract
-func (a *ERC20) Allowance(owner web3.Address, spender web3.Address, block ...web3.BlockNumber) (retval0 *big.Int, err error) {
+func (_a *ERC20) Allowance(owner web3.Address, spender web3.Address, block ...web3.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
 	_ = out // avoid not used compiler error
 
-	var ok bool
-
-	out, err = a.c.Call("allowance", web3.EncodeBlock(block...), owner, spender)
+	out, err = _a.c.Call("allowance", web3.EncodeBlock(block...), owner, spender)
 	if err != nil {
 		return
 	}
 
 	// decode outputs
-	retval0, ok = out["0"].(*big.Int)
-	if !ok {
+
+	if err = mapstructure.Decode(out["0"], &retval0); err != nil {
 		err = fmt.Errorf("failed to encode output at index 0")
-		return
 	}
 
 	return
 }
 
 // BalanceOf calls the balanceOf method in the solidity contract
-func (a *ERC20) BalanceOf(owner web3.Address, block ...web3.BlockNumber) (retval0 *big.Int, err error) {
+func (_a *ERC20) BalanceOf(owner web3.Address, block ...web3.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
 	_ = out // avoid not used compiler error
 
-	var ok bool
-
-	out, err = a.c.Call("balanceOf", web3.EncodeBlock(block...), owner)
+	out, err = _a.c.Call("balanceOf", web3.EncodeBlock(block...), owner)
 	if err != nil {
 		return
 	}
 
 	// decode outputs
-	retval0, ok = out["balance"].(*big.Int)
-	if !ok {
+
+	if err = mapstructure.Decode(out["balance"], &retval0); err != nil {
 		err = fmt.Errorf("failed to encode output at index 0")
-		return
 	}
 
 	return
 }
 
 // Decimals calls the decimals method in the solidity contract
-func (a *ERC20) Decimals(block ...web3.BlockNumber) (retval0 uint8, err error) {
+func (_a *ERC20) Decimals(block ...web3.BlockNumber) (retval0 uint8, err error) {
 	var out map[string]interface{}
 	_ = out // avoid not used compiler error
 
-	var ok bool
-
-	out, err = a.c.Call("decimals", web3.EncodeBlock(block...))
+	out, err = _a.c.Call("decimals", web3.EncodeBlock(block...))
 	if err != nil {
 		return
 	}
 
 	// decode outputs
-	retval0, ok = out["0"].(uint8)
-	if !ok {
+
+	if err = mapstructure.Decode(out["0"], &retval0); err != nil {
 		err = fmt.Errorf("failed to encode output at index 0")
-		return
 	}
 
 	return
 }
 
 // Name calls the name method in the solidity contract
-func (a *ERC20) Name(block ...web3.BlockNumber) (retval0 string, err error) {
+func (_a *ERC20) Name(block ...web3.BlockNumber) (retval0 string, err error) {
 	var out map[string]interface{}
 	_ = out // avoid not used compiler error
 
-	var ok bool
-
-	out, err = a.c.Call("name", web3.EncodeBlock(block...))
+	out, err = _a.c.Call("name", web3.EncodeBlock(block...))
 	if err != nil {
 		return
 	}
 
 	// decode outputs
-	retval0, ok = out["0"].(string)
-	if !ok {
+
+	if err = mapstructure.Decode(out["0"], &retval0); err != nil {
 		err = fmt.Errorf("failed to encode output at index 0")
-		return
 	}
 
 	return
 }
 
 // Symbol calls the symbol method in the solidity contract
-func (a *ERC20) Symbol(block ...web3.BlockNumber) (retval0 string, err error) {
+func (_a *ERC20) Symbol(block ...web3.BlockNumber) (retval0 string, err error) {
 	var out map[string]interface{}
 	_ = out // avoid not used compiler error
 
-	var ok bool
-
-	out, err = a.c.Call("symbol", web3.EncodeBlock(block...))
+	out, err = _a.c.Call("symbol", web3.EncodeBlock(block...))
 	if err != nil {
 		return
 	}
 
 	// decode outputs
-	retval0, ok = out["0"].(string)
-	if !ok {
+
+	if err = mapstructure.Decode(out["0"], &retval0); err != nil {
 		err = fmt.Errorf("failed to encode output at index 0")
-		return
 	}
 
 	return
 }
 
 // TotalSupply calls the totalSupply method in the solidity contract
-func (a *ERC20) TotalSupply(block ...web3.BlockNumber) (retval0 *big.Int, err error) {
+func (_a *ERC20) TotalSupply(block ...web3.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
 	_ = out // avoid not used compiler error
 
-	var ok bool
-
-	out, err = a.c.Call("totalSupply", web3.EncodeBlock(block...))
+	out, err = _a.c.Call("totalSupply", web3.EncodeBlock(block...))
 	if err != nil {
 		return
 	}
 
 	// decode outputs
-	retval0, ok = out["0"].(*big.Int)
-	if !ok {
+
+	if err = mapstructure.Decode(out["0"], &retval0); err != nil {
 		err = fmt.Errorf("failed to encode output at index 0")
-		return
 	}
 
 	return
@@ -170,33 +156,26 @@ func (a *ERC20) TotalSupply(block ...web3.BlockNumber) (retval0 *big.Int, err er
 // txns
 
 // Approve sends a approve transaction in the solidity contract
-func (a *ERC20) Approve(spender web3.Address, value *big.Int) *contract.Txn {
-	return a.c.Txn("approve", spender, value)
+func (_a *ERC20) Approve(spender web3.Address, value *big.Int) *contract.Txn {
+	return _a.c.Txn("approve", spender, value)
 }
 
 // Transfer sends a transfer transaction in the solidity contract
-func (a *ERC20) Transfer(to web3.Address, value *big.Int) *contract.Txn {
-	return a.c.Txn("transfer", to, value)
+func (_a *ERC20) Transfer(to web3.Address, value *big.Int) *contract.Txn {
+	return _a.c.Txn("transfer", to, value)
 }
 
 // TransferFrom sends a transferFrom transaction in the solidity contract
-func (a *ERC20) TransferFrom(from web3.Address, to web3.Address, value *big.Int) *contract.Txn {
-	return a.c.Txn("transferFrom", from, to, value)
+func (_a *ERC20) TransferFrom(from web3.Address, to web3.Address, value *big.Int) *contract.Txn {
+	return _a.c.Txn("transferFrom", from, to, value)
 }
 
 // events
 
-//ApprovalEvent
-type ApprovalEvent struct {
-	Owner   web3.Address
-	Spender web3.Address
-	Value   *big.Int
-	Raw     *web3.Log
-}
-
 var ApprovalEventID = crypto.Keccak256Hash([]byte("Approval(address,address,uint256)"))
 
-func (a *ERC20) ApprovalTopicFilter(owner []web3.Address, spender []web3.Address) [][]web3.Hash {
+func (_a *ERC20) ApprovalTopicFilter(owner []web3.Address, spender []web3.Address) [][]web3.Hash {
+
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -206,21 +185,25 @@ func (a *ERC20) ApprovalTopicFilter(owner []web3.Address, spender []web3.Address
 	for _, spenderItem := range spender {
 		spenderRule = append(spenderRule, spenderItem)
 	}
-	query := append([][]interface{}{{ApprovalEventID}}, ownerRule, spenderRule)
+
+	var query [][]interface{}
+	query = append(query, []interface{}{ApprovalEventID}, ownerRule, spenderRule)
+
 	topics, err := contract.MakeTopics(query...)
 	utils.Ensure(err)
 
 	return topics
 }
 
-func (a *ERC20) FilterApprovalEvent(owner []web3.Address, spender []web3.Address, startBlock uint64, endBlock ...uint64) ([]*ApprovalEvent, error) {
-	topic := a.ApprovalTopicFilter(owner, spender)
-	logs, err := a.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
+func (_a *ERC20) FilterApprovalEvent(owner []web3.Address, spender []web3.Address, startBlock uint64, endBlock ...uint64) ([]*ApprovalEvent, error) {
+	topic := _a.ApprovalTopicFilter(owner, spender)
+
+	logs, err := _a.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
 	if err != nil {
 		return nil, err
 	}
 	res := make([]*ApprovalEvent, 0)
-	evts := a.c.Abi.Events["Approval"]
+	evts := _a.c.Abi.Events["Approval"]
 	for _, log := range logs {
 		args, err := evts.ParseLog(log)
 		if err != nil {
@@ -237,15 +220,9 @@ func (a *ERC20) FilterApprovalEvent(owner []web3.Address, spender []web3.Address
 	return res, nil
 }
 
-//TransferEvent
-type TransferEvent struct {
-	From  web3.Address
-	To    web3.Address
-	Value *big.Int
-	Raw   *web3.Log
-}
+var TransferEventID = crypto.Keccak256Hash([]byte("Transfer(address,address,uint256)"))
 
-func (a *ERC20) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*TransferEvent, error) {
+func (_a *ERC20) TransferTopicFilter(from []web3.Address, to []web3.Address) [][]web3.Hash {
 
 	var fromRule []interface{}
 	for _, fromItem := range from {
@@ -257,12 +234,24 @@ func (a *ERC20) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, 
 		toRule = append(toRule, toItem)
 	}
 
-	logs, err := a.c.FilterLogs(opts, "Transfer", fromRule, toRule)
+	var query [][]interface{}
+	query = append(query, []interface{}{TransferEventID}, fromRule, toRule)
+
+	topics, err := contract.MakeTopics(query...)
+	utils.Ensure(err)
+
+	return topics
+}
+
+func (_a *ERC20) FilterTransferEvent(from []web3.Address, to []web3.Address, startBlock uint64, endBlock ...uint64) ([]*TransferEvent, error) {
+	topic := _a.TransferTopicFilter(from, to)
+
+	logs, err := _a.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
 	if err != nil {
 		return nil, err
 	}
 	res := make([]*TransferEvent, 0)
-	evts := a.c.Abi.Events["Transfer"]
+	evts := _a.c.Abi.Events["Transfer"]
 	for _, log := range logs {
 		args, err := evts.ParseLog(log)
 		if err != nil {
