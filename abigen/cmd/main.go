@@ -49,8 +49,8 @@ func main() {
 			os.Exit(1)
 		}
 		if len(matches) == 0 {
-			fmt.Printf("Have no file at: %v", sources)
-			os.Exit(1)
+			fmt.Printf("ERROR: Have no file at: %v", sources)
+			continue
 		}
 
 		for _, source := range matches {
