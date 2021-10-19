@@ -103,6 +103,7 @@ import (
 
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/contract"
+	"github.com/laizy/web3/crypto"
 	"github.com/laizy/web3/jsonrpc"
 	"github.com/laizy/web3/utils"
 	"github.com/mitchellh/mapstructure"
@@ -114,6 +115,7 @@ var (
 	_ = fmt.Printf
 	_ = utils.JsonStr
 	_ = mapstructure.Decode
+	_ = crypto.Keccak256Hash
 )
 
 // Sample is a solidity contract
@@ -185,7 +187,9 @@ func (_a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
 
 // events
 
-func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address) ([]*DepositEvent, error) {
+var DepositEventID = crypto.Keccak256Hash([]byte("Deposit(address,address,uint256,bytes)"))
+
+func (_a *Sample) DepositTopicFilter(from []web3.Address, to []web3.Address) [][]web3.Hash {
 
 	var fromRule []interface{}
 	for _, _fromItem := range from {
@@ -197,7 +201,19 @@ func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address,
 		toRule = append(toRule, _toItem)
 	}
 
-	logs, err := _a.c.FilterLogs(opts, "Deposit", fromRule, toRule)
+	var query [][]interface{}
+	query = append(query, []interface{}{DepositEventID}, fromRule, toRule)
+
+	topics, err := contract.MakeTopics(query...)
+	utils.Ensure(err)
+
+	return topics
+}
+
+func (_a *Sample) FilterDepositEvent(from []web3.Address, to []web3.Address, startBlock uint64, endBlock ...uint64) ([]*DepositEvent, error) {
+	topic := _a.DepositTopicFilter(from, to)
+
+	logs, err := _a.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
 	if err != nil {
 		return nil, err
 	}
@@ -219,14 +235,28 @@ func (_a *Sample) FilterDepositEvent(opts *web3.FilterOpts, from []web3.Address,
 	return res, nil
 }
 
-func (_a *Sample) FilterNoNameEvent(opts *web3.FilterOpts, arg0 []web3.Address) ([]*NoNameEvent, error) {
+var NoNameEventID = crypto.Keccak256Hash([]byte("NoName(address,address)"))
+
+func (_a *Sample) NoNameTopicFilter(arg0 []web3.Address) [][]web3.Hash {
 
 	var arg0Rule []interface{}
 	for _, arg0Item := range arg0 {
 		arg0Rule = append(arg0Rule, arg0Item)
 	}
 
-	logs, err := _a.c.FilterLogs(opts, "NoName", arg0Rule)
+	var query [][]interface{}
+	query = append(query, []interface{}{NoNameEventID}, arg0Rule)
+
+	topics, err := contract.MakeTopics(query...)
+	utils.Ensure(err)
+
+	return topics
+}
+
+func (_a *Sample) FilterNoNameEvent(arg0 []web3.Address, startBlock uint64, endBlock ...uint64) ([]*NoNameEvent, error) {
+	topic := _a.NoNameTopicFilter(arg0)
+
+	logs, err := _a.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +278,9 @@ func (_a *Sample) FilterNoNameEvent(opts *web3.FilterOpts, arg0 []web3.Address) 
 	return res, nil
 }
 
-func (_a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address, to []web3.Address, amount []web3.Address) ([]*TransferEvent, error) {
+var TransferEventID = crypto.Keccak256Hash([]byte("Transfer(address,address,address)"))
+
+func (_a *Sample) TransferTopicFilter(from []web3.Address, to []web3.Address, amount []web3.Address) [][]web3.Hash {
 
 	var fromRule []interface{}
 	for _, fromItem := range from {
@@ -265,7 +297,19 @@ func (_a *Sample) FilterTransferEvent(opts *web3.FilterOpts, from []web3.Address
 		amountRule = append(amountRule, amountItem)
 	}
 
-	logs, err := _a.c.FilterLogs(opts, "Transfer", fromRule, toRule, amountRule)
+	var query [][]interface{}
+	query = append(query, []interface{}{TransferEventID}, fromRule, toRule, amountRule)
+
+	topics, err := contract.MakeTopics(query...)
+	utils.Ensure(err)
+
+	return topics
+}
+
+func (_a *Sample) FilterTransferEvent(from []web3.Address, to []web3.Address, amount []web3.Address, startBlock uint64, endBlock ...uint64) ([]*TransferEvent, error) {
+	topic := _a.TransferTopicFilter(from, to, amount)
+
+	logs, err := _a.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
 	if err != nil {
 		return nil, err
 	}

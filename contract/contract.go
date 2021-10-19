@@ -20,29 +20,36 @@ type Contract struct {
 	Provider *jsonrpc.Client
 }
 
-func (c *Contract) FilterLogs(opts *web3.FilterOpts, name string, query ...[]interface{}) ([]*web3.Log, error) {
-	// Don't crash on a lazy user
-	if opts == nil {
-		opts = new(web3.FilterOpts)
-	}
-	// Append the event selector to the query parameters and construct the topic set
-	query = append([][]interface{}{{c.Abi.Events[name].ID()}}, query...)
-
-	topics, err := MakeTopics(query...)
-	if err != nil {
-		return nil, err
-	}
-	from := web3.BlockNumber(int(opts.Start))
+func (c *Contract) FilterLogsWithTopic(topics [][]web3.Hash, startBlock uint64, endBlock ...uint64) ([]*web3.Log, error) {
+	from := web3.BlockNumber(startBlock)
 	filter := &web3.LogFilter{
 		Address: []web3.Address{c.addr},
 		Topics:  topics,
 		From:    &from,
 	}
-	if opts.End != nil {
-		to := web3.BlockNumber(*opts.End)
+	if len(endBlock) == 1 {
+		to := web3.BlockNumber(endBlock[0])
 		filter.To = &to
 	}
 	return c.Provider.Eth().GetLogs(filter)
+}
+
+func (c *Contract) FilterLogs(opts *web3.FilterOpts, name string, query ...[]interface{}) ([]*web3.Log, error) {
+	// Append the event selector to the query parameters and construct the topic set
+	query = append([][]interface{}{{c.Abi.Events[name].ID()}}, query...)
+	topics, err := MakeTopics(query...)
+	if err != nil {
+		return nil, err
+	}
+	if opts == nil {
+		opts = new(web3.FilterOpts)
+	}
+	var endBlock []uint64
+	if opts.End != nil {
+		endBlock = append(endBlock, *opts.End)
+	}
+
+	return c.FilterLogsWithTopic(topics, opts.Start, endBlock...)
 }
 
 // DeployContract deploys a contract

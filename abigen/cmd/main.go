@@ -41,20 +41,28 @@ func main() {
 		os.Exit(0)
 	}
 
-	matches, err := filepath.Glob(source)
-	if err != nil {
-		fmt.Printf("Failed to read files: %v", err)
-		os.Exit(1)
-	}
-	for _, source := range matches {
-		artifacts, err := process(source, config)
+	sources := strings.Split(source, ",")
+	for _, source := range sources {
+		matches, err := filepath.Glob(source)
 		if err != nil {
-			fmt.Printf("Failed to parse sources: %v", err)
+			fmt.Printf("Failed to read files: %v", err)
 			os.Exit(1)
 		}
-		if err := abigen.GenCode(artifacts, config); err != nil {
-			fmt.Printf("Failed to generate sources: %v", err)
-			os.Exit(1)
+		if len(matches) == 0 {
+			fmt.Printf("ERROR: Have no file at: %v", sources)
+			continue
+		}
+
+		for _, source := range matches {
+			artifacts, err := process(source, config)
+			if err != nil {
+				fmt.Printf("Failed to parse sources: %v", err)
+				os.Exit(1)
+			}
+			if err := abigen.GenCode(artifacts, config); err != nil {
+				fmt.Printf("Failed to generate sources: %v", err)
+				os.Exit(1)
+			}
 		}
 	}
 }

@@ -1,0 +1,40 @@
+{
+  "definitions": {
+    "ApprovalEvent": {
+      "Name": "ApprovalEvent",
+      "Fields": [
+        {
+          "Name": "owner",
+          "Type": "web3.Address"
+        },
+        {
+          "Name": "spender",
+          "Type": "web3.Address"
+        },
+        {
+          "Name": "value",
+          "Type": "*big.Int"
+        }
+      ],
+      "IsEvent": true
+    },
+    "TransferEvent": {
+      "Name": "TransferEvent",
+      "Fields": [
+        {
+          "Name": "from",
+          "Type": "web3.Address"
+        },
+        {
+          "Name": "to",
+          "Type": "web3.Address"
+        },
+        {
+          "Name": "value",
+          "Type": "*big.Int"
+        }
+      ],
+      "IsEvent": true
+    }
+  }
+}
