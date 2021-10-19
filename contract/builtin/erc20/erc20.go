@@ -7,6 +7,7 @@ import (
 
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/contract"
+	"github.com/laizy/web3/crypto"
 	"github.com/laizy/web3/jsonrpc"
 	"github.com/laizy/web3/utils"
 )
@@ -193,8 +194,9 @@ type ApprovalEvent struct {
 	Raw     *web3.Log
 }
 
-func (a *ERC20) FilterApprovalEvent(opts *web3.FilterOpts, owner []web3.Address, spender []web3.Address) ([]*ApprovalEvent, error) {
+var ApprovalEventID = crypto.Keccak256Hash([]byte("Approval(address,address,uint256)"))
 
+func (a *ERC20) ApprovalTopicFilter(owner []web3.Address, spender []web3.Address) [][]web3.Hash {
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
 		ownerRule = append(ownerRule, ownerItem)
@@ -204,8 +206,16 @@ func (a *ERC20) FilterApprovalEvent(opts *web3.FilterOpts, owner []web3.Address,
 	for _, spenderItem := range spender {
 		spenderRule = append(spenderRule, spenderItem)
 	}
+	query := append([][]interface{}{{ApprovalEventID}}, ownerRule, spenderRule)
+	topics, err := contract.MakeTopics(query...)
+	utils.Ensure(err)
 
-	logs, err := a.c.FilterLogs(opts, "Approval", ownerRule, spenderRule)
+	return topics
+}
+
+func (a *ERC20) FilterApprovalEvent(owner []web3.Address, spender []web3.Address, startBlock uint64, endBlock ...uint64) ([]*ApprovalEvent, error) {
+	topic := a.ApprovalTopicFilter(owner, spender)
+	logs, err := a.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
 	if err != nil {
 		return nil, err
 	}
