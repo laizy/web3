@@ -60,8 +60,8 @@ func MultiAddr(t *testing.T, cb ServerConfigCallback, c func(s *TestServer, addr
 	// ws addr
 	c(s, s.WSAddr())
 
-	// ip addr
-	c(s, s.IPCPath())
+	//// ip addr
+	//c(s, s.IPCPath())
 
 	s.Close()
 }

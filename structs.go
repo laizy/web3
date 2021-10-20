@@ -335,6 +335,10 @@ func (b BlockNumber) String() string {
 	return fmt.Sprintf("0x%x", uint64(b))
 }
 
+func (b BlockNumber) MarshalText() ([]byte, error) {
+	return []byte(b.String()), nil
+}
+
 func EncodeBlock(block ...BlockNumber) BlockNumber {
 	if len(block) != 1 {
 		return Latest
