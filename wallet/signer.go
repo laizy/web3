@@ -40,6 +40,17 @@ func (e *EIP1155Signer) RecoverSender(tx *web3.Transaction) (web3.Address, error
 	return addr, nil
 }
 
+func trimPrefix0(b []byte) []byte {
+	for len(b) > 0 {
+		if b[0] == 0 {
+			b = b[1:]
+		} else {
+			return b
+		}
+	}
+	return b
+}
+
 func (e *EIP1155Signer) SignTx(tx *web3.Transaction, key *Key) (*web3.Transaction, error) {
 	hash := signHash(tx, e.chainID)
 
@@ -50,8 +61,8 @@ func (e *EIP1155Signer) SignTx(tx *web3.Transaction, key *Key) (*web3.Transactio
 
 	vv := uint64(sig[64]) + 35 + e.chainID*2
 
-	tx.R = sig[:32]
-	tx.S = sig[32:64]
+	tx.R = trimPrefix0(sig[:32])
+	tx.S = trimPrefix0(sig[32:64])
 	tx.V = new(big.Int).SetUint64(vv).Bytes()
 	return tx, nil
 }
