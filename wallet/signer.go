@@ -50,8 +50,8 @@ func (e *EIP1155Signer) SignTx(tx *web3.Transaction, key *Key) (*web3.Transactio
 
 	vv := uint64(sig[64]) + 35 + e.chainID*2
 
-	tx.R = sig[:32]
-	tx.S = sig[32:64]
+	tx.R = new(big.Int).SetBytes(sig[:32]).Bytes() // used to clean leading zeros
+	tx.S = new(big.Int).SetBytes(sig[32:64]).Bytes()
 	tx.V = new(big.Int).SetUint64(vv).Bytes()
 	return tx, nil
 }
