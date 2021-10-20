@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	"github.com/laizy/web3"
+	"github.com/laizy/web3/utils/common/hexutil"
 )
 
 // Eth is the eth namespace
@@ -82,6 +83,20 @@ func (e *Eth) GetFilterChanges(id string) ([]*web3.Log, error) {
 func (e *Eth) GetTransactionByHash(hash web3.Hash) (*web3.Transaction, error) {
 	var txn *web3.Transaction
 	err := e.c.Call("eth_getTransactionByHash", &txn, hash)
+	return txn, err
+}
+
+//GetTransactionByBlockHashAndIndex returns the transaction for the given block hash and index.
+func (e *Eth) GetTransactionByBlockHashAndIndex(blockHash web3.Hash, index uint64) (*web3.Transaction, error) {
+	var txn *web3.Transaction
+	err := e.c.Call("eth_getTransactionByBlockHashAndIndex", &txn, blockHash, hexutil.Uint64(index))
+	return txn, err
+}
+
+// GetTransactionByBlockNumberAndIndex returns the transaction for the given block number and index.
+func (e *Eth) GetTransactionByBlockNumberAndIndex(blockNumber web3.BlockNumber, index uint64) (*web3.Transaction, error) {
+	var txn *web3.Transaction
+	err := e.c.Call("eth_getTransactionByBlockNumberAndIndex", &txn, blockNumber, hexutil.Uint64(index).String())
 	return txn, err
 }
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"math/big"
+	"strings"
 	"testing"
 
 	"github.com/laizy/web3"
@@ -151,6 +152,9 @@ func TestEthSendTransaction(t *testing.T) {
 	}
 }
 
+func decodeHex(s string) ([]byte, error) {
+	return hex.DecodeString(strings.TrimPrefix(s, "0x"))
+}
 func TestEthEstimateGas(t *testing.T) {
 	s := testutil.NewTestServer(t, nil)
 	defer s.Close()
@@ -165,7 +169,7 @@ func TestEthEstimateGas(t *testing.T) {
 	solcContract, err := cc.Compile()
 	assert.NoError(t, err)
 
-	input, err := hex.DecodeString(solcContract.Bin)
+	input, err := decodeHex(solcContract.Bin)
 	assert.NoError(t, err)
 
 	msg := &web3.CallMsg{
@@ -283,4 +287,20 @@ func TestEthTransactionsInBlock(t *testing.T) {
 	assert.Len(t, block1.Transactions, 1)
 
 	assert.Equal(t, block0.TransactionsHashes[0], block1.Transactions[0].Hash())
+}
+
+func TestGetTransaction(t *testing.T) {
+	s := testutil.NewTestServer(t, nil)
+	defer s.Close()
+
+	c, err := NewClient(s.HTTPAddr())
+	assert.NoError(t, err)
+
+	assert.NoError(t, s.ProcessBlock())
+	tx1, err := c.Eth().GetTransactionByBlockNumberAndIndex(web3.Latest, 0)
+	assert.NoError(t, err)
+
+	tx2, err := c.Eth().GetTransactionByBlockHashAndIndex(tx1.BlockHash, 0)
+	assert.NoError(t, err)
+	assert.Equal(t, tx1, tx2)
 }
