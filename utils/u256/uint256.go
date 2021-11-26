@@ -101,6 +101,12 @@ func (self Int) Div(value interface{}) Int {
 	val := New(value)
 	return Int{big.NewInt(0).Div(self.val(), val.val())}
 }
+
+func (self Int) Mod(value interface{}) Int {
+	val := New(value)
+	return Int{big.NewInt(0).Mod(self.val(), val.val())}
+}
+
 func (self Int) Sqrt() Int {
 	return Int{big.NewInt(0).Sqrt(self.val())}
 }

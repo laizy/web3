@@ -226,7 +226,7 @@ type SignedTx struct {
 }
 
 func (self *SignedTx) SendTransaction(signer *Signer) *web3.Receipt {
-	fmt.Printf("start sending transaction: %s, raw: %x\n", self.Hash().String(), self.Transaction.MarshalRLP())
+	fmt.Printf("start sending transaction: %s, %s raw: %x\n", self.Hash().String(), utils.JsonString(*self.Transaction), self.Transaction.MarshalRLP())
 	return signer.SendTransaction(self.Transaction)
 }
 

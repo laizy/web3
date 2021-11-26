@@ -8,6 +8,12 @@ import (
 	"github.com/laizy/web3/utils/u256"
 )
 
+func (self *ERC20) AmountFloatWithDecimals(amount float64) *big.Int {
+	const floatFactor = 10000000
+	amt := u256.New(self.AmountWithDecimals(uint64(amount * floatFactor))).Div(floatFactor)
+	return amt.ToBigInt()
+}
+
 func (self *ERC20) AmountWithDecimals(amount uint64) *big.Int {
 	decimals, err := self.Decimals(web3.Latest)
 	utils.Ensure(err)
