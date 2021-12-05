@@ -20,6 +20,7 @@ func newWebsocket(url string) (Transport, error) {
 	codec := &websocketCodec{
 		conn: wsConn,
 	}
+	keepAlive(wsConn, time.Second*10)
 	return newStream(codec)
 }
 
@@ -59,6 +60,32 @@ func newStream(codec Codec) (*stream, error) {
 
 	go w.listen()
 	return w, nil
+}
+
+func keepAlive(c *websocket.Conn, timeout time.Duration) {
+	ticker := time.NewTicker(timeout)
+
+	lastResponse := time.Now()
+	c.SetPongHandler(func(msg string) error {
+		lastResponse = time.Now()
+		return nil
+	})
+
+	go func() {
+		defer ticker.Stop()
+		for {
+			deadline := time.Now().Add(10 * time.Second)
+			err := c.WriteControl(websocket.PingMessage, []byte{}, deadline)
+			if err != nil {
+				return
+			}
+			<-ticker.C
+			if time.Since(lastResponse) > timeout {
+				c.Close()
+				return
+			}
+		}
+	}()
 }
 
 // Close implements the the transport interface
