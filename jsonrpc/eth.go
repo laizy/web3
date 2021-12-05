@@ -198,7 +198,7 @@ func (e *Eth) GasPrice() (uint64, error) {
 	if err := e.c.Call("eth_gasPrice", &out); err != nil {
 		return 0, err
 	}
-	return parseUint64orHex(out)
+	return e.parseAndApplyFactor(out, e.c.GasPriceFactor)
 }
 
 // Call executes a new message call immediately without creating a transaction on the block chain.
@@ -219,16 +219,16 @@ func (e *Eth) EstimateGasContract(bin []byte) (uint64, error) {
 	if err := e.c.Call("eth_estimateGas", &out, msg); err != nil {
 		return 0, err
 	}
-	return e.parseAndApplyFactor(out)
+	return e.parseAndApplyFactor(out, e.c.GasLimitFactor)
 }
 
-func (e *Eth) parseAndApplyFactor(out string) (uint64, error) {
+func (e *Eth) parseAndApplyFactor(out string, factor func(uint642 uint64) uint64) (uint64, error) {
 	gas, err := parseUint64orHex(out)
 	if err != nil {
 		return 0, err
 	}
-	if e.c.GasLimitFactor != nil {
-		gas = e.c.GasLimitFactor(gas)
+	if factor != nil {
+		gas = factor(gas)
 	}
 	return gas, nil
 }
