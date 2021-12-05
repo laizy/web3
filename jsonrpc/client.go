@@ -10,6 +10,11 @@ type Client struct {
 	endpoints endpoints
 
 	GasLimitFactor func(gasLimit uint64) uint64
+	GasPriceFactor func(gasPrice uint64) uint64
+}
+
+func DefaultGasPriceFactor(gasPrice uint64) uint64 {
+	return gasPrice * 110 / 100
 }
 
 func DefaultGasFactor(i uint64) uint64 {
@@ -24,7 +29,7 @@ type endpoints struct {
 
 // NewClient creates a new client
 func NewClient(addr string) (*Client, error) {
-	c := &Client{GasLimitFactor: DefaultGasFactor}
+	c := &Client{GasLimitFactor: DefaultGasFactor, GasPriceFactor: DefaultGasPriceFactor}
 	c.endpoints.w = &Web3{c}
 	c.endpoints.e = &Eth{c}
 	c.endpoints.n = &Net{c}
