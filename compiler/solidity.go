@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/laizy/web3/utils"
@@ -88,7 +89,11 @@ func (s *Solidity) compileImpl(code string, files ...string) (map[string]*Artifa
 
 	artifacts := map[string]*Artifact{}
 	for name, i := range output.Contracts {
-		artifacts[name] = NewArtifact(utils.JsonStr(i.Abi), i.Bin, i.BinRuntime)
+		_abi := fmt.Sprint(i.Abi)
+		if reflect.TypeOf(i.Abi).Kind() != reflect.String { //some compiler version set abi to struct, while others sets abi to string
+			_abi = utils.JsonStr(i.Abi)
+		}
+		artifacts[name] = NewArtifact(_abi, i.Bin, i.BinRuntime)
 	}
 	return artifacts, nil
 }
