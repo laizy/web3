@@ -11,8 +11,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"github.com/laizy/web3/utils"
 )
 
 type solcOutput struct {
@@ -88,7 +86,7 @@ func (s *Solidity) compileImpl(code string, files ...string) (map[string]*Artifa
 
 	artifacts := map[string]*Artifact{}
 	for name, i := range output.Contracts {
-		artifacts[name] = NewArtifact(utils.JsonStr(i.Abi), i.Bin, i.BinRuntime)
+		artifacts[name] = NewArtifact(fmt.Sprint(i.Abi), i.Bin, i.BinRuntime)
 	}
 	return artifacts, nil
 }
