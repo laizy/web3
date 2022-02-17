@@ -62,7 +62,7 @@ func getArtifactWithPath(path string) (*Artifact, error) {
 		Abi               interface{} `json:"abi"`
 		Bytecode          interface{} `json:"bytecode"`
 		DeployedBytecode  interface{} `json:"deployedBytecode"`
-		DeployedBytecode2 InnerCode   `json:"Deployed_bytecode"` //this is more forge compile case
+		DeployedBytecode2 InnerCode   `json:"deployed_bytecode"` //this is more forge compile case
 	}
 	var value artifact
 	err = json.Unmarshal(buf, &value)
