@@ -53,35 +53,61 @@ func getArtifactWithPath(path string) (*Artifact, error) {
 		return nil, err
 	}
 
-	type DeployedBytecode struct {
-		Object hexutil.Bytes
-	}
-	type Bytecode struct {
+	type InnerCode struct {
 		Object hexutil.Bytes
 	}
 	type artifact struct {
-		ContractName     string           `json:"contractName"`
-		SourceName       string           `json:"sourceName"`
-		Abi              interface{}      `json:"abi"`
-		Bytecode         DeployedBytecode `json:"bytecode"`
-		DeployedBytecode Bytecode         `json:"deployedBytecode"`
+		ContractName      string      `json:"contractName"`
+		SourceName        string      `json:"sourceName"`
+		Abi               interface{} `json:"abi"`
+		Bytecode          interface{} `json:"bytecode"`
+		DeployedBytecode  interface{} `json:"deployedBytecode"`
+		DeployedBytecode2 InnerCode   `json:"Deployed_bytecode"` //this is more forge compile case
 	}
 	var value artifact
 	err = json.Unmarshal(buf, &value)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(utils.JsonStr(value))
 
 	_abi := fmt.Sprint(value.Abi)
 	if reflect.TypeOf(value.Abi).Kind() != reflect.String {
 		_abi = utils.JsonStr(value.Abi)
 	}
+
+	_bytecode := fmt.Sprint(value.Bytecode)
+	if reflect.TypeOf(value.Bytecode).Kind() != reflect.String {
+		var innerCode InnerCode
+		err := json.Unmarshal([]byte(utils.JsonStr(value.Bytecode)), &innerCode)
+		if err != nil {
+			panic(err)
+		}
+		_bytecode = innerCode.Object.String()
+	}
+	var _deployedByte string
+	if value.DeployedBytecode != nil { //because depolyedBytecode have 2 key&struct, so this interface maybe empty
+		_deployedByte = fmt.Sprint(value.DeployedBytecode)
+		if reflect.TypeOf(value.DeployedBytecode).Kind() != reflect.String {
+			var innerCode InnerCode
+			err := json.Unmarshal([]byte(utils.JsonStr(value.DeployedBytecode)), &innerCode)
+			if err != nil {
+				panic(err)
+			}
+			_deployedByte = innerCode.Object.String()
+		}
+	} else {
+		if value.DeployedBytecode2.Object.String() != "0x" {
+			_deployedByte = value.DeployedBytecode2.Object.String()
+		}
+	}
+
 	return &Artifact{
 		ContractName:     value.ContractName,
 		SourceName:       value.SourceName,
 		Abi:              _abi,
-		Bytecode:         value.Bytecode.Object,
-		DeployedBytecode: value.DeployedBytecode.Object,
+		Bytecode:         hexutil.MustDecode(_bytecode),
+		DeployedBytecode: hexutil.MustDecode(_deployedByte),
 	}, nil
 }
 
