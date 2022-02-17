@@ -3,9 +3,11 @@ package hardhat
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/laizy/web3/abi"
@@ -64,10 +66,14 @@ func getArtifactWithPath(path string) (*Artifact, error) {
 		return nil, err
 	}
 
+	_abi := fmt.Sprint(value.Abi)
+	if reflect.TypeOf(value.Abi).Kind() != reflect.String {
+		_abi = utils.JsonStr(value.Abi)
+	}
 	return &Artifact{
 		ContractName:     value.ContractName,
 		SourceName:       value.SourceName,
-		Abi:              utils.JsonStr(value.Abi),
+		Abi:              _abi,
 		Bytecode:         value.Bytecode,
 		DeployedBytecode: value.DeployedBytecode,
 	}, nil
@@ -89,10 +95,9 @@ func getArtifactPathes(artifactDirName string) (map[string]string, error) {
 			return nil
 		}
 		base := filepath.Base(path)
-		if strings.HasSuffix(base, ".dbg.json") {
-			name := strings.TrimSuffix(base, ".dbg.json")
-			contractFile := name + ".json"
-			full := filepath.Join(filepath.Dir(path), contractFile)
+		if !strings.HasSuffix(base, ".dbg.json") && strings.HasSuffix(base, ".json") {
+			name := strings.TrimSuffix(base, ".json")
+			full := filepath.Join(filepath.Dir(path), base)
 			result[name] = full
 		}
 
