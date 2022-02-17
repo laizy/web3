@@ -127,8 +127,14 @@ func getArtifactPathes(artifactDirName string) (map[string]string, error) {
 			return nil
 		}
 		base := filepath.Base(path)
-		if !strings.HasSuffix(base, ".dbg.json") && strings.HasSuffix(base, ".json") {
-			name := strings.TrimSuffix(base, ".json")
+		rm := ""
+		if strings.HasSuffix(base, ".dbg.json") {
+			rm = ".dbg.json"
+		} else if strings.HasSuffix(base, ".json") {
+			rm = ".json"
+		}
+		if rm != "" {
+			name := strings.TrimSuffix(base, rm)
 			full := filepath.Join(filepath.Dir(path), base)
 			result[name] = full
 		}
