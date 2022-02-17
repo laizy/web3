@@ -79,7 +79,7 @@ func decodeArtifact(buf []byte) (*Artifact, error) {
 		}
 		_bytecode = innerCode.Object.String()
 	}
-	_deployedByte := "0x"
+	var _deployedByte string
 	if value.DeployedBytecode != nil { //because depolyedBytecode have 2 key&struct, so this interface maybe empty
 		_deployedByte = fmt.Sprint(value.DeployedBytecode)
 		if reflect.TypeOf(value.DeployedBytecode).Kind() != reflect.String {
@@ -91,9 +91,7 @@ func decodeArtifact(buf []byte) (*Artifact, error) {
 			_deployedByte = innerCode.Object.String()
 		}
 	} else {
-		if value.DeployedBytecode2.Object.String() != "0x" {
-			_deployedByte = value.DeployedBytecode2.Object.String()
-		}
+		_deployedByte = value.DeployedBytecode2.Object.String()
 	}
 
 	return &Artifact{
