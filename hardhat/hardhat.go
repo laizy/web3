@@ -53,12 +53,18 @@ func getArtifactWithPath(path string) (*Artifact, error) {
 		return nil, err
 	}
 
+	type DeployedBytecode struct {
+		Object hexutil.Bytes
+	}
+	type Bytecode struct {
+		Object hexutil.Bytes
+	}
 	type artifact struct {
-		ContractName     string        `json:"contractName"`
-		SourceName       string        `json:"sourceName"`
-		Abi              interface{}   `json:"abi"`
-		Bytecode         hexutil.Bytes `json:"bytecode"`
-		DeployedBytecode hexutil.Bytes `json:"deployedBytecode"`
+		ContractName     string           `json:"contractName"`
+		SourceName       string           `json:"sourceName"`
+		Abi              interface{}      `json:"abi"`
+		Bytecode         DeployedBytecode `json:"bytecode"`
+		DeployedBytecode Bytecode         `json:"deployedBytecode"`
 	}
 	var value artifact
 	err = json.Unmarshal(buf, &value)
@@ -74,8 +80,8 @@ func getArtifactWithPath(path string) (*Artifact, error) {
 		ContractName:     value.ContractName,
 		SourceName:       value.SourceName,
 		Abi:              _abi,
-		Bytecode:         value.Bytecode,
-		DeployedBytecode: value.DeployedBytecode,
+		Bytecode:         value.Bytecode.Object,
+		DeployedBytecode: value.DeployedBytecode.Object,
 	}, nil
 }
 
