@@ -47,12 +47,7 @@ func GetArtifact(name string, artifactDirName ...string) (*Artifact, error) {
 	return getArtifactWithPath(path)
 }
 
-func getArtifactWithPath(path string) (*Artifact, error) {
-	buf, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
+func decodeArtifact(buf []byte) (*Artifact, error) {
 	type InnerCode struct {
 		Object hexutil.Bytes
 	}
@@ -65,11 +60,10 @@ func getArtifactWithPath(path string) (*Artifact, error) {
 		DeployedBytecode2 InnerCode   `json:"deployed_bytecode"` //this is more forge compile case
 	}
 	var value artifact
-	err = json.Unmarshal(buf, &value)
+	err := json.Unmarshal(buf, &value)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(utils.JsonStr(value))
 
 	_abi := fmt.Sprint(value.Abi)
 	if reflect.TypeOf(value.Abi).Kind() != reflect.String {
@@ -109,6 +103,14 @@ func getArtifactWithPath(path string) (*Artifact, error) {
 		Bytecode:         hexutil.MustDecode(_bytecode),
 		DeployedBytecode: hexutil.MustDecode(_deployedByte),
 	}, nil
+}
+
+func getArtifactWithPath(path string) (*Artifact, error) {
+	buf, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return decodeArtifact(buf)
 }
 
 func getArtifactPathes(artifactDirName string) (map[string]string, error) {
