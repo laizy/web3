@@ -3,9 +3,11 @@ package hardhat
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/laizy/web3/abi"
@@ -45,32 +47,68 @@ func GetArtifact(name string, artifactDirName ...string) (*Artifact, error) {
 	return getArtifactWithPath(path)
 }
 
-func getArtifactWithPath(path string) (*Artifact, error) {
-	buf, err := ioutil.ReadFile(path)
+func decodeArtifact(buf []byte) (*Artifact, error) {
+	type InnerCode struct {
+		Object hexutil.Bytes
+	}
+	type artifact struct {
+		ContractName      string      `json:"contractName"`
+		SourceName        string      `json:"sourceName"`
+		Abi               interface{} `json:"abi"`
+		Bytecode          interface{} `json:"bytecode"`
+		DeployedBytecode  interface{} `json:"deployedBytecode"`
+		DeployedBytecode2 InnerCode   `json:"deployed_bytecode"` //this is more forge compile case
+	}
+	var value artifact
+	err := json.Unmarshal(buf, &value)
 	if err != nil {
 		return nil, err
 	}
 
-	type artifact struct {
-		ContractName     string        `json:"contractName"`
-		SourceName       string        `json:"sourceName"`
-		Abi              interface{}   `json:"abi"`
-		Bytecode         hexutil.Bytes `json:"bytecode"`
-		DeployedBytecode hexutil.Bytes `json:"deployedBytecode"`
+	_abi := fmt.Sprint(value.Abi)
+	if reflect.TypeOf(value.Abi).Kind() != reflect.String {
+		_abi = utils.JsonStr(value.Abi)
 	}
-	var value artifact
-	err = json.Unmarshal(buf, &value)
-	if err != nil {
-		return nil, err
+
+	_bytecode := fmt.Sprint(value.Bytecode)
+	if reflect.TypeOf(value.Bytecode).Kind() != reflect.String {
+		var innerCode InnerCode
+		err := json.Unmarshal([]byte(utils.JsonStr(value.Bytecode)), &innerCode)
+		if err != nil {
+			panic(err)
+		}
+		_bytecode = innerCode.Object.String()
+	}
+	var _deployedByte string
+	if value.DeployedBytecode != nil { //because depolyedBytecode have 2 key&struct, so this interface maybe empty
+		_deployedByte = fmt.Sprint(value.DeployedBytecode)
+		if reflect.TypeOf(value.DeployedBytecode).Kind() != reflect.String {
+			var innerCode InnerCode
+			err := json.Unmarshal([]byte(utils.JsonStr(value.DeployedBytecode)), &innerCode)
+			if err != nil {
+				panic(err)
+			}
+			_deployedByte = innerCode.Object.String()
+		}
+	} else {
+		_deployedByte = value.DeployedBytecode2.Object.String()
 	}
 
 	return &Artifact{
 		ContractName:     value.ContractName,
 		SourceName:       value.SourceName,
-		Abi:              utils.JsonStr(value.Abi),
-		Bytecode:         value.Bytecode,
-		DeployedBytecode: value.DeployedBytecode,
+		Abi:              _abi,
+		Bytecode:         hexutil.MustDecode(_bytecode),
+		DeployedBytecode: hexutil.MustDecode(_deployedByte),
 	}, nil
+}
+
+func getArtifactWithPath(path string) (*Artifact, error) {
+	buf, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return decodeArtifact(buf)
 }
 
 func getArtifactPathes(artifactDirName string) (map[string]string, error) {
@@ -89,10 +127,9 @@ func getArtifactPathes(artifactDirName string) (map[string]string, error) {
 			return nil
 		}
 		base := filepath.Base(path)
-		if strings.HasSuffix(base, ".dbg.json") {
-			name := strings.TrimSuffix(base, ".dbg.json")
-			contractFile := name + ".json"
-			full := filepath.Join(filepath.Dir(path), contractFile)
+		if !strings.HasSuffix(base, ".dbg.json") && strings.HasSuffix(base, ".json") {
+			name := strings.TrimSuffix(base, ".json")
+			full := filepath.Join(filepath.Dir(path), base)
 			result[name] = full
 		}
 
