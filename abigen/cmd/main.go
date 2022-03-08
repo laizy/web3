@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/laizy/web3/abigen"
 	"github.com/laizy/web3/compiler"
+	"github.com/laizy/web3/hardhat"
 )
 
 const (
@@ -184,15 +184,8 @@ func processAbi(sources []string, config *abigen.Config) (map[string]*compiler.A
 	return artifacts, nil
 }
 
-type JSONArtifact struct {
-	Bytecode     string          `json:"bytecode"`
-	Abi          json.RawMessage `json:"abi"`
-	DeployedCode string          `json:"deployedBytecode"`
-}
-
 func processJson(sources []string) (map[string]*compiler.Artifact, error) {
 	artifacts := map[string]*compiler.Artifact{}
-
 	for _, jsonPath := range sources {
 		content, err := ioutil.ReadFile(jsonPath)
 		if err != nil {
@@ -203,12 +196,12 @@ func processJson(sources []string) (map[string]*compiler.Artifact, error) {
 		_, name := filepath.Split(jsonPath)
 		name = strings.TrimSuffix(name, ".json")
 
-		var art *JSONArtifact
-		if err := json.Unmarshal(content, &art); err != nil {
+		art, err := hardhat.DecodeArtifact(content)
+		if err != nil {
 			return nil, err
 		}
 
-		artifacts[strings.Title(name)] = compiler.NewArtifact(string(art.Abi), art.Bytecode, art.DeployedCode)
+		artifacts[strings.Title(name)] = compiler.NewArtifact(string(art.Abi), art.Bytecode.String(), art.DeployedBytecode.String())
 	}
 	return artifacts, nil
 }
