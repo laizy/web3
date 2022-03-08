@@ -31,10 +31,10 @@ var hardhatJson = `
 `
 
 func TestDecodeOld(t *testing.T) {
-	if _, err := decodeArtifact([]byte(hardhatJson)); err != nil {
+	if _, err := DecodeArtifact([]byte(hardhatJson)); err != nil {
 		t.Fatalf("decode old err: %v", err)
 	}
-	if _, err := decodeArtifact([]byte(forgeJson)); err != nil {
+	if _, err := DecodeArtifact([]byte(forgeJson)); err != nil {
 		t.Fatalf("decode new err: %v", err)
 	}
 }

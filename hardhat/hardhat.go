@@ -16,10 +16,6 @@ import (
 	"github.com/laizy/web3/utils/common/hexutil"
 )
 
-func DecodeArtifact(data []byte) (*Artifact, error) {
-	return decodeArtifact(data)
-}
-
 func GetArtifacts(artifactDirName ...string) (map[string]*Artifact, error) {
 	name := ""
 	if len(artifactDirName) != 0 {
@@ -51,7 +47,7 @@ func GetArtifact(name string, artifactDirName ...string) (*Artifact, error) {
 	return getArtifactWithPath(path)
 }
 
-func decodeArtifact(buf []byte) (*Artifact, error) {
+func DecodeArtifact(buf []byte) (*Artifact, error) {
 	type InnerCode struct {
 		Object hexutil.Bytes
 	}
@@ -112,7 +108,7 @@ func getArtifactWithPath(path string) (*Artifact, error) {
 	if err != nil {
 		return nil, err
 	}
-	return decodeArtifact(buf)
+	return DecodeArtifact(buf)
 }
 
 func getArtifactPathes(artifactDirName string) (map[string]string, error) {
