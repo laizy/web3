@@ -16,6 +16,10 @@ import (
 	"github.com/laizy/web3/utils/common/hexutil"
 )
 
+func DecodeArtifact(data []byte) (*Artifact, error) {
+	return decodeArtifact(data)
+}
+
 func GetArtifacts(artifactDirName ...string) (map[string]*Artifact, error) {
 	name := ""
 	if len(artifactDirName) != 0 {
