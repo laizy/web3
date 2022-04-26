@@ -25,7 +25,6 @@ import (
 
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/crypto"
-	"github.com/laizy/web3/evm/storage/overlaydb"
 	"github.com/laizy/web3/evm/storage/schema"
 	"github.com/laizy/web3/utils/codec"
 	"github.com/laizy/web3/utils/common/hexutil"
@@ -153,7 +152,9 @@ func (self *StateDB) CommitToCacheDB() error {
 }
 
 type snapshot struct {
-	changes  *overlaydb.MemDB
+	//changes  overlaydb.IMemoryDB
+	recover  map[string][]byte
+	deletes  map[string]bool
 	suicided map[web3.Address]bool
 	logsSize int
 	refund   uint64
@@ -221,7 +222,10 @@ func (self *EthAccount) IsEmpty() bool {
 
 func (self *EthAccount) Serialization(sink *codec.ZeroCopySink) {
 	sink.WriteUint64(self.Nonce)
-	balance := self.Balance.Bytes32()
+	var balance [32]byte
+	if self.Balance != nil {
+		balance = self.Balance.Bytes32()
+	}
 	sink.WriteBytes(balance[:])
 	sink.WriteVarBytes(self.Code)
 	sink.WriteHash(self.CodeHash)
@@ -373,14 +377,15 @@ func (self *StateDB) CreateAccount(web3.Address) {
 }
 
 func (self *StateDB) Snapshot() int {
-	changes := self.cacheDB.memdb.DeepClone()
+	recover, deletes := self.cacheDB.memdb.Changes()
 	suicided := make(map[web3.Address]bool)
 	for k, v := range self.Suicided {
 		suicided[k] = v
 	}
 
 	sn := &snapshot{
-		changes:  changes,
+		recover:  recover,
+		deletes:  deletes,
 		suicided: suicided,
 		logsSize: len(self.logs),
 		refund:   self.refund,
@@ -392,14 +397,16 @@ func (self *StateDB) Snapshot() int {
 }
 
 func (self *StateDB) RevertToSnapshot(idx int) {
-	if idx+1 > len(self.snapshots) {
+	if idx >= len(self.snapshots) {
 		panic("can not to revert snapshot")
+	}
+	self.cacheDB.memdb.Revert(self.cacheDB.memdb.Changes())
+	for i := len(self.snapshots) - 1; i > idx; i-- {
+		self.cacheDB.memdb.Revert(self.snapshots[i].recover, self.snapshots[i].deletes)
 	}
 
 	sn := self.snapshots[idx]
-
 	self.snapshots = self.snapshots[:idx]
-	self.cacheDB.memdb = sn.changes
 	self.Suicided = sn.suicided
 	self.refund = sn.refund
 	self.logs = self.logs[:sn.logsSize]

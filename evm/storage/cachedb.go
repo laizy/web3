@@ -20,6 +20,7 @@ package storage
 
 import (
 	"github.com/laizy/web3"
+	"github.com/laizy/web3/evm/storage/memorydb"
 	"github.com/laizy/web3/evm/storage/overlaydb"
 	"github.com/laizy/web3/evm/storage/schema"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -28,7 +29,7 @@ import (
 // CacheDB is smart contract execute cache, it contain transaction cache and block cache
 // When smart contract execute finish, need to commit transaction cache to block cache
 type CacheDB struct {
-	memdb      *overlaydb.MemDB
+	memdb      overlaydb.IMemoryDB
 	backend    *overlaydb.OverlayDB
 	keyScratch []byte
 }
@@ -40,7 +41,15 @@ const initKvNum = 16
 func NewCacheDB(store *overlaydb.OverlayDB) *CacheDB {
 	return &CacheDB{
 		backend: store,
-		memdb:   overlaydb.NewMemDB(initCap, initKvNum),
+		memdb:   memorydb.New(),
+	}
+}
+
+// NewCacheDB return a new contract cache
+func NewCacheDBWithHashMemory(store *overlaydb.OverlayDB) *CacheDB {
+	return &CacheDB{
+		backend: store,
+		memdb:   memorydb.New(),
 	}
 }
 

@@ -27,7 +27,7 @@ import (
 func TestIter(t *testing.T) {
 	db := NewMemDB(0, 0)
 	db.Put([]byte("aaa"), []byte("bbb"))
-	iter := db.NewIterator(nil)
+	iter := db.NewIterator2(nil)
 	assert.Equal(t, iter.First(), true)
 	assert.Equal(t, iter.Last(), true)
 	db.Delete([]byte("aaa"))

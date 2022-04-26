@@ -24,6 +24,8 @@ package overlaydb
 import (
 	"math/rand"
 
+	"github.com/laizy/web3/evm/storage/schema"
+	"github.com/laizy/web3/utils/common"
 	"github.com/syndtr/goleveldb/leveldb/comparer"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
@@ -181,6 +183,18 @@ const (
 	nNext
 )
 
+type IMemoryDB interface {
+	DeepClone() IMemoryDB
+	Put(key []byte, value []byte)
+	Delete(key []byte)
+	Get(key []byte) (value []byte, exist bool)
+	ForEach(f func(key, val []byte))
+	NewIterator(slice *util.Range) schema.StoreIterator
+	Reset()
+	Changes() (recover map[string][]byte, delete map[string]bool)
+	Revert(recover map[string][]byte, deletes map[string]bool)
+}
+
 // MemDB is an in-memdb key/value database.
 type MemDB struct {
 	cmp comparer.BasicComparer
@@ -198,21 +212,6 @@ type MemDB struct {
 	maxHeight int
 	n         int
 	kvSize    int
-}
-
-func (self *MemDB) DeepClone() *MemDB {
-	cloned := &MemDB{
-		cmp:       self.cmp,
-		rnd:       self.rnd,
-		kvData:    append([]byte{}, self.kvData...),
-		nodeData:  append([]int{}, self.nodeData...),
-		prevNode:  self.prevNode,
-		maxHeight: self.maxHeight,
-		n:         self.n,
-		kvSize:    self.kvSize,
-	}
-
-	return cloned
 }
 
 func (p *MemDB) randHeight() (h int) {
@@ -354,34 +353,13 @@ func (p *MemDB) Get(key []byte) (value []byte, unkown bool) {
 	return
 }
 
-// Find finds key/value pair whose key is greater than or equal to the
-// given key. It returns ErrNotFound if the table doesn't contain
-// such pair.
-//
-// The caller should not modify the contents of the returned slice, but
-// it is safe to modify the contents of the argument after Find returns.
-func (p *MemDB) Find(key []byte) (rkey, value []byte, err error) {
-	if node, _ := p.findGE(key, false); node != 0 {
-		n := p.nodeData[node]
-		m := n + p.nodeData[node+nKey]
-		rkey = p.kvData[n:m]
-		valen := p.nodeData[node+nVal]
-		if valen != 0 {
-			value = p.kvData[m : m+valen]
-		}
-	} else {
-		err = ErrNotFound
-	}
-	return
-}
-
 func (p *MemDB) ForEach(f func(key, val []byte)) {
 	for node := p.nodeData[nNext]; node != 0; node = p.nodeData[node+nNext] {
 		n := p.nodeData[node]
 		m := n + p.nodeData[node+nKey]
 		key := p.kvData[n:m]
 		val := p.kvData[m : m+p.nodeData[node+nVal]]
-		f(key, val)
+		f(key, common.CopyBytes(val))
 	}
 
 }
@@ -401,30 +379,12 @@ func (p *MemDB) ForEach(f func(key, val []byte)) {
 // The iterator must be released after use, by calling Release method.
 //
 // Also read Iterator documentation of the leveldb/iterator package.
-func (p *MemDB) NewIterator(slice *util.Range) iterator.Iterator {
+func (p *MemDB) NewIterator2(slice *util.Range) iterator.Iterator {
 	return &dbIter{p: p, slice: slice}
 }
 
-// Capacity returns keys/values buffer capacity.
-func (p *MemDB) Capacity() int {
-	return cap(p.kvData)
-}
-
-// Size returns sum of keys and values length. Note that deleted
-// key/value will not be accounted for, but it will still consume
-// the buffer, since the buffer is append only.
-func (p *MemDB) Size() int {
-	return p.kvSize
-}
-
-// Free returns keys/values free buffer before need to grow.
-func (p *MemDB) Free() int {
-	return cap(p.kvData) - len(p.kvData)
-}
-
-// Len returns the number of entries in the MemDB.
-func (p *MemDB) Len() int {
-	return p.n
+func (p *MemDB) NewIterator(slice *util.Range) schema.StoreIterator {
+	return &dbIter{p: p, slice: slice}
 }
 
 // Reset resets the MemDB to initial empty state. Allows reuse the buffer.
