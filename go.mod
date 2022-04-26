@@ -11,17 +11,13 @@ require (
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/containerd/continuity v0.1.0 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/ethereum/go-ethereum v1.10.17 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
-	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.2.0
-	github.com/mitchellh/mapstructure v1.4.1
-	github.com/ontio/ontology v1.14.4 // indirect
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/opencontainers/runc v1.0.1 // indirect
 	github.com/ory/dockertest v3.3.5+incompatible
@@ -32,6 +28,7 @@ require (
 	github.com/valyala/fasthttp v1.4.0
 	github.com/valyala/fastjson v1.4.1
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
 	golang.org/x/sys v0.0.0-20210816183151-1e6c022a8912
 	google.golang.org/appengine v1.6.7 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
