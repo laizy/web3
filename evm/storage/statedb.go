@@ -248,7 +248,6 @@ func (self *CacheDB) GetEthAccount(addr web3.Address) (val EthAccount, err error
 	}
 
 	if len(value) == 0 {
-		val.Balance = uint256.NewInt()
 		return val, nil
 	}
 
@@ -274,6 +273,7 @@ func (self *StateDB) getEthAccount(addr web3.Address) (val EthAccount) {
 	account, err := self.cacheDB.GetEthAccount(addr)
 	if err != nil {
 		self.cacheDB.SetDbErr(err)
+		val.Balance = uint256.NewInt()
 		return val
 	}
 
