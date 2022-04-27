@@ -54,15 +54,28 @@ func main() {
 		}
 
 		for _, source := range matches {
-			artifacts, err := process(source, config)
-			if err != nil {
-				fmt.Printf("Failed to parse sources: %v", err)
-				os.Exit(1)
+			var results []string
+			err = filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
+				if info.IsDir() {
+					return nil
+				}
+				//filter out file
+				results = append(results, path)
+				return nil
+			})
+			for _, r := range results {
+				fmt.Println("process file: ", r)
+				artifacts, err := process(r, config)
+				if err != nil {
+					fmt.Printf("Failed to parse sources: %v", err)
+					os.Exit(1)
+				}
+				if err := abigen.GenCode(artifacts, config); err != nil {
+					fmt.Printf("Failed to generate sources: %v", err)
+					os.Exit(1)
+				}
 			}
-			if err := abigen.GenCode(artifacts, config); err != nil {
-				fmt.Printf("Failed to generate sources: %v", err)
-				os.Exit(1)
-			}
+
 		}
 	}
 }
