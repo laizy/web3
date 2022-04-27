@@ -58,6 +58,7 @@ type StateDB interface {
 	Empty(web3.Address) bool
 
 	RevertToSnapshot(int)
+	DiscardSnapshot(idx int)
 	Snapshot() int
 
 	AddLog(log *web3.StorageLog)

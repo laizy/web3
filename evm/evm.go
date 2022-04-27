@@ -247,6 +247,8 @@ func (evm *EVM) Call(caller ContractRef, addr web3.Address, input []byte, gas ui
 		if err != errors.ErrExecutionReverted {
 			gas = 0
 		}
+	} else {
+		evm.StateDB.DiscardSnapshot(snapshot)
 	}
 	return ret, gas, err
 }
@@ -292,6 +294,8 @@ func (evm *EVM) CallCode(caller ContractRef, addr web3.Address, input []byte, ga
 		if err != errors.ErrExecutionReverted {
 			gas = 0
 		}
+	} else {
+		evm.StateDB.DiscardSnapshot(snapshot)
 	}
 	return ret, gas, err
 }
@@ -327,6 +331,8 @@ func (evm *EVM) DelegateCall(caller ContractRef, addr web3.Address, input []byte
 		if err != errors.ErrExecutionReverted {
 			gas = 0
 		}
+	} else {
+		evm.StateDB.DiscardSnapshot(snapshot)
 	}
 	return ret, gas, err
 }
@@ -378,6 +384,8 @@ func (evm *EVM) StaticCall(caller ContractRef, addr web3.Address, input []byte, 
 		if err != errors.ErrExecutionReverted {
 			gas = 0
 		}
+	} else {
+		evm.StateDB.DiscardSnapshot(snapshot)
 	}
 	return ret, gas, err
 }
@@ -458,6 +466,8 @@ func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64,
 		if err != errors.ErrExecutionReverted {
 			contract.UseGas(contract.Gas)
 		}
+	} else {
+		evm.StateDB.DiscardSnapshot(snapshot)
 	}
 	// Assign err if contract code size exceeds the max while the err is still empty.
 	if maxCodeSizeExceeded && err == nil {
