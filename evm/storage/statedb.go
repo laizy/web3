@@ -373,7 +373,7 @@ func (self *StateDB) CreateAccount(web3.Address) {
 }
 
 func (self *StateDB) Snapshot() int {
-	changes := self.cacheDB.memdb.DeepClone()
+	changes := self.cacheDB.memdb.Snapshot()
 	suicided := make(map[web3.Address]bool)
 	for k, v := range self.Suicided {
 		suicided[k] = v
@@ -389,6 +389,14 @@ func (self *StateDB) Snapshot() int {
 	self.snapshots = append(self.snapshots, sn)
 
 	return len(self.snapshots) - 1
+}
+
+func (self *StateDB) DiscardSnapshot(idx int) {
+	if idx+1 != len(self.snapshots) {
+		panic("can only discard top snapshot")
+	}
+
+	self.snapshots = self.snapshots[:idx]
 }
 
 func (self *StateDB) RevertToSnapshot(idx int) {

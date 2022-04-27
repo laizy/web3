@@ -200,11 +200,25 @@ type MemDB struct {
 	kvSize    int
 }
 
-func (self *MemDB) DeepClone() *MemDB {
+func (self *MemDB) tryCompress() {
+	if self.kvSize*5+64*1024 > len(self.kvData) {
+		return
+	}
+
+	mem := NewMemDB(self.kvSize*3/2+1024, self.n*3/2)
+	self.ForEach(func(key, val []byte) {
+		mem.Put(key, val)
+	})
+	*self = *mem
+}
+
+// Note: the created snapshot will discard original MemDB's written if modified
+func (self *MemDB) Snapshot() *MemDB {
+	self.tryCompress()
 	cloned := &MemDB{
 		cmp:       self.cmp,
 		rnd:       self.rnd,
-		kvData:    append([]byte{}, self.kvData...),
+		kvData:    self.kvData,
 		nodeData:  append([]int{}, self.nodeData...),
 		prevNode:  self.prevNode,
 		maxHeight: self.maxHeight,
@@ -428,6 +442,7 @@ func (p *MemDB) Len() int {
 }
 
 // Reset resets the MemDB to initial empty state. Allows reuse the buffer.
+// Note: this function will invalidate other MemDB created by Snapshot
 func (p *MemDB) Reset() {
 	p.rnd = rand.New(rand.NewSource(0xdeadbeef))
 	p.maxHeight = 1
