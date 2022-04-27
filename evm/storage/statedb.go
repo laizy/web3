@@ -392,7 +392,7 @@ func (self *StateDB) Snapshot() int {
 }
 
 func (self *StateDB) DiscardSnapshot(idx int) {
-	if idx+1 == len(self.snapshots) {
+	if idx+1 != len(self.snapshots) {
 		panic("can only discard top snapshot")
 	}
 
