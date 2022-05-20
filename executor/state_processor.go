@@ -23,17 +23,17 @@ import (
 	"github.com/laizy/web3/evm"
 	"github.com/laizy/web3/evm/params"
 	"github.com/laizy/web3/evm/storage"
-	"github.com/laizy/web3/executor/remotedb"
+	"github.com/laizy/web3/evm/storage/schema"
 )
 
-func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transaction, usedGas *uint64, evm *evm.EVM, feeReceiver web3.Address) (*web3.ExecutionResult, *web3.Receipt, error) {
+func applyTransaction(msg Message, statedb *storage.StateDB, usedGas *uint64, evm *evm.EVM, ctx Eip155Context) (*web3.ExecutionResult, *web3.Receipt, error) {
 	// Create a new context to be used in the EVM environment
 	txContext := NewEVMTxContext(msg)
 
 	// Update the evm with the new transaction context.
 	evm.Reset(txContext, statedb)
 	// Apply the transaction to the current state (included in the env)
-	result, err := ApplyMessage(evm, msg, feeReceiver)
+	result, err := NewStateTransition(evm, msg, ctx.Coinbase).TransitionDb()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -52,13 +52,13 @@ func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transactio
 	}
 	receipt := &web3.Receipt{
 		Status:            status,
-		TransactionHash:   tx.Hash(),
-		TransactionIndex:  0,
-		BlockHash:         web3.Hash{},
+		TransactionHash:   msg.Hash(),
+		TransactionIndex:  ctx.TxIndex,
+		BlockHash:         ctx.BlockHash,
 		From:              msg.From(),
-		BlockNumber:       0,
+		BlockNumber:       ctx.Height,
 		GasUsed:           result.UsedGas,
-		CumulativeGasUsed: 0,
+		CumulativeGasUsed: *usedGas,
 		LogsBloom:         nil,
 		Logs:              nil,
 	}
@@ -68,8 +68,6 @@ func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transactio
 		receipt.ContractAddress = crypto.CreateAddress(evm.TxContext.Origin, nonce)
 	}
 	// Set the receipt logs and create a bloom for filtering
-	receipt.BlockHash = statedb.BlockHash()
-	receipt.BlockNumber = evm.Context.BlockNumber.Uint64()
 	receipt.AddStorageLogs(statedb.GetLogs())
 
 	return result, receipt, err
@@ -79,10 +77,17 @@ func applyTransaction(msg Message, statedb *storage.StateDB, tx *web3.Transactio
 // and uses the input parameters for its environment. It returns the receipt
 // for the transaction, gas used and an error if the transaction failed,
 // indicating the block was invalid.
-func ApplyTransaction(config *params.ChainConfig, bc *remotedb.RemoteDB, statedb *storage.StateDB, blockHeight, timestamp uint64, tx *web3.Transaction, usedGas *uint64, feeReceiver web3.Address, cfg evm.Config, checkNonce bool) (*web3.ExecutionResult, *web3.Receipt, error) {
+func ApplyTransaction(config *params.ChainConfig, bc schema.ChainDB, statedb *storage.StateDB,
+	tx *web3.Transaction, ctx Eip155Context, usedGas *uint64,
+	cfg evm.Config, checkNonce bool) (*web3.ExecutionResult, *web3.Receipt, error) {
 	// Create a new context to be used in the EVM environment
 	msg := MessageFromTx(tx, checkNonce)
-	blockContext := NewEVMBlockContext(blockHeight, timestamp, bc.GetBlockHash)
+	return ApplyMessage(config, bc, statedb, msg, ctx, usedGas, cfg)
+}
+
+func ApplyMessage(config *params.ChainConfig, bc schema.ChainDB, statedb *storage.StateDB, msg Message, ctx Eip155Context, usedGas *uint64, cfg evm.Config) (*web3.ExecutionResult, *web3.Receipt, error) {
+	// Create a new context to be used in the EVM environment
+	blockContext := NewEVMBlockContext(ctx.Height, ctx.Timestamp, bc.GetBlockHash)
 	vmenv := evm.NewEVM(blockContext, evm.TxContext{}, statedb, config, cfg)
-	return applyTransaction(msg, statedb, tx, usedGas, vmenv, feeReceiver)
+	return applyTransaction(msg, statedb, usedGas, vmenv, ctx)
 }

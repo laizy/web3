@@ -19,6 +19,8 @@ package schema
 
 import (
 	"errors"
+
+	"github.com/laizy/web3"
 )
 
 var ErrNotFound = errors.New("not found")
@@ -42,4 +44,9 @@ type PersistStore interface {
 	BatchPut(key []byte, value []byte)       //Put a key-value pair to batch
 	BatchDelete(key []byte)                  //Delete the key in batch
 	NewIterator(prefix []byte) StoreIterator //Return the iterator of store
+}
+
+type ChainDB interface {
+	PersistStore
+	GetBlockHash(height uint64) web3.Hash
 }

@@ -9,7 +9,7 @@ import (
 
 func TestSnapshot(t *testing.T) {
 	caccheDB := NewCacheDB(overlaydb.NewOverlayDB(NewFakeDB()))
-	statedb := NewStateDB(caccheDB, web3.Hash{}, web3.Hash{})
+	statedb := NewStateDB(caccheDB)
 	testAddr := web3.Address{1, 1, 1, 1}
 	statedb.getEthAccount(testAddr)
 	statedb.CreateAccount(testAddr)

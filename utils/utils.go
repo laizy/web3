@@ -19,11 +19,15 @@ func JsonString(v interface{}) string {
 	return string(b)
 }
 
-func JsonStr(v interface{}) string {
+func JsonBytes(v interface{}) []byte {
 	b, err := json.Marshal(v)
 	Ensure(err)
 
-	return string(b)
+	return b
+}
+
+func JsonStr(v interface{}) string {
+	return string(JsonBytes(v))
 }
 
 func EnsureTrue(b bool) {
