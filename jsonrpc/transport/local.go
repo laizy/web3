@@ -6,6 +6,8 @@ import (
 	"math/big"
 	"sync/atomic"
 
+	"github.com/laizy/web3/wallet"
+
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/evm/storage"
 	"github.com/laizy/web3/evm/storage/schema"
@@ -23,10 +25,10 @@ type Local struct {
 	nextId      uint64
 }
 
-func NewLocal(db schema.ChainDB) *Local {
+func NewLocal(db schema.ChainDB, chainID uint64) *Local {
 	return &Local{
 		db:          db,
-		exec:        executor.NewExecutor(db),
+		exec:        executor.NewExecutor(db, chainID),
 		BlockNumber: 0,
 		BlockHashes: make(map[uint64]web3.Hash),
 		Receipts:    make(map[web3.Hash]*web3.Receipt),
@@ -84,7 +86,39 @@ func (self *Local) Call(method string, out interface{}, params ...interface{}) e
 		}
 		self.Receipts[txn.Hash()] = receipt
 		self.BlockNumber += 1
-		result = []byte(txn.Hash().String())
+		result = utils.JsonBytes(txn.Hash().String())
+	case "eth_sendRawTransaction":
+		rawTx := params[0].(string)
+		txn, err := web3.TransactionFromRlp(web3.Hex2Bytes(rawTx[2:]))
+		utils.Ensure(err)
+		sender, err := wallet.NewEIP155Signer(self.exec.ChainID).RecoverSender(txn)
+		utils.Ensure(err)
+		txn.From = sender
+		_, receipt, err := self.exec.ExecuteTransaction(txn, executor.Eip155Context{
+			BlockHash: web3.Hash{},
+			Height:    self.BlockNumber,
+		})
+		if err != nil {
+			return err
+		}
+		self.Receipts[txn.Hash()] = receipt
+		self.BlockNumber += 1
+		result = utils.JsonBytes(txn.Hash().String())
+	case "eth_getTransactionCount":
+		addr := params[0].(web3.Address)
+		cacheDB := storage.NewCacheDB(self.exec.OverlayDB)
+		val, err := cacheDB.GetEthAccount(addr)
+		if err != nil {
+			return err
+		}
+		result = utils.JsonBytes(hexutil.Uint64(val.Nonce))
+	case "eth_gasPrice":
+		result = utils.JsonBytes(hexutil.Uint64(web3.Gwei(20).Uint64()))
+	case "eth_getTransactionReceipt":
+		hash := params[0].(web3.Hash)
+		receipt := self.Receipts[hash]
+		result = utils.JsonBytes(receipt)
+
 	default:
 		panic(fmt.Errorf("unimplemented method: %s", method))
 	}
@@ -128,6 +162,9 @@ func (self CallMsg) Gas() uint64 {
 }
 
 func (self CallMsg) Value() *big.Int {
+	if self.msg.Value == nil {
+		self.msg.Value = big.NewInt(0)
+	}
 	return self.msg.Value
 }
 
