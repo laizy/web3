@@ -22,19 +22,24 @@ type endpoints struct {
 	n *Net
 }
 
-// NewClient creates a new client
-func NewClient(addr string) (*Client, error) {
+func NewClientWithTransport(trans transport.Transport) *Client {
 	c := &Client{GasLimitFactor: DefaultGasFactor}
 	c.endpoints.w = &Web3{c}
 	c.endpoints.e = &Eth{c}
 	c.endpoints.n = &Net{c}
 
+	c.transport = trans
+	return c
+}
+
+// NewClient creates a new client
+func NewClient(addr string) (*Client, error) {
 	t, err := transport.NewTransport(addr)
 	if err != nil {
 		return nil, err
 	}
-	c.transport = t
-	return c, nil
+
+	return NewClientWithTransport(t), nil
 }
 
 // Close closes the tranport

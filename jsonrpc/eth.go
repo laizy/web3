@@ -213,8 +213,8 @@ func (e *Eth) Call(msg *web3.CallMsg, block web3.BlockNumber) (string, error) {
 // EstimateGasContract estimates the gas to deploy a contract
 func (e *Eth) EstimateGasContract(bin []byte) (uint64, error) {
 	var out string
-	msg := map[string]interface{}{
-		"data": "0x" + hex.EncodeToString(bin),
+	msg := &web3.CallMsg{
+		Data: bin,
 	}
 	if err := e.c.Call("eth_estimateGas", &out, msg); err != nil {
 		return 0, err

@@ -14,17 +14,17 @@ import (
 type Executor struct {
 	db        schema.ChainDB
 	OverlayDB *overlaydb.OverlayDB
-	chainID   uint64
+	ChainID   uint64
 	Trace     bool
 }
 
-func NewExecutor(db schema.ChainDB) *Executor {
+func NewExecutor(db schema.ChainDB, chainID uint64) *Executor {
 	overlay := overlaydb.NewOverlayDB(db)
 	//remote.Trace = true
 	return &Executor{
 		db:        db,
 		OverlayDB: overlay,
-		chainID:   1234,
+		ChainID:   chainID,
 	}
 }
 
@@ -42,7 +42,7 @@ type Eip155Context struct {
 
 func (self *Executor) Call(msg Message, ctx Eip155Context) (*web3.ExecutionResult, *web3.Receipt, error) {
 	usedGas := uint64(0)
-	config := params.GetChainConfig(self.chainID)
+	config := params.GetChainConfig(self.ChainID)
 	statedb := storage.NewStateDB(storage.NewCacheDB(self.OverlayDB))
 	evmConf := evm.Config{}
 	if self.Trace {
@@ -65,7 +65,7 @@ func (self *Executor) Call(msg Message, ctx Eip155Context) (*web3.ExecutionResul
 
 func (self *Executor) ExecuteTransaction(tx *web3.Transaction, ctx Eip155Context) (*web3.ExecutionResult, *web3.Receipt, error) {
 	usedGas := uint64(0)
-	config := params.GetChainConfig(self.chainID)
+	config := params.GetChainConfig(self.ChainID)
 	cacheDB := storage.NewCacheDB(self.OverlayDB)
 	statedb := storage.NewStateDB(cacheDB)
 	evmConf := evm.Config{}

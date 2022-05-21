@@ -41,7 +41,7 @@ func NewSigner(hexPrivKey string, client *jsonrpc.Client, chainId uint64) *Signe
 		Key:      account,
 		signer:   signer,
 		Client:   client,
-		Executor: executor.NewExecutor(db),
+		Executor: executor.NewExecutor(db, chainId),
 		Nonce:    nonce,
 	}
 
