@@ -95,7 +95,7 @@ constructor(address _p1,bytes memory _p2){
 	return output["<stdin>:TestConstructor"]
 }()
 
-func TestConstructor(t *testing.T){
+func TestConstructor(t *testing.T) {
 	if testutil.IsSolcInstalled() == false {
 		t.Skipf("skipping since solidity is not installed")
 	}
@@ -165,8 +165,6 @@ func (_a *Sample) Contract() *contract.Contract {
 	fmt.Println(string(res.AbiFiles[0].Code))
 	assert.Equal(t, string(expected), string(res.AbiFiles[0].Code))
 }
-
-
 
 func TestCodeGen(t *testing.T) {
 	if testutil.IsSolcInstalled() == false {
