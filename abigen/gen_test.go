@@ -1,6 +1,7 @@
 package abigen
 
 import (
+	"fmt"
 	"go/format"
 	"testing"
 
@@ -77,6 +78,95 @@ address
 	utils.Ensure(err)
 	return output["<stdin>:Sample"]
 }()
+
+var testConstructor = func() *compiler.Artifact {
+	if testutil.IsSolcInstalled() == false {
+		return nil
+	}
+	code := `
+contract TestConstructor {
+constructor(address _p1,bytes memory _p2){
+}
+}
+`
+	solc := &compiler.Solidity{Path: "solc"}
+	output, err := solc.CompileCode(code)
+	utils.Ensure(err)
+	return output["<stdin>:TestConstructor"]
+}()
+
+func TestConstructor(t *testing.T){
+	if testutil.IsSolcInstalled() == false {
+		t.Skipf("skipping since solidity is not installed")
+	}
+	config := &Config{
+		Package: "binding",
+		Output:  "sample",
+		Name:    "Sample",
+	}
+
+	artifacts := map[string]*compiler.Artifact{
+		"Sample": testConstructor,
+	}
+	res, err := NewGenerator(config, artifacts).Gen()
+	assert.Nil(t, err)
+	expected, _ := format.Source([]byte(`package binding
+
+import (
+	"encoding/json"
+	"fmt"
+	"math/big"
+
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/contract"
+	"github.com/laizy/web3/crypto"
+	"github.com/laizy/web3/jsonrpc"
+	"github.com/laizy/web3/utils"
+	"github.com/mitchellh/mapstructure"
+)
+
+var (
+	_ = json.Unmarshal
+	_ = big.NewInt
+	_ = fmt.Printf
+	_ = utils.JsonStr
+	_ = mapstructure.Decode
+	_ = crypto.Keccak256Hash
+)
+
+// Sample is a solidity contract
+type Sample struct {
+	c *contract.Contract
+}
+
+// DeploySample deploys a new Sample contract
+func DeploySample(provider *jsonrpc.Client, from web3.Address, p1 web3.Address, p2 []byte) *contract.Txn {
+	return contract.DeployContract(provider, from, abiSample, binSample, p1, p2)
+}
+
+// NewSample creates a new instance of the contract at a specific address
+func NewSample(addr web3.Address, provider *jsonrpc.Client) *Sample {
+	return &Sample{c: contract.NewContract(addr, abiSample, provider)}
+}
+
+// Contract returns the contract object
+func (_a *Sample) Contract() *contract.Contract {
+	return _a.c
+}
+
+// calls
+
+// txns
+
+// events
+
+`))
+
+	fmt.Println(string(res.AbiFiles[0].Code))
+	assert.Equal(t, string(expected), string(res.AbiFiles[0].Code))
+}
+
+
 
 func TestCodeGen(t *testing.T) {
 	if testutil.IsSolcInstalled() == false {
