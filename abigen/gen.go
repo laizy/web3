@@ -275,8 +275,8 @@ type {{.Name}} struct {
 }
 {{if .Contract.Bin}}
 // Deploy{{.Name}} deploys a new {{.Name}} contract
-func Deploy{{.Name}}(provider *jsonrpc.Client, from web3.Address, {{if .Abi.Constructor}}{{range $index, $val := tupleElems .Abi.Constructor.Inputs}}{{if .Name}}{{clean .Name}}{{else}}val{{$index}}{{end}} {{arg .}}, {{end}}{{end}}) *contract.Txn {
-	return contract.DeployContract(provider, from, abi{{.Name}}, bin{{.Name}},{{if .Abi.Constructor}} {{range $index, $val := tupleElems .Abi.Constructor.Inputs}}{{if .Name}}{{clean .Name}}{{else}}val{{$index}}{{end}}{{end}}{{end}})
+func Deploy{{.Name}}(provider *jsonrpc.Client, from web3.Address {{if .Abi.Constructor}}{{range $index, $val := tupleElems .Abi.Constructor.Inputs}}, {{if .Name}}{{clean .Name}}{{else}}val{{$index}}{{end}} {{arg .}} {{end}}{{end}}) *contract.Txn {
+	return contract.DeployContract(provider, from, abi{{.Name}}, bin{{.Name}}{{if .Abi.Constructor}} {{range $index, $val := tupleElems .Abi.Constructor.Inputs}}, {{if .Name}}{{clean .Name}}{{else}}val{{$index}}{{end}}{{end}}{{end}})
 }
 {{end}}
 // New{{.Name}} creates a new instance of the contract at a specific address

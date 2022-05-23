@@ -124,8 +124,8 @@ type Sample struct {
 }
 
 // DeploySample deploys a new Sample contract
-func DeploySample(provider *jsonrpc.Client, from web3.Address, args ...interface{}) *contract.Txn {
-	return contract.DeployContract(provider, from, abiSample, binSample, args...)
+func DeploySample(provider *jsonrpc.Client, from web3.Address) *contract.Txn {
+	return contract.DeployContract(provider, from, abiSample, binSample)
 }
 
 // NewSample creates a new instance of the contract at a specific address
