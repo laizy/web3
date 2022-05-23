@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/laizy/web3/executor/remotedb"
+
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/executor"
 	"github.com/laizy/web3/jsonrpc"
@@ -34,12 +36,12 @@ func NewSigner(hexPrivKey string, client *jsonrpc.Client, chainId uint64) *Signe
 
 	nonce, err := client.Eth().GetNonce(account.Address(), web3.Latest)
 	utils.Ensure(err)
-
+	db := remotedb.NewRemoteDB(client)
 	result := &Signer{
 		Key:      account,
 		signer:   signer,
 		Client:   client,
-		Executor: executor.NewExecutor(client),
+		Executor: executor.NewExecutor(db, chainId),
 		Nonce:    nonce,
 	}
 

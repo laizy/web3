@@ -163,10 +163,6 @@ type Txn struct {
 	hash     web3.Hash
 }
 
-func (t *Txn) isContractDeployment() bool {
-	return t.to == nil
-}
-
 // SetValue sets the value for the txn
 func (t *Txn) SetValue(v *big.Int) *Txn {
 	t.value = new(big.Int).Set(v)
@@ -180,15 +176,12 @@ func (t *Txn) SetNonce(nonce uint64) *Txn {
 
 // EstimateGas estimates the gas for the call
 func (t *Txn) EstimateGas() (uint64, error) {
-	if t.isContractDeployment() {
-		return t.provider.Eth().EstimateGasContract(t.Data)
-	}
-
 	msg := &web3.CallMsg{
-		From:  t.from,
-		To:    t.to,
-		Data:  t.Data,
-		Value: t.value,
+		From:     t.from,
+		To:       t.to,
+		Data:     t.Data,
+		Value:    t.value,
+		GasPrice: t.gasPrice,
 	}
 	return t.provider.Eth().EstimateGas(msg)
 }

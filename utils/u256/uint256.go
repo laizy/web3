@@ -151,6 +151,14 @@ func (self Int) IsZero() bool {
 	return self.ToBigInt().Sign() == 0
 }
 
+func (self Int) LessEqual(rhs Int) bool {
+	if self.ToBigInt().Cmp(rhs.ToBigInt()) <= 0 {
+		return true
+	}
+
+	return false
+}
+
 func (self Int) LessThan(rhs Int) bool {
 	if self.ToBigInt().Cmp(rhs.ToBigInt()) == -1 {
 		return true
@@ -164,13 +172,18 @@ func (self Int) String() string {
 }
 
 func (self Int) ToFixNum(precise uint64) string {
+	if self.LessThan(New(0)) {
+		return "-" + self.Mul(-1).ToFixNum(precise)
+	}
+
 	return toStringByPrecise(self.ToBigInt(), precise)
 }
 
 func (self Int) ToFix9() string {
-	return toStringByPrecise(self.ToBigInt(), 9)
+	return self.ToFixNum(9)
 }
 
+// note : only support positive value
 func toStringByPrecise(bigNum *big.Int, precise uint64) string {
 	result := ""
 	destStr := bigNum.String()

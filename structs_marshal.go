@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/laizy/web3/utils"
+
+	"github.com/laizy/web3/utils/common/hexutil"
+
 	"github.com/valyala/fastjson"
 )
 
@@ -116,6 +120,38 @@ func (t *Transaction) MarshalJSON() ([]byte, error) {
 	res := o.MarshalTo(nil)
 	defaultArena.Put(a)
 	return res, nil
+}
+
+// MarshalJSON implements the Marshal interface.
+func (t *Receipt) MarshalJSON() ([]byte, error) {
+	a := defaultArena.Get()
+
+	o := a.NewObject()
+	o.Set("status", a.NewString(hexutil.Uint64(t.Status).String()))
+	o.Set("from", a.NewString(t.From.String()))
+	o.Set("contractAddress", a.NewString(t.ContractAddress.String()))
+	o.Set("transactionHash", a.NewString(t.TransactionHash.String()))
+	o.Set("blockHash", a.NewString(t.BlockHash.String()))
+	o.Set("transactionIndex", a.NewString(hexutil.Uint64(t.TransactionIndex).String()))
+	o.Set("blockNumber", a.NewString(hexutil.Uint64(t.BlockNumber).String()))
+	o.Set("gasUsed", a.NewString(hexutil.Uint64(t.GasUsed).String()))
+	o.Set("cumulativeGasUsed", a.NewString(hexutil.Uint64(t.CumulativeGasUsed).String()))
+	if len(t.LogsBloom) == 0 {
+		t.LogsBloom = make([]byte, 256)
+	}
+	o.Set("logsBloom", a.NewString(hexutil.Bytes(t.LogsBloom).String()))
+	logs := a.NewArray()
+	p := defaultPool.Get()
+	defer defaultPool.Put(p)
+	for i, log := range t.Logs {
+		buf, _ := json.Marshal(log)
+		v, err := p.Parse(string(buf))
+		utils.Ensure(err)
+		logs.SetArrayItem(i, v)
+	}
+	o.Set("logs", logs)
+
+	return o.MarshalTo(nil), nil
 }
 
 // MarshalJSON implements the Marshal interface.

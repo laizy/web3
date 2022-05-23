@@ -106,6 +106,7 @@ type Message interface {
 	Nonce() uint64
 	CheckNonce() bool
 	Data() []byte
+	Hash() web3.Hash
 }
 
 type message struct {
@@ -119,6 +120,7 @@ type message struct {
 	nonce      uint64
 	checkNonce bool
 	data       []byte
+	hash       web3.Hash
 }
 
 func (self *message) From() web3.Address {
@@ -147,6 +149,10 @@ func (self *message) CheckNonce() bool {
 }
 func (self *message) Data() []byte {
 	return self.data
+}
+
+func (self *message) Hash() web3.Hash {
+	return self.hash
 }
 
 func MessageFromTx(tx *web3.Transaction, checkNonce bool) Message {
@@ -216,17 +222,6 @@ func NewStateTransition(evm *evm.EVM, msg Message, feeReceiver web3.Address) *St
 		state:       evm.StateDB,
 		GasReceiver: feeReceiver,
 	}
-}
-
-// ApplyMessage computes the new state by applying the given message
-// against the old state within the environment.
-//
-// ApplyMessage returns the bytes returned by any EVM execution (if it took place),
-// the gas used (which includes gas refunds) and an error if it failed. An error always
-// indicates a core error meaning that the message would always fail for that particular
-// state and would never be accepted within a block.
-func ApplyMessage(evm *evm.EVM, msg Message, feeReceiver web3.Address) (*web3.ExecutionResult, error) {
-	return NewStateTransition(evm, msg, feeReceiver).TransitionDb()
 }
 
 // to returns the recipient of the message.

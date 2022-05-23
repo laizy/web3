@@ -90,38 +90,25 @@ type StateDB struct {
 	cacheDB       *CacheDB
 	Suicided      map[web3.Address]bool
 	logs          []*web3.StorageLog
-	thash, bhash  web3.Hash
 	txIndex       int
 	refund        uint64
 	snapshots     []*snapshot
 	BalanceHandle BalanceHandle
 }
 
-func NewStateDB(cacheDB *CacheDB, thash, bhash web3.Hash) *StateDB {
+func NewStateDB(cacheDB *CacheDB) *StateDB {
 	return &StateDB{
 		cacheDB:       cacheDB,
 		Suicided:      make(map[web3.Address]bool),
 		logs:          nil,
-		thash:         thash,
-		bhash:         bhash,
 		refund:        0,
 		snapshots:     nil,
 		BalanceHandle: &balanceHandle{},
 	}
 }
 
-func (self *StateDB) Prepare(thash, bhash web3.Hash) {
-	self.thash = thash
-	self.bhash = bhash
-	//	s.accessList = newAccessList()
-}
-
 func (self *StateDB) DbErr() error {
 	return self.cacheDB.backend.Error()
-}
-
-func (self *StateDB) BlockHash() web3.Hash {
-	return self.bhash
 }
 
 func (self *StateDB) GetLogs() []*web3.StorageLog {
@@ -216,7 +203,7 @@ type EthAccount struct {
 }
 
 func (self *EthAccount) IsEmpty() bool {
-	return self.Nonce == 0 && self.CodeHash == web3.Hash{}
+	return self.Nonce == 0 && self.CodeHash == web3.Hash{} && self.Balance.IsZero()
 }
 
 func (self *EthAccount) Serialization(sink *codec.ZeroCopySink) {
