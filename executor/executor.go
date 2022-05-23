@@ -49,7 +49,7 @@ func (self *Executor) Call(msg Message, ctx Eip155Context) (*web3.ExecutionResul
 		evmConf.Debug = true
 		evmConf.Tracer = evm.NewJSONLogger(nil, os.Stdout)
 	}
-	result, receipt, err := ApplyMessage(config, self.db, statedb, msg, ctx, &usedGas, evmConf)
+	result, receipt, err := ApplyMessage(config, self.db, statedb, msg, ctx, &usedGas, evmConf, false)
 
 	if err != nil {
 		return nil, nil, err

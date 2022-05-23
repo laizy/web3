@@ -26,7 +26,7 @@ import (
 	"github.com/laizy/web3/evm/storage/schema"
 )
 
-func applyTransaction(msg Message, statedb *storage.StateDB, usedGas *uint64, evm *evm.EVM, ctx Eip155Context) (*web3.ExecutionResult, *web3.Receipt, error) {
+func applyTransaction(msg Message, statedb *storage.StateDB, usedGas *uint64, evm *evm.EVM, ctx Eip155Context, commitDB bool) (*web3.ExecutionResult, *web3.Receipt, error) {
 	// Create a new context to be used in the EVM environment
 	txContext := NewEVMTxContext(msg)
 
@@ -38,9 +38,11 @@ func applyTransaction(msg Message, statedb *storage.StateDB, usedGas *uint64, ev
 		return nil, nil, err
 	}
 	// flush changes to overlay db
-	err = statedb.Commit()
-	if err != nil {
-		return nil, nil, err
+	if commitDB {
+		err = statedb.Commit()
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 	*usedGas += result.UsedGas
 
@@ -70,7 +72,7 @@ func applyTransaction(msg Message, statedb *storage.StateDB, usedGas *uint64, ev
 	// Set the receipt logs and create a bloom for filtering
 	receipt.AddStorageLogs(statedb.GetLogs())
 
-	return result, receipt, err
+	return result, receipt, nil
 }
 
 // ApplyTransaction attempts to apply a transaction to the given state database
@@ -82,12 +84,12 @@ func ApplyTransaction(config *params.ChainConfig, bc schema.ChainDB, statedb *st
 	cfg evm.Config, checkNonce bool) (*web3.ExecutionResult, *web3.Receipt, error) {
 	// Create a new context to be used in the EVM environment
 	msg := MessageFromTx(tx, checkNonce)
-	return ApplyMessage(config, bc, statedb, msg, ctx, usedGas, cfg)
+	return ApplyMessage(config, bc, statedb, msg, ctx, usedGas, cfg, true)
 }
 
-func ApplyMessage(config *params.ChainConfig, bc schema.ChainDB, statedb *storage.StateDB, msg Message, ctx Eip155Context, usedGas *uint64, cfg evm.Config) (*web3.ExecutionResult, *web3.Receipt, error) {
+func ApplyMessage(config *params.ChainConfig, bc schema.ChainDB, statedb *storage.StateDB, msg Message, ctx Eip155Context, usedGas *uint64, cfg evm.Config, commitDB bool) (*web3.ExecutionResult, *web3.Receipt, error) {
 	// Create a new context to be used in the EVM environment
 	blockContext := NewEVMBlockContext(ctx.Height, ctx.Timestamp, bc.GetBlockHash)
 	vmenv := evm.NewEVM(blockContext, evm.TxContext{}, statedb, config, cfg)
-	return applyTransaction(msg, statedb, usedGas, vmenv, ctx)
+	return applyTransaction(msg, statedb, usedGas, vmenv, ctx, commitDB)
 }

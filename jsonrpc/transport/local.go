@@ -6,14 +6,14 @@ import (
 	"math/big"
 	"sync/atomic"
 
-	"github.com/laizy/web3/wallet"
-
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/evm/storage"
 	"github.com/laizy/web3/evm/storage/schema"
 	"github.com/laizy/web3/executor"
 	"github.com/laizy/web3/utils"
 	"github.com/laizy/web3/utils/common/hexutil"
+	"github.com/laizy/web3/utils/common/uint256"
+	"github.com/laizy/web3/wallet"
 )
 
 type Local struct {
@@ -39,6 +39,22 @@ func NewLocal(db schema.ChainDB, chainID uint64) *Local {
 // Close implements the transport interface
 func (self *Local) Close() error {
 	return nil
+}
+
+func (self *Local) GetBalance(acct web3.Address) (amount *big.Int) {
+	cacheDB := storage.NewCacheDB(self.exec.OverlayDB)
+	val, err := cacheDB.GetEthAccount(acct)
+	utils.Ensure(err)
+	return val.Balance.ToBig()
+}
+
+func (self *Local) SetBalance(acct web3.Address, amount *big.Int) {
+	cacheDB := storage.NewCacheDB(self.exec.OverlayDB)
+	val, err := cacheDB.GetEthAccount(acct)
+	utils.Ensure(err)
+	val.Balance, _ = uint256.FromBig(amount)
+	cacheDB.PutEthAccount(acct, val)
+	cacheDB.Commit()
 }
 
 func (self *Local) nextID() uint64 {

@@ -203,7 +203,7 @@ type EthAccount struct {
 }
 
 func (self *EthAccount) IsEmpty() bool {
-	return self.Nonce == 0 && self.CodeHash == web3.Hash{}
+	return self.Nonce == 0 && self.CodeHash == web3.Hash{} && self.Balance.IsZero()
 }
 
 func (self *EthAccount) Serialization(sink *codec.ZeroCopySink) {

@@ -105,15 +105,15 @@ func (t *Transaction) UnmarshalRLP(data []byte) error {
 	if err != nil {
 		return err
 	}
-	t.R, err = v.Get(6).GetBytes(nil)
+	t.V, err = v.Get(6).GetBytes(nil)
 	if err != nil {
 		return err
 	}
-	t.S, err = v.Get(7).GetBytes(nil)
+	t.R, err = v.Get(7).GetBytes(nil)
 	if err != nil {
 		return err
 	}
-	t.V, err = v.Get(8).GetBytes(nil)
+	t.S, err = v.Get(8).GetBytes(nil)
 	if err != nil {
 		return err
 	}
