@@ -23,9 +23,11 @@ type FieldDef struct {
 }
 
 type StructDef struct {
-	Name    string
-	Fields  []*FieldDef
-	IsEvent bool
+	Name      string
+	Fields    []*FieldDef
+	IsEvent   bool
+	EventID   string
+	EventName string
 }
 
 type StructDefExtractor struct {
@@ -94,7 +96,7 @@ func (self *StructDefExtractor) ExtractFromType(typ *abi.Type) string {
 
 //ExtractEvent generate event type, and record it for not duplicated.
 func (self *StructDefExtractor) ExtractEvent(e *abi.Event) {
-	s := &StructDef{Name: e.Name + "Event", IsEvent: true}
+	s := &StructDef{Name: e.Name + "Event", IsEvent: true, EventName: e.Name + "EventID", EventID: buildSignature(e.Name, e.Inputs)}
 	for _, elem := range e.Inputs.TupleElems() {
 		typ := self.ExtractFromType(elem.Elem)
 		if elem.Indexed {
@@ -193,6 +195,9 @@ var (
 
 {{$structs := .Structs}}
 {{range $structs}}
+{{if .IsEvent}}
+var {{.EventName}} = crypto.Keccak256Hash([]byte("{{.EventID}}")){{end}}
+
 type {{.Name}} struct {
 {{range .Fields}}
 {{title .Name}}   {{.Type}} {{end}}
