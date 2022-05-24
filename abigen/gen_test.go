@@ -1,7 +1,6 @@
 package abigen
 
 import (
-	"fmt"
 	"go/format"
 	"testing"
 
@@ -162,7 +161,6 @@ func (_a *Sample) Contract() *contract.Contract {
 
 `))
 
-	fmt.Println(string(res.AbiFiles[0].Code))
 	assert.Equal(t, string(expected), string(res.AbiFiles[0].Code))
 }
 
@@ -275,8 +273,6 @@ func (_a *Sample) TestStruct(a Transaction, b []byte) *contract.Txn {
 
 // events
 
-var DepositEventID = crypto.Keccak256Hash([]byte("Deposit(address,address,uint256,bytes)"))
-
 func (_a *Sample) DepositTopicFilter(from []web3.Address, to []web3.Address) [][]web3.Hash {
 
 	var fromRule []interface{}
@@ -323,8 +319,6 @@ func (_a *Sample) FilterDepositEvent(from []web3.Address, to []web3.Address, sta
 	return res, nil
 }
 
-var NoNameEventID = crypto.Keccak256Hash([]byte("NoName(address,address)"))
-
 func (_a *Sample) NoNameTopicFilter(arg0 []web3.Address) [][]web3.Hash {
 
 	var arg0Rule []interface{}
@@ -365,8 +359,6 @@ func (_a *Sample) FilterNoNameEvent(arg0 []web3.Address, startBlock uint64, endB
 	}
 	return res, nil
 }
-
-var TransferEventID = crypto.Keccak256Hash([]byte("Transfer(address,address,address)"))
 
 func (_a *Sample) TransferTopicFilter(from []web3.Address, to []web3.Address, amount []web3.Address) [][]web3.Hash {
 
@@ -446,6 +438,8 @@ var (
 	_ = web3.HexToAddress
 )
 
+var DepositEventID = crypto.Keccak256Hash([]byte("Deposit(address,address,uint256,bytes)"))
+
 type DepositEvent struct {
 	From   web3.Address
 	To     web3.Address
@@ -454,6 +448,8 @@ type DepositEvent struct {
 
 	Raw *web3.Log
 }
+
+var NoNameEventID = crypto.Keccak256Hash([]byte("NoName(address,address)"))
 
 type NoNameEvent struct {
 	Arg0 web3.Address
@@ -474,6 +470,8 @@ type Transaction struct {
 	Entrypoint    web3.Address
 	Data          []byte
 }
+
+var TransferEventID = crypto.Keccak256Hash([]byte("Transfer(address,address,address)"))
 
 type TransferEvent struct {
 	From   web3.Address
