@@ -30,8 +30,9 @@ import (
 var ErrIrregularData = errors.New("irregular data")
 
 type ZeroCopySource struct {
-	s   []byte
-	off uint64 // current reading index
+	s         []byte
+	off       uint64 // current reading index
+	byteOrder binary.ByteOrder
 }
 
 // Len returns the number of bytes of the unread portion of the
@@ -128,7 +129,7 @@ func (self *ZeroCopySource) NextUint16() (data uint16, eof bool) {
 		return
 	}
 
-	return binary.LittleEndian.Uint16(buf), eof
+	return self.byteOrder.Uint16(buf), eof
 }
 
 func (self *ZeroCopySource) NextUint32() (data uint32, eof bool) {
@@ -138,7 +139,7 @@ func (self *ZeroCopySource) NextUint32() (data uint32, eof bool) {
 		return
 	}
 
-	return binary.LittleEndian.Uint32(buf), eof
+	return self.byteOrder.Uint32(buf), eof
 }
 
 func (self *ZeroCopySource) ReadUint32() (data uint32, err error) {
@@ -150,6 +151,16 @@ func (self *ZeroCopySource) ReadUint32() (data uint32, err error) {
 	return data, nil
 }
 
+func (self *ZeroCopySource) ReadUint32BE() (data uint32, err error) {
+	origin := self.byteOrder
+	self.byteOrder = binary.BigEndian
+	defer func() {
+		self.byteOrder = origin
+	}()
+
+	return self.ReadUint32()
+}
+
 func (self *ZeroCopySource) ReadUint64() (data uint64, err error) {
 	data, eof := self.NextUint64()
 	if eof {
@@ -157,6 +168,15 @@ func (self *ZeroCopySource) ReadUint64() (data uint64, err error) {
 	}
 
 	return data, nil
+}
+func (self *ZeroCopySource) ReadUint64BE() (data uint64, err error) {
+	origin := self.byteOrder
+	self.byteOrder = binary.BigEndian
+	defer func() {
+		self.byteOrder = origin
+	}()
+
+	return self.ReadUint64()
 }
 
 func (self *ZeroCopySource) NextUint64() (data uint64, eof bool) {
@@ -166,7 +186,7 @@ func (self *ZeroCopySource) NextUint64() (data uint64, eof bool) {
 		return
 	}
 
-	return binary.LittleEndian.Uint64(buf), eof
+	return self.byteOrder.Uint64(buf), eof
 }
 
 func (self *ZeroCopySource) NextInt32() (data int32, eof bool) {
@@ -300,4 +320,10 @@ func getVarUintSize(value uint64) uint64 {
 }
 
 // NewReader returns a new ZeroCopySource reading from b.
-func NewZeroCopySource(b []byte) *ZeroCopySource { return &ZeroCopySource{b, 0} }
+func NewZeroCopySource(b []byte) *ZeroCopySource {
+	return &ZeroCopySource{
+		s:         b,
+		off:       0,
+		byteOrder: binary.LittleEndian,
+	}
+}

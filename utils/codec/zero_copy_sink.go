@@ -118,6 +118,21 @@ func (self *ZeroCopySink) WriteUint64(data uint64) {
 	binary.LittleEndian.PutUint64(buf, data)
 }
 
+func (self *ZeroCopySink) WriteUint16BE(data uint16) {
+	buf := self.NextBytes(2)
+	binary.BigEndian.PutUint16(buf, data)
+}
+
+func (self *ZeroCopySink) WriteUint32BE(data uint32) {
+	buf := self.NextBytes(4)
+	binary.BigEndian.PutUint32(buf, data)
+}
+
+func (self *ZeroCopySink) WriteUint64BE(data uint64) {
+	buf := self.NextBytes(8)
+	binary.BigEndian.PutUint64(buf, data)
+}
+
 func (self *ZeroCopySink) WriteInt64(data int64) {
 	self.WriteUint64(uint64(data))
 }
@@ -128,6 +143,18 @@ func (self *ZeroCopySink) WriteInt32(data int32) {
 
 func (self *ZeroCopySink) WriteInt16(data int16) {
 	self.WriteUint16(uint16(data))
+}
+
+func (self *ZeroCopySink) WriteInt64BE(data int64) {
+	self.WriteUint64BE(uint64(data))
+}
+
+func (self *ZeroCopySink) WriteInt32BE(data int32) {
+	self.WriteUint32BE(uint32(data))
+}
+
+func (self *ZeroCopySink) WriteInt16BE(data int16) {
+	self.WriteUint16BE(uint16(data))
 }
 
 func (self *ZeroCopySink) WriteVarBytes(data []byte) (size uint64) {
