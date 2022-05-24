@@ -185,12 +185,14 @@ import (
 	"math/big"
 
 	"github.com/laizy/web3"
+	"github.com/laizy/web3/crypto"
 )
 
 var (
 	_ = big.NewInt
 	_ = fmt.Printf
 	_ = web3.HexToAddress
+	_ = crypto.Keccak256Hash
 )
 
 {{$structs := .Structs}}
