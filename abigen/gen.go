@@ -322,8 +322,6 @@ func ({{$.Ptr}} *{{$.Name}}) {{funcName $key}}({{range $index, $input := tupleEl
 // events
 {{range $key, $value := .Abi.Events}}{{if not .Anonymous}}
 
-var {{title .Name}}EventID = crypto.Keccak256Hash([]byte("{{sig .Name .Inputs}}"))
-
 func({{$.Ptr}} *{{$.Name}}) {{title .Name}}TopicFilter({{getTopicFilterParam $value}})[][]web3.Hash{
 	{{range $index, $input := tupleElems .Inputs}}
     {{if .Indexed}}var {{clean .Name}}Rule []interface{}
