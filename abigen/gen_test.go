@@ -1,7 +1,6 @@
 package abigen
 
 import (
-	"fmt"
 	"go/format"
 	"testing"
 
@@ -408,8 +407,6 @@ func (_a *Sample) FilterNoNameEvent(arg0 []web3.Address, startBlock uint64, endB
 	return res, nil
 }
 `))
-
-	fmt.Println(string(res.AbiFiles[0].Code))
 
 	assert.Equal(t, string(expected), string(res.AbiFiles[0].Code))
 }
