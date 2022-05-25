@@ -344,14 +344,14 @@ func ({{$.Ptr}} *{{$.Name}}) Filter{{title .Name}}Event({{getFilterEventParam $v
 	if err != nil {
 		return nil, err
 	}
-	res := make([]*{{.Name}}Event, 0)
+	res := make([]*{{title .Name}}Event, 0)
 	evts := {{$.Ptr}}.c.Abi.Events["{{.Name}}"]
 	for _, log := range logs {
 		args, err := evts.ParseLog(log)
 		if err != nil {
 			return nil, err
 		}
-		var evtItem {{.Name}}Event
+		var evtItem {{title .Name}}Event
 		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
 		if err != nil {
 			return nil, err
