@@ -337,7 +337,7 @@ func({{$.Ptr}} *{{$.Name}}) {{title .Name}}TopicFilter({{getTopicFilterParam $va
 	return topics
 }
 
-func ({{$.Ptr}} *{{$.Name}}) Filter{{title .Name}}Event({{getFilterEventParam $value}})([]*{{.Name}}Event, error){
+func ({{$.Ptr}} *{{$.Name}}) Filter{{title .Name}}Event({{getFilterEventParam $value}})([]*{{title .Name}}Event, error){
 	topic :={{$.Ptr}}.{{title .Name}}TopicFilter({{getTopicFilterInput $value}})	
 
 	logs, err := {{$.Ptr}}.c.FilterLogsWithTopic(topic, startBlock, endBlock...)

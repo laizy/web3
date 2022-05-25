@@ -383,7 +383,7 @@ func (_a *Sample) NoNameTopicFilter(arg0 []web3.Address) [][]web3.Hash {
 	return topics
 }
 
-func (_a *Sample) FilterNoNameEvent(arg0 []web3.Address, startBlock uint64, endBlock ...uint64) ([]*noNameEvent, error) {
+func (_a *Sample) FilterNoNameEvent(arg0 []web3.Address, startBlock uint64, endBlock ...uint64) ([]*NoNameEvent, error) {
 	topic := _a.NoNameTopicFilter(arg0)
 
 	logs, err := _a.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
