@@ -26,7 +26,7 @@ contract Sample {
         bytes _data
     );
 	
-event NoName(
+event noName(
 address indexed,
 address
 );
@@ -56,7 +56,7 @@ address
         L1TOL2_QUEUE
     }
 
-	 constructor(){ emit Deposit(msg.sender,msg.sender,100000,bytes("test")); emit NoName(msg.sender,msg.sender);}
+	 constructor(){ emit Deposit(msg.sender,msg.sender,100000,bytes("test")); emit noName(msg.sender,msg.sender);}
 
     function TestStruct(Transaction memory a,bytes memory b) public returns (bytes memory){
         return  b;
@@ -315,47 +315,6 @@ func (_a *Sample) FilterDepositEvent(from []web3.Address, to []web3.Address, sta
 	return res, nil
 }
 
-func (_a *Sample) NoNameTopicFilter(arg0 []web3.Address) [][]web3.Hash {
-
-	var arg0Rule []interface{}
-	for _, arg0Item := range arg0 {
-		arg0Rule = append(arg0Rule, arg0Item)
-	}
-
-	var query [][]interface{}
-	query = append(query, []interface{}{NoNameEventID}, arg0Rule)
-
-	topics, err := contract.MakeTopics(query...)
-	utils.Ensure(err)
-
-	return topics
-}
-
-func (_a *Sample) FilterNoNameEvent(arg0 []web3.Address, startBlock uint64, endBlock ...uint64) ([]*NoNameEvent, error) {
-	topic := _a.NoNameTopicFilter(arg0)
-
-	logs, err := _a.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
-	if err != nil {
-		return nil, err
-	}
-	res := make([]*NoNameEvent, 0)
-	evts := _a.c.Abi.Events["NoName"]
-	for _, log := range logs {
-		args, err := evts.ParseLog(log)
-		if err != nil {
-			return nil, err
-		}
-		var evtItem NoNameEvent
-		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
-		if err != nil {
-			return nil, err
-		}
-		evtItem.Raw = log
-		res = append(res, &evtItem)
-	}
-	return res, nil
-}
-
 func (_a *Sample) TransferTopicFilter(from []web3.Address, to []web3.Address, amount []web3.Address) [][]web3.Hash {
 
 	var fromRule []interface{}
@@ -406,6 +365,47 @@ func (_a *Sample) FilterTransferEvent(from []web3.Address, to []web3.Address, am
 	}
 	return res, nil
 }
+
+func (_a *Sample) NoNameTopicFilter(arg0 []web3.Address) [][]web3.Hash {
+
+	var arg0Rule []interface{}
+	for _, arg0Item := range arg0 {
+		arg0Rule = append(arg0Rule, arg0Item)
+	}
+
+	var query [][]interface{}
+	query = append(query, []interface{}{NoNameEventID}, arg0Rule)
+
+	topics, err := contract.MakeTopics(query...)
+	utils.Ensure(err)
+
+	return topics
+}
+
+func (_a *Sample) FilterNoNameEvent(arg0 []web3.Address, startBlock uint64, endBlock ...uint64) ([]*NoNameEvent, error) {
+	topic := _a.NoNameTopicFilter(arg0)
+
+	logs, err := _a.c.FilterLogsWithTopic(topic, startBlock, endBlock...)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*NoNameEvent, 0)
+	evts := _a.c.Abi.Events["noName"]
+	for _, log := range logs {
+		args, err := evts.ParseLog(log)
+		if err != nil {
+			return nil, err
+		}
+		var evtItem NoNameEvent
+		err = json.Unmarshal([]byte(utils.JsonStr(args)), &evtItem)
+		if err != nil {
+			return nil, err
+		}
+		evtItem.Raw = log
+		res = append(res, &evtItem)
+	}
+	return res, nil
+}
 `))
 
 	assert.Equal(t, string(expected), string(res.AbiFiles[0].Code))
@@ -447,7 +447,7 @@ type DepositEvent struct {
 	Raw *web3.Log
 }
 
-var NoNameEventID = crypto.Keccak256Hash([]byte("NoName(address,address)"))
+var NoNameEventID = crypto.Keccak256Hash([]byte("noName(address,address)"))
 
 type NoNameEvent struct {
 	Arg0 web3.Address

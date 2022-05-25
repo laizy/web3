@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"text/template"
 
 	"github.com/laizy/web3/abi"
@@ -96,7 +97,7 @@ func (self *StructDefExtractor) ExtractFromType(typ *abi.Type) string {
 
 //ExtractEvent generate event type, and record it for not duplicated.
 func (self *StructDefExtractor) ExtractEvent(e *abi.Event) {
-	s := &StructDef{Name: e.Name + "Event", IsEvent: true, EventName: e.Name + "EventID", EventID: buildSignature(e.Name, e.Inputs)}
+	s := &StructDef{Name: strings.Title(e.Name) + "Event", IsEvent: true, EventName: strings.Title(e.Name) + "EventID", EventID: buildSignature(e.Name, e.Inputs)}
 	for _, elem := range e.Inputs.TupleElems() {
 		typ := self.ExtractFromType(elem.Elem)
 		if elem.Indexed {
