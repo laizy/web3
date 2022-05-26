@@ -172,8 +172,8 @@ func (m *Method) ID() []byte {
 	return dst
 }
 
-func NewMethod(name string) (*Method, error) {
-	name, inputs, outputs, err := parseMethodSignature(name)
+func NewMethod(sig string) (*Method, error) {
+	name, inputs, outputs, err := parseMethodSignature(sig)
 	if err != nil {
 		return nil, err
 	}

@@ -169,6 +169,7 @@ func MessageFromTx(tx *web3.Transaction, checkNonce bool) Message {
 		nonce:      tx.Nonce,
 		checkNonce: checkNonce,
 		data:       tx.Input,
+		hash:       tx.Hash(),
 	}
 }
 
