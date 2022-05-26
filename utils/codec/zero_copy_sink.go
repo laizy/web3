@@ -63,9 +63,10 @@ func (self *ZeroCopySink) grow(n int) int {
 	return l
 }
 
-func (self *ZeroCopySink) WriteBytes(p []byte) {
+func (self *ZeroCopySink) WriteBytes(p []byte) *ZeroCopySink {
 	data := self.NextBytes(uint64(len(p)))
 	copy(data, p)
+	return self
 }
 
 func (self *ZeroCopySink) Size() uint64 { return uint64(len(self.buf)) }
@@ -113,9 +114,29 @@ func (self *ZeroCopySink) WriteUint32(data uint32) {
 	binary.LittleEndian.PutUint32(buf, data)
 }
 
-func (self *ZeroCopySink) WriteUint64(data uint64) {
+func (self *ZeroCopySink) WriteUint64(data uint64) *ZeroCopySink {
 	buf := self.NextBytes(8)
 	binary.LittleEndian.PutUint64(buf, data)
+	return self
+}
+
+func (self *ZeroCopySink) WriteUint16BE(data uint16) *ZeroCopySink {
+	buf := self.NextBytes(2)
+	binary.BigEndian.PutUint16(buf, data)
+	return self
+}
+
+func (self *ZeroCopySink) WriteUint32BE(data uint32) *ZeroCopySink {
+	buf := self.NextBytes(4)
+	binary.BigEndian.PutUint32(buf, data)
+	return self
+}
+
+func (self *ZeroCopySink) WriteUint64BE(data uint64) *ZeroCopySink {
+	buf := self.NextBytes(8)
+	binary.BigEndian.PutUint64(buf, data)
+
+	return self
 }
 
 func (self *ZeroCopySink) WriteInt64(data int64) {
@@ -130,6 +151,18 @@ func (self *ZeroCopySink) WriteInt16(data int16) {
 	self.WriteUint16(uint16(data))
 }
 
+func (self *ZeroCopySink) WriteInt64BE(data int64) {
+	self.WriteUint64BE(uint64(data))
+}
+
+func (self *ZeroCopySink) WriteInt32BE(data int32) {
+	self.WriteUint32BE(uint32(data))
+}
+
+func (self *ZeroCopySink) WriteInt16BE(data int16) {
+	self.WriteUint16BE(uint16(data))
+}
+
 func (self *ZeroCopySink) WriteVarBytes(data []byte) (size uint64) {
 	l := uint64(len(data))
 	size = self.WriteVarUint(l) + l
@@ -142,12 +175,14 @@ func (self *ZeroCopySink) WriteString(data string) (size uint64) {
 	return self.WriteVarBytes([]byte(data))
 }
 
-func (self *ZeroCopySink) WriteAddress(addr web3.Address) {
+func (self *ZeroCopySink) WriteAddress(addr web3.Address) *ZeroCopySink {
 	self.WriteBytes(addr[:])
+	return self
 }
 
-func (self *ZeroCopySink) WriteHash(hash web3.Hash) {
+func (self *ZeroCopySink) WriteHash(hash web3.Hash) *ZeroCopySink {
 	self.WriteBytes(hash[:])
+	return self
 }
 
 func (self *ZeroCopySink) WriteVarUint(data uint64) (size uint64) {

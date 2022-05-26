@@ -113,6 +113,7 @@ func (self *Local) Call(method string, out interface{}, params ...interface{}) e
 		_, receipt, err := self.exec.ExecuteTransaction(txn, executor.Eip155Context{
 			BlockHash: web3.Hash{},
 			Height:    self.BlockNumber,
+			Timestamp: self.BlockNumber * 12,
 		})
 		if err != nil {
 			return err
@@ -146,6 +147,7 @@ func (self *Local) CallEvm(msg *web3.CallMsg) (*web3.ExecutionResult, error) {
 	res, _, err := self.exec.Call(CallMsg{msg}, executor.Eip155Context{
 		BlockHash: web3.Hash{},
 		Height:    self.BlockNumber,
+		Timestamp: self.BlockNumber * 12,
 	})
 	if err != nil {
 		return nil, err
