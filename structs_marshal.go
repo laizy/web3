@@ -31,8 +31,9 @@ func (l *Log) MarshalJSON() ([]byte, error) {
 	o.Set("blockNumber", a.NewString(fmt.Sprintf("0x%x", l.BlockNumber)))
 	o.Set("address", a.NewString(l.Address.String()))
 	if l.Event != nil {
+		// p can not be put back to pool, because The returned value if p.Parse
+		// is valid until the next call to Parse*.
 		p := defaultPool.Get()
-		defer defaultPool.Put(p)
 		buf, _ := json.Marshal(l.Event)
 		v, err := p.Parse(string(buf))
 		if err == nil {
@@ -141,9 +142,10 @@ func (t *Receipt) MarshalJSON() ([]byte, error) {
 	}
 	o.Set("logsBloom", a.NewString(hexutil.Bytes(t.LogsBloom).String()))
 	logs := a.NewArray()
-	p := defaultPool.Get()
-	defer defaultPool.Put(p)
 	for i, log := range t.Logs {
+		// p can not be put back to pool, because The returned value if p.Parse
+		// is valid until the next call to Parse*.
+		p := defaultPool.Get()
 		buf, _ := json.Marshal(log)
 		v, err := p.Parse(string(buf))
 		utils.Ensure(err)
@@ -151,7 +153,10 @@ func (t *Receipt) MarshalJSON() ([]byte, error) {
 	}
 	o.Set("logs", logs)
 
-	return o.MarshalTo(nil), nil
+	data := o.MarshalTo(nil)
+	defaultArena.Put(a)
+
+	return data, nil
 }
 
 // MarshalJSON implements the Marshal interface.
