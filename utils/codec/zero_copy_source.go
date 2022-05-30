@@ -236,6 +236,24 @@ func (self *ZeroCopySource) ReadVarBytes() (data []byte, err error) {
 	return data, nil
 }
 
+func (self *ZeroCopySource) ReadAddress() (web3.Address, error) {
+	data, eof := self.NextAddress()
+	if eof {
+		return web3.Address{}, io.ErrUnexpectedEOF
+	}
+
+	return data, nil
+}
+
+func (self *ZeroCopySource) ReadHash() (web3.Hash, error) {
+	data, eof := self.NextHash()
+	if eof {
+		return web3.Hash{}, io.ErrUnexpectedEOF
+	}
+
+	return data, nil
+}
+
 func (self *ZeroCopySource) NextAddress() (data web3.Address, eof bool) {
 	var buf []byte
 	buf, eof = self.NextBytes(web3.AddressLength)
