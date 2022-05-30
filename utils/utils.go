@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
+	"strings"
 )
 
 func Ensure(err error) {
@@ -30,9 +32,15 @@ func JsonStr(v interface{}) string {
 	return string(JsonBytes(v))
 }
 
-func EnsureTrue(b bool) {
+func EnsureTrue(b bool, msg ...string) {
 	if !b {
-		panic("must be true")
+		panic("must be true:" + strings.Join(msg, ", "))
+	}
+}
+
+func EnsureEqual(a, b interface{}, msg ...string) {
+	if reflect.DeepEqual(a, b) == false {
+		panic(fmt.Errorf("not equal: %v != %v, %s", a, b, strings.Join(msg, ", ")))
 	}
 }
 
