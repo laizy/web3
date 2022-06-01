@@ -19,6 +19,7 @@
 package storage
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"math/big"
@@ -27,6 +28,7 @@ import (
 	"github.com/laizy/web3/crypto"
 	"github.com/laizy/web3/evm/storage/overlaydb"
 	"github.com/laizy/web3/evm/storage/schema"
+	"github.com/laizy/web3/utils"
 	"github.com/laizy/web3/utils/codec"
 	"github.com/laizy/web3/utils/common/hexutil"
 	"github.com/laizy/web3/utils/common/uint256"
@@ -353,8 +355,19 @@ func (self *StateDB) AddPreimage(web3.Hash, []byte) {
 	// todo
 }
 
-func (self *StateDB) ForEachStorage(web3.Address, func(web3.Hash, web3.Hash) bool) error {
-	panic("todo")
+func (self *StateDB) ForEachStorage(addr web3.Address, fn func(web3.Hash, web3.Hash) bool) error {
+	iter := self.cacheDB.NewIterator(addr[:])
+	for has := iter.First(); has; has = iter.Next() {
+		key, value := iter.Key(), iter.Value()
+		utils.EnsureTrue(len(key) == 20+32 && len(value) == 32 && bytes.Equal(key[:20], addr[:]))
+
+		if !fn(web3.BytesToHash(key), web3.BytesToHash(value)) {
+			break
+		}
+	}
+	iter.Release()
+
+	return iter.Error()
 }
 
 func (self *StateDB) CreateAccount(web3.Address) {
