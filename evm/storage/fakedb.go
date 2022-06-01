@@ -21,3 +21,32 @@ func NewFakeDB() *FakeDB {
 func (self *FakeDB) GetBlockHash(height uint64) web3.Hash {
 	return web3.Hash{}
 }
+
+func (self *FakeDB) NewIterator(prefix []byte) schema.StoreIterator {
+	return &fakeIter{}
+}
+
+type fakeIter struct{}
+
+func (self *fakeIter) Next() bool {
+	return false
+}
+
+func (self *fakeIter) First() bool {
+	return false
+}
+
+func (self *fakeIter) Key() []byte {
+	return nil
+}
+func (self *fakeIter) Value() []byte {
+	return nil
+}
+
+func (self *fakeIter) Release() {
+	return
+}
+
+func (self *fakeIter) Error() error {
+	return nil
+}

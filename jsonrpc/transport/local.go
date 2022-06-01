@@ -18,7 +18,7 @@ import (
 
 type Local struct {
 	db          schema.ChainDB
-	exec        *executor.Executor
+	Executor    *executor.Executor
 	BlockNumber uint64
 	BlockHashes map[uint64]web3.Hash
 	Receipts    map[web3.Hash]*web3.Receipt
@@ -28,7 +28,7 @@ type Local struct {
 func NewLocal(db schema.ChainDB, chainID uint64) *Local {
 	return &Local{
 		db:          db,
-		exec:        executor.NewExecutor(db, chainID),
+		Executor:    executor.NewExecutor(db, chainID),
 		BlockNumber: 0,
 		BlockHashes: make(map[uint64]web3.Hash),
 		Receipts:    make(map[web3.Hash]*web3.Receipt),
@@ -42,14 +42,14 @@ func (self *Local) Close() error {
 }
 
 func (self *Local) GetBalance(acct web3.Address) (amount *big.Int) {
-	cacheDB := storage.NewCacheDB(self.exec.OverlayDB)
+	cacheDB := storage.NewCacheDB(self.Executor.OverlayDB)
 	val, err := cacheDB.GetEthAccount(acct)
 	utils.Ensure(err)
 	return val.Balance.ToBig()
 }
 
 func (self *Local) SetBalance(acct web3.Address, amount *big.Int) {
-	cacheDB := storage.NewCacheDB(self.exec.OverlayDB)
+	cacheDB := storage.NewCacheDB(self.Executor.OverlayDB)
 	val, err := cacheDB.GetEthAccount(acct)
 	utils.Ensure(err)
 	val.Balance, _ = uint256.FromBig(amount)
@@ -68,7 +68,7 @@ func (self *Local) Call(method string, out interface{}, params ...interface{}) e
 	switch method {
 	case "eth_getCode":
 		addr := params[0].(web3.Address)
-		cacheDB := storage.NewCacheDB(self.exec.OverlayDB)
+		cacheDB := storage.NewCacheDB(self.Executor.OverlayDB)
 		val, err := cacheDB.GetEthAccount(addr)
 		if err != nil {
 			return err
@@ -93,7 +93,7 @@ func (self *Local) Call(method string, out interface{}, params ...interface{}) e
 		result = utils.JsonBytes(hexutil.Uint64(res.UsedGas))
 	case "eth_sendTransaction":
 		txn := params[0].(*web3.Transaction)
-		_, receipt, err := self.exec.ExecuteTransaction(txn, executor.Eip155Context{
+		_, receipt, err := self.Executor.ExecuteTransaction(txn, executor.Eip155Context{
 			BlockHash: web3.Hash{},
 			Height:    self.BlockNumber,
 		})
@@ -107,10 +107,10 @@ func (self *Local) Call(method string, out interface{}, params ...interface{}) e
 		rawTx := params[0].(string)
 		txn, err := web3.TransactionFromRlp(web3.Hex2Bytes(rawTx[2:]))
 		utils.Ensure(err)
-		sender, err := wallet.NewEIP155Signer(self.exec.ChainID).RecoverSender(txn)
+		sender, err := wallet.NewEIP155Signer(self.Executor.ChainID).RecoverSender(txn)
 		utils.Ensure(err)
 		txn.From = sender
-		_, receipt, err := self.exec.ExecuteTransaction(txn, executor.Eip155Context{
+		_, receipt, err := self.Executor.ExecuteTransaction(txn, executor.Eip155Context{
 			BlockHash: web3.Hash{},
 			Height:    self.BlockNumber,
 			Timestamp: self.BlockNumber * 12,
@@ -123,7 +123,7 @@ func (self *Local) Call(method string, out interface{}, params ...interface{}) e
 		result = utils.JsonBytes(txn.Hash().String())
 	case "eth_getTransactionCount":
 		addr := params[0].(web3.Address)
-		cacheDB := storage.NewCacheDB(self.exec.OverlayDB)
+		cacheDB := storage.NewCacheDB(self.Executor.OverlayDB)
 		val, err := cacheDB.GetEthAccount(addr)
 		if err != nil {
 			return err
@@ -144,7 +144,7 @@ func (self *Local) Call(method string, out interface{}, params ...interface{}) e
 }
 
 func (self *Local) CallEvm(msg *web3.CallMsg) (*web3.ExecutionResult, error) {
-	res, _, err := self.exec.Call(CallMsg{msg}, executor.Eip155Context{
+	res, _, err := self.Executor.Call(CallMsg{msg}, executor.Eip155Context{
 		BlockHash: web3.Hash{},
 		Height:    self.BlockNumber,
 		Timestamp: self.BlockNumber * 12,
