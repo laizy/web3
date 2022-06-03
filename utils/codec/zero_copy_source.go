@@ -96,10 +96,23 @@ func (self *ZeroCopySource) NextByte() (data byte, eof bool) {
 	return b, false
 }
 
+func (self *ZeroCopySource) ReadByte() (data byte, err error) {
+	d, eof := self.NextByte()
+	if eof {
+		err = io.ErrUnexpectedEOF
+		return
+	}
+	return d, nil
+}
+
+func (self *ZeroCopySource) ReadUint8() (data uint8, err error) {
+	return self.ReadByte()
+}
+
 func (self *ZeroCopySource) NextUint8() (data uint8, eof bool) {
 	var val byte
 	val, eof = self.NextByte()
-	return uint8(val), eof
+	return val, eof
 }
 
 func (self *ZeroCopySource) NextBool() (data bool, irregular bool, eof bool) {
@@ -116,9 +129,24 @@ func (self *ZeroCopySource) NextBool() (data bool, irregular bool, eof bool) {
 	return
 }
 
+func (self *ZeroCopySource) ReadBool() (data bool, err error) {
+	d, irr, eof := self.NextBool()
+	if eof {
+		err = io.ErrUnexpectedEOF
+		return
+	} else if irr {
+		err = ErrIrregularData
+		return
+	}
+	return d, nil
+}
+
 // Backs up a number of bytes, so that the next call to NextXXX() returns data again
 // that was already returned by the last call to NextXXX().
 func (self *ZeroCopySource) BackUp(n uint64) {
+	if n > self.off {
+		panic("backup too large")
+	}
 	self.off -= n
 }
 
@@ -224,6 +252,16 @@ func (self *ZeroCopySource) ReadString() (string, error) {
 	return string(d), err
 }
 
+func (self *ZeroCopySource) ReadBytes(n uint64) (data []byte, err error) {
+	d, eof := self.NextBytes(n)
+	if eof {
+		err = io.ErrUnexpectedEOF
+		return
+	}
+
+	return d, nil
+}
+
 func (self *ZeroCopySource) ReadVarBytes() (data []byte, err error) {
 	data, _, irr, eof := self.NextVarBytes()
 	if irr {
@@ -281,6 +319,18 @@ func (self *ZeroCopySource) NextString() (data string, size uint64, irregular bo
 	val, size, irregular, eof = self.NextVarBytes()
 	data = string(val)
 	return
+}
+
+func (self *ZeroCopySource) ReadVarUint() (data uint64, err error) {
+	d, _, irr, eof := self.NextVarUint()
+	if eof {
+		err = io.ErrUnexpectedEOF
+		return
+	} else if irr {
+		err = ErrIrregularData
+		return
+	}
+	return d, nil
 }
 
 func (self *ZeroCopySource) NextVarUint() (data uint64, size uint64, irregular bool, eof bool) {
@@ -344,4 +394,8 @@ func NewZeroCopySource(b []byte) *ZeroCopySource {
 		off:       0,
 		byteOrder: binary.LittleEndian,
 	}
+}
+
+func (self *ZeroCopySource) Reader() *ZeroCopyReader {
+	return &ZeroCopyReader{Source: self}
 }
