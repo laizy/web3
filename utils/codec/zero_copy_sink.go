@@ -87,31 +87,36 @@ func (self *ZeroCopySink) BackUp(n uint64) {
 	self.buf = self.buf[:l]
 }
 
-func (self *ZeroCopySink) WriteUint8(data uint8) {
+func (self *ZeroCopySink) WriteUint8(data uint8) *ZeroCopySink {
 	buf := self.NextBytes(1)
 	buf[0] = data
+	return self
 }
 
-func (self *ZeroCopySink) WriteByte(c byte) {
+func (self *ZeroCopySink) WriteByte(c byte) *ZeroCopySink {
 	self.WriteUint8(c)
+	return self
 }
 
-func (self *ZeroCopySink) WriteBool(data bool) {
+func (self *ZeroCopySink) WriteBool(data bool) *ZeroCopySink {
 	if data {
 		self.WriteByte(1)
 	} else {
 		self.WriteByte(0)
 	}
+	return self
 }
 
-func (self *ZeroCopySink) WriteUint16(data uint16) {
+func (self *ZeroCopySink) WriteUint16(data uint16) *ZeroCopySink {
 	buf := self.NextBytes(2)
 	binary.LittleEndian.PutUint16(buf, data)
+	return self
 }
 
-func (self *ZeroCopySink) WriteUint32(data uint32) {
+func (self *ZeroCopySink) WriteUint32(data uint32) *ZeroCopySink {
 	buf := self.NextBytes(4)
 	binary.LittleEndian.PutUint32(buf, data)
+	return self
 }
 
 func (self *ZeroCopySink) WriteUint64(data uint64) *ZeroCopySink {
@@ -139,28 +144,28 @@ func (self *ZeroCopySink) WriteUint64BE(data uint64) *ZeroCopySink {
 	return self
 }
 
-func (self *ZeroCopySink) WriteInt64(data int64) {
-	self.WriteUint64(uint64(data))
+func (self *ZeroCopySink) WriteInt64(data int64) *ZeroCopySink {
+	return self.WriteUint64(uint64(data))
 }
 
-func (self *ZeroCopySink) WriteInt32(data int32) {
-	self.WriteUint32(uint32(data))
+func (self *ZeroCopySink) WriteInt32(data int32) *ZeroCopySink {
+	return self.WriteUint32(uint32(data))
 }
 
-func (self *ZeroCopySink) WriteInt16(data int16) {
-	self.WriteUint16(uint16(data))
+func (self *ZeroCopySink) WriteInt16(data int16) *ZeroCopySink {
+	return self.WriteUint16(uint16(data))
 }
 
-func (self *ZeroCopySink) WriteInt64BE(data int64) {
-	self.WriteUint64BE(uint64(data))
+func (self *ZeroCopySink) WriteInt64BE(data int64) *ZeroCopySink {
+	return self.WriteUint64BE(uint64(data))
 }
 
-func (self *ZeroCopySink) WriteInt32BE(data int32) {
-	self.WriteUint32BE(uint32(data))
+func (self *ZeroCopySink) WriteInt32BE(data int32) *ZeroCopySink {
+	return self.WriteUint32BE(uint32(data))
 }
 
-func (self *ZeroCopySink) WriteInt16BE(data int16) {
-	self.WriteUint16BE(uint16(data))
+func (self *ZeroCopySink) WriteInt16BE(data int16) *ZeroCopySink {
+	return self.WriteUint16BE(uint16(data))
 }
 
 func (self *ZeroCopySink) WriteVarBytes(data []byte) (size uint64) {
