@@ -118,9 +118,7 @@ func (t *Transaction) unmarshalJSON(v *fastjson.Value) error {
 	if err := decodeHash(&t.hash, v, "hash"); err != nil {
 		return err
 	}
-	if err = decodeAddr(&t.From, v, "from"); err != nil {
-		return err
-	}
+
 	if t.GasPrice, err = decodeUint(v, "gasPrice"); err != nil {
 		return err
 	}
@@ -158,16 +156,6 @@ func (t *Transaction) unmarshalJSON(v *fastjson.Value) error {
 		panic(err)
 	}
 
-	// those fields are null for pending transaction
-	if err = decodeHashOrNull(&t.BlockHash, v, "blockHash"); err != nil {
-		return err
-	}
-	if t.BlockNumber, err = decodeUintOrNull(v, "blockNumber"); err != nil {
-		return err
-	}
-	if t.TxnIndex, err = decodeUintOrNull(v, "transactionIndex"); err != nil {
-		return err
-	}
 	return nil
 }
 

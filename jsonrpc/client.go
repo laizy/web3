@@ -20,6 +20,7 @@ type endpoints struct {
 	w *Web3
 	e *Eth
 	n *Net
+	l *L2
 }
 
 func NewClientWithTransport(trans transport.Transport) *Client {
@@ -27,6 +28,7 @@ func NewClientWithTransport(trans transport.Transport) *Client {
 	c.endpoints.w = &Web3{c}
 	c.endpoints.e = &Eth{c}
 	c.endpoints.n = &Net{c}
+	c.endpoints.l = &L2{c}
 
 	c.transport = trans
 	return c
