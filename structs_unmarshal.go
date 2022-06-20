@@ -157,7 +157,6 @@ func (t *Transaction) unmarshalJSON(v *fastjson.Value) error {
 	if t.S, err = decodeBytes(t.S[:0], v, "s"); err != nil {
 		panic(err)
 	}
-
 	// those fields are null for pending transaction
 	if err = decodeHashOrNull(&t.BlockHash, v, "blockHash"); err != nil {
 		return err
