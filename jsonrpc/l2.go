@@ -1,9 +1,5 @@
 package jsonrpc
 
-import (
-	"github.com/laizy/web3/utils/l2"
-)
-
 // L2 is the l2 client namespace
 type L2 struct {
 	c *Client
@@ -14,8 +10,10 @@ func (c *Client) L2() *L2 {
 	return c.endpoints.l
 }
 
-func (l *L2) GetPendingTxBatches() (*l2.RollupInputBatches, error) {
-	var out l2.RollupInputBatches
+//tx batch data is already encoded as params of AppendBatch in RollupInputChain.sol, just add a func selector beyond it
+//to invoke the AppendBatch is fine.
+func (l *L2) GetPendingTxBatches() ([]byte, error) {
+	var out []byte
 	err := l.c.Call("l2_getPendingTxBatches", &out)
-	return &out, err
+	return out, err
 }
