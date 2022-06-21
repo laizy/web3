@@ -1,5 +1,10 @@
 package jsonrpc
 
+import (
+	"github.com/laizy/web3"
+	"github.com/laizy/web3/utils/common"
+)
+
 // L2 is the l2 client namespace
 type L2 struct {
 	c *Client
@@ -41,5 +46,30 @@ type GlobalInfo struct {
 func (l *L2) GlobalInfo() (*GlobalInfo, error) {
 	var out GlobalInfo
 	err := l.c.Call("l2_globalInfo", &out)
+	return &out, err
+}
+
+func (l *L2) InputBatchNumber() (uint64, error) {
+	out := uint64(0)
+	err := l.c.Call("rollup_inputBatchNumber", &out)
+	return out, err
+}
+
+func (l *L2) StateBatchNumber() (uint64, error) {
+	out := uint64(0)
+	err := l.c.Call("rollup_stateBatchNumber", &out)
+	return out, err
+}
+
+type RPCBatch struct {
+	Sequencer    common.Address      `json:"sequencer"`
+	BatchNumber  uint64              `json:"batchNumber"`
+	BatchHash    uint64              `json:"batchHash"`
+	Transactions []*web3.Transaction `json:"transactions"`
+}
+
+func (l *L2) GetBatch() (*RPCBatch, error) {
+	out := RPCBatch{}
+	err := l.c.Call("rollup_getBatch", &out)
 	return &out, err
 }
