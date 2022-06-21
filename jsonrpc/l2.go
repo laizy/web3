@@ -3,6 +3,7 @@ package jsonrpc
 import (
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/utils/common"
+	"github.com/laizy/web3/utils/common/hexutil"
 )
 
 // L2 is the l2 client namespace
@@ -71,5 +72,18 @@ type RPCBatch struct {
 func (l *L2) GetBatch() (*RPCBatch, error) {
 	out := RPCBatch{}
 	err := l.c.Call("rollup_getBatch", &out)
+	return &out, err
+}
+
+type RPCBatchState struct {
+	Index     hexutil.Uint64
+	Proposer  common.Address
+	Timestamp hexutil.Uint64
+	BlockHash common.Hash
+}
+
+func (l *L2) GetBatchState() (*RPCBatchState, error) {
+	out := RPCBatchState{}
+	err := l.c.Call("rollup_getBatchState", &out)
 	return &out, err
 }
