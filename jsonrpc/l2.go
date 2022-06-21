@@ -2,7 +2,6 @@ package jsonrpc
 
 import (
 	"github.com/laizy/web3"
-	"github.com/laizy/web3/utils/common"
 	"github.com/laizy/web3/utils/common/hexutil"
 )
 
@@ -63,7 +62,7 @@ func (l *L2) StateBatchNumber() (uint64, error) {
 }
 
 type RPCBatch struct {
-	Sequencer    common.Address      `json:"sequencer"`
+	Sequencer    web3.Address      `json:"sequencer"`
 	BatchNumber  uint64              `json:"batchNumber"`
 	BatchHash    uint64              `json:"batchHash"`
 	Transactions []*web3.Transaction `json:"transactions"`
@@ -77,9 +76,9 @@ func (l *L2) GetBatch() (*RPCBatch, error) {
 
 type RPCBatchState struct {
 	Index     hexutil.Uint64
-	Proposer  common.Address
+	Proposer  web3.Address
 	Timestamp hexutil.Uint64
-	BlockHash common.Hash
+	BlockHash web3.Hash
 }
 
 func (l *L2) GetBatchState() (*RPCBatchState, error) {
