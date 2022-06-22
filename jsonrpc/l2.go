@@ -62,7 +62,7 @@ func (l *L2) StateBatchNumber() (uint64, error) {
 }
 
 type RPCBatch struct {
-	Sequencer    web3.Address       `json:"sequencer"`
+	Sequencer    web3.Address        `json:"sequencer"`
 	BatchNumber  uint64              `json:"batchNumber"`
 	BatchHash    uint64              `json:"batchHash"`
 	Transactions []*web3.Transaction `json:"transactions"`
