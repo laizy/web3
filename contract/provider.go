@@ -99,6 +99,7 @@ func (self *Signer) WaitTx(hs web3.Hash) *web3.Receipt {
 
 func (self *Signer) TransferEther(to web3.Address, value *big.Int, msg string) *web3.Transaction {
 	txn := &Txn{
+		from:     self.Address(),
 		to:       &to,
 		provider: self.Client,
 		Data:     []byte(msg),
