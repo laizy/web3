@@ -98,20 +98,13 @@ func (self *Signer) WaitTx(hs web3.Hash) *web3.Receipt {
 }
 
 func (self *Signer) TransferEther(to web3.Address, value *big.Int, msg string) *web3.Transaction {
-	nonce, err := self.Client.Eth().GetNonce(self.Key.Address(), web3.Pending)
-	utils.Ensure(err)
-	price, err := self.Client.Eth().GasPrice()
-	utils.Ensure(err)
-
-	tx := &web3.Transaction{
-		To:       &to,
-		GasPrice: price,
-		Gas:      41000 + uint64(len(msg))*100,
-		Value:    value,
-		Nonce:    nonce,
-		Input:    []byte(msg),
+	txn := &Txn{
+		to:       &to,
+		provider: self.Client,
+		Data:     []byte(msg),
+		value:    value,
 	}
-
+	tx := txn.MustToTransaction()
 	return self.SignTx(tx)
 }
 
