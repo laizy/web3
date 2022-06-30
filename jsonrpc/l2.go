@@ -74,9 +74,9 @@ type RPCBatch struct {
 	Transactions []*web3.Transaction `json:"transactions"`
 }
 
-func (l *L2) GetBatch() (*RPCBatch, error) {
+func (l *L2) GetBatch(batchNumber uint64, useDetail bool) (*RPCBatch, error) {
 	out := RPCBatch{}
-	err := l.c.Call("rollup_getBatch", &out)
+	err := l.c.Call("rollup_getBatch", &out, batchNumber, useDetail)
 	return &out, err
 }
 
@@ -87,8 +87,8 @@ type RPCBatchState struct {
 	BlockHash web3.Hash
 }
 
-func (l *L2) GetBatchState() (*RPCBatchState, error) {
+func (l *L2) GetBatchState(batchNumber uint64) (*RPCBatchState, error) {
 	out := RPCBatchState{}
-	err := l.c.Call("rollup_getBatchState", &out)
+	err := l.c.Call("rollup_getBatchState", &out, batchNumber)
 	return &out, err
 }
