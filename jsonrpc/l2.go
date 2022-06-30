@@ -23,6 +23,12 @@ func (l *L2) GetPendingTxBatches() ([]byte, error) {
 	return out, err
 }
 
+func (l *L2) GetState(batchIndex uint64) (web3.Hash, error) {
+	var out web3.Hash
+	err := l.c.Call("l2_getState", &out, batchIndex)
+	return out, err
+}
+
 type InputChainInfo struct {
 	PendingQueueIndex uint64
 	TotalBatches      uint64
