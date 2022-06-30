@@ -23,6 +23,12 @@ func (l *L2) GetPendingTxBatches() ([]byte, error) {
 	return out, err
 }
 
+func (l *L2) GetRollupStateHash(batchIndex uint64) (web3.Hash, error) {
+	var out web3.Hash
+	err := l.c.Call("l2_getState", &out, batchIndex)
+	return out, err
+}
+
 type InputChainInfo struct {
 	PendingQueueIndex uint64
 	TotalBatches      uint64
@@ -68,9 +74,9 @@ type RPCBatch struct {
 	Transactions []*web3.Transaction `json:"transactions"`
 }
 
-func (l *L2) GetBatch() (*RPCBatch, error) {
+func (l *L2) GetBatch(batchNumber uint64, useDetail bool) (*RPCBatch, error) {
 	out := RPCBatch{}
-	err := l.c.Call("rollup_getBatch", &out)
+	err := l.c.Call("rollup_getBatch", &out, batchNumber, useDetail)
 	return &out, err
 }
 
@@ -81,8 +87,8 @@ type RPCBatchState struct {
 	BlockHash web3.Hash
 }
 
-func (l *L2) GetBatchState() (*RPCBatchState, error) {
+func (l *L2) GetBatchState(batchNumber uint64) (*RPCBatchState, error) {
 	out := RPCBatchState{}
-	err := l.c.Call("rollup_getBatchState", &out)
+	err := l.c.Call("rollup_getBatchState", &out, batchNumber)
 	return &out, err
 }
