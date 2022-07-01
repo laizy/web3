@@ -225,6 +225,14 @@ func (self *Receipt) IsReverted() bool {
 	return self.Status != ReceiptStatusSuccessful
 }
 
+func (self *Receipt) EnsureNoRevert() *Receipt {
+	if self.IsReverted() {
+		b, _ := self.MarshalJSON()
+		panic(fmt.Errorf("receipt revert: %s", b))
+	}
+	return self
+}
+
 type ThinReceipt struct {
 	Status          uint64
 	TransactionHash Hash
