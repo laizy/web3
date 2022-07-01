@@ -230,6 +230,7 @@ func (self *Receipt) EnsureNoRevert() *Receipt {
 		b, _ := self.MarshalJSON()
 		panic(fmt.Errorf("receipt revert: %s", b))
 	}
+	return self
 }
 
 type ThinReceipt struct {
