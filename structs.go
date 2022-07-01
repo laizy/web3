@@ -228,8 +228,7 @@ func (self *Receipt) IsReverted() bool {
 func (self *Receipt) EnsureNoRevert() {
 	if self.IsReverted() {
 		b, _ := self.MarshalJSON()
-		fmt.Printf("receipt revert: %s\n", b)
-		panic(1)
+		panic(fmt.Errorf("receipt revert: %s", b))
 	}
 }
 
