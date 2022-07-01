@@ -218,12 +218,6 @@ type SignedTx struct {
 	*web3.Transaction
 }
 
-func (self *SignedTx) MustSendTransaction(signer *Signer) *web3.Receipt {
-	r := self.SendTransaction(signer)
-	utils.EnsureTrue(r.Status == 1)
-	return r
-}
-
 func (self *SignedTx) SendTransaction(signer *Signer) *web3.Receipt {
 	fmt.Printf("start sending transaction: %s, %s raw: %x\n", self.Hash().String(), utils.JsonString(*self.Transaction), self.Transaction.MarshalRLP())
 	return signer.SendTransaction(self.Transaction)
