@@ -3,9 +3,10 @@ package jsonrpc
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+
 	"github.com/laizy/web3/utils/codec"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 var l2 *L2
