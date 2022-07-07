@@ -30,21 +30,22 @@ func (l *L2) GetRollupStateHash(batchIndex uint64) (web3.Hash, error) {
 }
 
 type InputChainInfo struct {
-	PendingQueueIndex uint64
-	TotalBatches      uint64
-	QueueSize         uint64
+	PendingQueueIndex hexutil.Uint64
+	TotalBatches      hexutil.Uint64
+	QueueSize         hexutil.Uint64
 }
+
 type GlobalInfo struct {
 	//total batch num in l1 RollupInputChain contract
 	L1InputInfo InputChainInfo
 	//l2 client have checked tx batch num
-	L2CheckedBatchNum uint64
+	L2CheckedBatchNum hexutil.Uint64
 	//the total block num l2 already checked,start from 1, because genesis block do not need to check
-	L2CheckedBlockNum uint64
+	L2CheckedBlockNum hexutil.Uint64
 	//l2 client head block num
-	L2HeadBlockNumber   uint64
-	L1SyncedBlockNumber uint64
-	L1SyncedTimestamp   *uint64
+	L2HeadBlockNumber   hexutil.Uint64
+	L1SyncedBlockNumber hexutil.Uint64
+	L1SyncedTimestamp   *hexutil.Uint64
 }
 
 //tx batch data is already encoded as params of AppendBatch in RollupInputChain.sol, just add a func selector beyond it
@@ -57,27 +58,64 @@ func (l *L2) GlobalInfo() (*GlobalInfo, error) {
 
 func (l *L2) InputBatchNumber() (uint64, error) {
 	out := uint64(0)
-	err := l.c.Call("rollup_inputBatchNumber", &out)
+	err := l.c.Call("l2_inputBatchNumber", &out)
 	return out, err
 }
 
 func (l *L2) StateBatchNumber() (uint64, error) {
 	out := uint64(0)
-	err := l.c.Call("rollup_stateBatchNumber", &out)
+	err := l.c.Call("l2_stateBatchNumber", &out)
 	return out, err
 }
 
 type RPCBatch struct {
-	Sequencer    web3.Address        `json:"sequencer"`
-	BatchNumber  uint64              `json:"batchNumber"`
-	BatchHash    uint64              `json:"batchHash"`
-	Transactions []*web3.Transaction `json:"transactions"`
+	Sequencer    web3.Address   `json:"sequencer"`
+	BatchNumber  hexutil.Uint64 `json:"batchNumber"`
+	BatchHash    web3.Hash      `json:"batchHash"`
+	QueueStart   hexutil.Uint64 `json:"queueStart"`
+	QueueNum     hexutil.Uint64 `json:"queueNum"`
+	Transactions []*RPCTx       `json:"transactions"`
+}
+
+type RPCTx struct {
+	BlockHash        *web3.Hash      `json:"blockHash"`
+	BlockNumber      *hexutil.Big    `json:"blockNumber"`
+	From             web3.Address    `json:"from"`
+	Gas              hexutil.Uint64  `json:"gas"`
+	GasPrice         *hexutil.Big    `json:"gasPrice"`
+	GasFeeCap        *hexutil.Big    `json:"maxFeePerGas,omitempty"`
+	GasTipCap        *hexutil.Big    `json:"maxPriorityFeePerGas,omitempty"`
+	Hash             web3.Hash       `json:"hash"`
+	Input            hexutil.Bytes   `json:"input"`
+	Nonce            hexutil.Uint64  `json:"nonce"`
+	To               *web3.Address   `json:"to"`
+	TransactionIndex *hexutil.Uint64 `json:"transactionIndex"`
+	Value            *hexutil.Big    `json:"value"`
+	Type             hexutil.Uint64  `json:"type"`
+	ChainID          *hexutil.Big    `json:"chainId,omitempty"`
+	V                *hexutil.Big    `json:"v"`
+	R                *hexutil.Big    `json:"r"`
+	S                *hexutil.Big    `json:"s"`
 }
 
 func (l *L2) GetBatch(batchNumber uint64, useDetail bool) (*RPCBatch, error) {
 	out := RPCBatch{}
-	err := l.c.Call("rollup_getBatch", &out, batchNumber, useDetail)
+	err := l.c.Call("l2_getBatch", &out, batchNumber, useDetail)
 	return &out, err
+}
+
+type RPCEnqueuedTx struct {
+	QueueIndex hexutil.Uint64 `json:"queueIndex"`
+	From       web3.Address   `json:"from"`
+	To         web3.Address   `json:"to"`
+	RlpTx      hexutil.Bytes  `json:"rlpTx"`
+	Timestamp  hexutil.Uint64 `json:"timestamp"`
+}
+
+func (l *L2) GetEnqueuedTxs(queueStart, queueNum uint64) ([]*RPCEnqueuedTx, error) {
+	out := make([]*RPCEnqueuedTx, 0)
+	err := l.c.Call("l2_getEnqueuedTxs", &out, queueStart, queueNum)
+	return out, err
 }
 
 type RPCBatchState struct {
@@ -89,6 +127,55 @@ type RPCBatchState struct {
 
 func (l *L2) GetBatchState(batchNumber uint64) (*RPCBatchState, error) {
 	out := RPCBatchState{}
-	err := l.c.Call("rollup_getBatchState", &out, batchNumber)
+	err := l.c.Call("l2_getBatchState", &out, batchNumber)
 	return &out, err
+}
+
+type BlockNumberOrHash struct {
+	BlockNumber      *uint64    `json:"blockNumber,omitempty"`
+	BlockHash        *web3.Hash `json:"blockHash,omitempty"`
+	RequireCanonical bool       `json:"requireCanonical,omitempty"`
+}
+
+func (l *L2) GetReadStorageProof(blockNumOrHash *BlockNumberOrHash) ([]string, error) {
+	result := make([]string, 0)
+	err := l.c.Call("debug_getReadStorageProofAtBlock", &result, blockNumOrHash)
+	return result, err
+}
+
+type L1RelayMsgParams struct {
+	Target       web3.Address   `json:"target"`
+	Sender       web3.Address   `json:"sender"`
+	Message      hexutil.Bytes  `json:"message"`
+	MessageIndex hexutil.Uint64 `json:"messageIndex"`
+	RLPHeader    hexutil.Bytes  `json:"rlpHeader"`
+	StateInfo    *RPCBatchState `json:"stateInfo"`
+	Proof        []web3.Hash    `json:"proof"`
+}
+
+type L2RelayMsgParams struct {
+	Target       web3.Address   `json:"target"`
+	Sender       web3.Address   `json:"sender"`
+	Message      hexutil.Bytes  `json:"message"`
+	MessageIndex hexutil.Uint64 `json:"messageIndex"`
+	MMRSize      hexutil.Uint64 `json:"mmrSize"`
+	Proof        []web3.Hash    `json:"proof"`
+}
+
+func (l *L2) GetL2MMRProof(msgIndex, size uint64) ([]web3.Hash, error) {
+	result := make([]web3.Hash, 0)
+	err := l.c.Call("l2_getL2MMRProof", &result, msgIndex, size)
+	return result, err
+}
+
+func (l *L2) GetL1RelayMsgParams(msgIndex uint64) (*L1RelayMsgParams, error) {
+	result := &L1RelayMsgParams{}
+	err := l.c.Call("l2_getL1RelayMsgParams", &result, msgIndex)
+	return result, err
+}
+
+func (l *L2) GetL2RelayMsgParams(msgIndex uint64) (*L2RelayMsgParams, error) {
+	result := &L2RelayMsgParams{}
+	err := l.c.Call("l2_getL1RelayMsgParams", &result, msgIndex)
+	return result, err
 }
