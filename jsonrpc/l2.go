@@ -69,33 +69,12 @@ func (l *L2) StateBatchNumber() (uint64, error) {
 }
 
 type RPCBatch struct {
-	Sequencer    web3.Address   `json:"sequencer"`
-	BatchNumber  hexutil.Uint64 `json:"batchNumber"`
-	BatchHash    web3.Hash      `json:"batchHash"`
-	QueueStart   hexutil.Uint64 `json:"queueStart"`
-	QueueNum     hexutil.Uint64 `json:"queueNum"`
-	Transactions []*RPCTx       `json:"transactions"`
-}
-
-type RPCTx struct {
-	BlockHash        *web3.Hash      `json:"blockHash"`
-	BlockNumber      *hexutil.Big    `json:"blockNumber"`
-	From             web3.Address    `json:"from"`
-	Gas              hexutil.Uint64  `json:"gas"`
-	GasPrice         *hexutil.Big    `json:"gasPrice"`
-	GasFeeCap        *hexutil.Big    `json:"maxFeePerGas,omitempty"`
-	GasTipCap        *hexutil.Big    `json:"maxPriorityFeePerGas,omitempty"`
-	Hash             web3.Hash       `json:"hash"`
-	Input            hexutil.Bytes   `json:"input"`
-	Nonce            hexutil.Uint64  `json:"nonce"`
-	To               *web3.Address   `json:"to"`
-	TransactionIndex *hexutil.Uint64 `json:"transactionIndex"`
-	Value            *hexutil.Big    `json:"value"`
-	Type             hexutil.Uint64  `json:"type"`
-	ChainID          *hexutil.Big    `json:"chainId,omitempty"`
-	V                *hexutil.Big    `json:"v"`
-	R                *hexutil.Big    `json:"r"`
-	S                *hexutil.Big    `json:"s"`
+	Sequencer    web3.Address        `json:"sequencer"`
+	BatchNumber  hexutil.Uint64      `json:"batchNumber"`
+	BatchHash    web3.Hash           `json:"batchHash"`
+	QueueStart   hexutil.Uint64      `json:"queueStart"`
+	QueueNum     hexutil.Uint64      `json:"queueNum"`
+	Transactions []*web3.Transaction `json:"transactions"`
 }
 
 func (l *L2) GetBatch(batchNumber uint64, useDetail bool) (*RPCBatch, error) {

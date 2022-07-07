@@ -105,9 +105,9 @@ func TestL2_StateBatchNumber(t *testing.T) {
 }
 
 func TestL2_GetBatch(t *testing.T) {
-	info, err := getL2Client(t).GlobalInfo()
-	assert.NoError(t, err)
-	batch, err := getL2Client(t).GetBatch(uint64(info.L1InputInfo.TotalBatches)/2, true)
+	//info, err := getL2Client(t).GlobalInfo()
+	//assert.NoError(t, err)
+	batch, err := getL2Client(t).GetBatch(100, true)
 	assert.NoError(t, err)
 	jsonBatch, err := json.MarshalIndent(batch, "", "	")
 	assert.NoError(t, err)
@@ -115,9 +115,9 @@ func TestL2_GetBatch(t *testing.T) {
 }
 
 func TestL2_GetEnqueuedTxs(t *testing.T) {
-	txs, err := getL2Client(t).GetEnqueuedTxs(100, 200)
+	txs, err := getL2Client(t).GetEnqueuedTxs(100, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, 200, len(txs))
+	assert.Equal(t, 1, len(txs))
 	jsonTxs, err := json.MarshalIndent(txs, "", "	")
 	assert.NoError(t, err)
 	t.Log(string(jsonTxs))
