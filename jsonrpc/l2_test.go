@@ -9,13 +9,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const url = "http://172.168.3.73:8545"
+
 var l2 *L2
 
 func getL2Client(t *testing.T) *L2 {
 	if l2 == nil {
-		c, err := NewClient("http://172.168.3.73:8545")
+		c, err := NewClient(url)
 		if err != nil {
-		        t.Skipf("skipping since client is not available")
+			t.Skipf("skipping since client is not available")
 		}
 		l2 = c.L2()
 	}
