@@ -9,16 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const url = "http://172.168.3.73:8545"
+const url = "http://172.168.31.73:8545"
 
 var l2 *L2
 
 func getL2Client(t *testing.T) *L2 {
 	if l2 == nil {
 		c, err := NewClient(url)
-		if err != nil {
-			t.Skipf("skipping since client is not available")
-		}
+		assert.NoError(t, err)
 		l2 = c.L2()
 	}
 	return l2
@@ -26,7 +24,9 @@ func getL2Client(t *testing.T) *L2 {
 
 func TestL2_GlobalInfo(t *testing.T) {
 	info, err := getL2Client(t).GlobalInfo()
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	jsonInfo, err := json.MarshalIndent(info, "", "	")
 	assert.NoError(t, err)
 	t.Log(string(jsonInfo))
@@ -78,7 +78,9 @@ func DecodeBatch(b []byte) error {
 
 func TestL2_GetPendingTxBatches(t *testing.T) {
 	batch, err := getL2Client(t).GetPendingTxBatches()
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	if len(batch) > 0 { // try to decode
 		err := DecodeBatch(batch)
 		assert.NoError(t, err)
@@ -87,7 +89,9 @@ func TestL2_GetPendingTxBatches(t *testing.T) {
 
 func TestL2_GetRollupStateHash(t *testing.T) {
 	info, err := getL2Client(t).GlobalInfo()
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	stateHash, err := getL2Client(t).GetRollupStateHash(uint64(info.L1InputInfo.TotalBatches) / 2)
 	assert.NoError(t, err)
 	assert.False(t, stateHash.IsEmpty())
@@ -96,23 +100,27 @@ func TestL2_GetRollupStateHash(t *testing.T) {
 
 func TestL2_InputBatchNumber(t *testing.T) {
 	num, err := getL2Client(t).InputBatchNumber()
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	assert.True(t, num > 0)
 	t.Log(num)
 }
 
 func TestL2_StateBatchNumber(t *testing.T) {
 	num, err := getL2Client(t).StateBatchNumber()
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	assert.True(t, num > 0)
 	t.Log(num)
 }
 
 func TestL2_GetBatch(t *testing.T) {
-	//info, err := getL2Client(t).GlobalInfo()
-	//assert.NoError(t, err)
 	batch, err := getL2Client(t).GetBatch(100, true)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	jsonBatch, err := json.MarshalIndent(batch, "", "	")
 	assert.NoError(t, err)
 	t.Log(string(jsonBatch))
@@ -120,7 +128,9 @@ func TestL2_GetBatch(t *testing.T) {
 
 func TestL2_GetEnqueuedTxs(t *testing.T) {
 	txs, err := getL2Client(t).GetEnqueuedTxs(100, 1)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	assert.Equal(t, 1, len(txs))
 	jsonTxs, err := json.MarshalIndent(txs, "", "	")
 	assert.NoError(t, err)
@@ -129,7 +139,9 @@ func TestL2_GetEnqueuedTxs(t *testing.T) {
 
 func TestL2_GetBatchState(t *testing.T) {
 	info, err := getL2Client(t).GlobalInfo()
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	state, err := getL2Client(t).GetBatchState(uint64(info.L1InputInfo.TotalBatches) / 2)
 	assert.NoError(t, err)
 	jsonState, err := json.MarshalIndent(state, "", "	")
@@ -139,7 +151,9 @@ func TestL2_GetBatchState(t *testing.T) {
 
 func TestL2_GetReadStorageProof(t *testing.T) {
 	info, err := getL2Client(t).GlobalInfo()
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	blk := uint64(info.L2CheckedBlockNum)
 	proofs, err := getL2Client(t).GetReadStorageProof(&BlockNumberOrHash{BlockNumber: &blk})
 	assert.NoError(t, err)
@@ -150,7 +164,9 @@ func TestL2_GetReadStorageProof(t *testing.T) {
 
 func TestL2_GetL2MMRProof(t *testing.T) {
 	proofs, err := getL2Client(t).GetL2MMRProof(0, 1)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	for _, proof := range proofs {
 		t.Log(proof.String())
 	}
@@ -158,7 +174,9 @@ func TestL2_GetL2MMRProof(t *testing.T) {
 
 func TestL2_GetL1RelayMsgParams(t *testing.T) {
 	params, err := getL2Client(t).GetL1RelayMsgParams(0)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	jsonParams, err := json.MarshalIndent(params, "", "	")
 	assert.NoError(t, err)
 	t.Log(string(jsonParams))
@@ -166,7 +184,9 @@ func TestL2_GetL1RelayMsgParams(t *testing.T) {
 
 func TestL2_GetL2RelayMsgParams(t *testing.T) {
 	params, err := getL2Client(t).GetL2RelayMsgParams(0)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Skipf("skipping since client is not available")
+	}
 	jsonParams, err := json.MarshalIndent(params, "", "	")
 	assert.NoError(t, err)
 	t.Log(string(jsonParams))
