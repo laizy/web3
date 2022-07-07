@@ -69,12 +69,17 @@ func (l *L2) StateBatchNumber() (uint64, error) {
 }
 
 type RPCBatch struct {
-	Sequencer    web3.Address        `json:"sequencer"`
-	BatchNumber  hexutil.Uint64      `json:"batchNumber"`
-	BatchHash    web3.Hash           `json:"batchHash"`
-	QueueStart   hexutil.Uint64      `json:"queueStart"`
-	QueueNum     hexutil.Uint64      `json:"queueNum"`
-	Transactions []*web3.Transaction `json:"transactions"`
+	Sequencer   web3.Address   `json:"sequencer"`
+	BatchNumber hexutil.Uint64 `json:"batchNumber"`
+	BatchHash   web3.Hash      `json:"batchHash"`
+	QueueStart  hexutil.Uint64 `json:"queueStart"`
+	QueueNum    hexutil.Uint64 `json:"queueNum"`
+	SubBatches  []*RPCSubBatch `json:"subBatches"`
+}
+
+type RPCSubBatch struct {
+	Timestamp hexutil.Uint64      `json:"timestamp"`
+	Txs       []*web3.Transaction `json:"transactions"` // RPCTransaction or txHash
 }
 
 func (l *L2) GetBatch(batchNumber uint64, useDetail bool) (*RPCBatch, error) {
