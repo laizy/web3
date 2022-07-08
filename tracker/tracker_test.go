@@ -652,8 +652,10 @@ func (d *mockClient) addScenario(m mockList) {
 	// add the logs
 	for _, b := range m {
 		block := &web3.Block{
-			Hash:   b.Hash(),
-			Number: uint64(b.num),
+			Header: web3.Header{
+				Hash:   b.Hash(),
+				Number: uint64(b.num),
+			},
 		}
 
 		if b.num != 0 {
@@ -853,8 +855,10 @@ func (m *mockBlock) Hash() web3.Hash {
 
 func (m *mockBlock) Block() *web3.Block {
 	b := &web3.Block{
-		Hash:   m.Hash(),
-		Number: uint64(m.num),
+		Header: web3.Header{
+			Hash:   m.Hash(),
+			Number: uint64(m.num),
+		},
 	}
 	if m.num != 0 {
 		b.ParentHash = encodeHash(m.parent)
