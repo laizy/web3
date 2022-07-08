@@ -3,6 +3,7 @@ package jsonrpc
 import (
 	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"math/big"
 	"strings"
 	"testing"
@@ -303,4 +304,26 @@ func TestGetTransaction(t *testing.T) {
 	tx2, err := c.Eth().GetTransactionByBlockHashAndIndex(tx1.BlockHash, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, tx1, tx2)
+}
+
+func TestGetHeader(t *testing.T) {
+	//c, err := NewClient("http://172.168.3.73:8545")
+	//assert.NoError(t, err)
+	s := testutil.NewTestServer(t, nil)
+	defer s.Close()
+
+	c, err := NewClient(s.HTTPAddr())
+	assert.NoError(t, err)
+
+	assert.NoError(t, s.ProcessBlock())
+	h, err := c.Eth().GetHeaderByNumber(web3.BlockNumber(0))
+	assert.NoError(t, err)
+	jsonH, err := json.MarshalIndent(h, "", "	")
+	assert.NoError(t, err)
+	t.Log(string(jsonH))
+	h, err = c.Eth().GetHeaderByNumber(web3.Latest)
+	assert.NoError(t, err)
+	jsonH, err = json.MarshalIndent(h, "", "	")
+	assert.NoError(t, err)
+	t.Log(string(jsonH))
 }

@@ -99,20 +99,24 @@ func (h Hash) Bytes() []byte {
 	return h[:]
 }
 
+type Header struct {
+	Number           uint64
+	Hash             Hash
+	ParentHash       Hash
+	Sha3Uncles       Hash
+	TransactionsRoot Hash
+	StateRoot        Hash
+	ReceiptsRoot     Hash
+	Miner            Address
+	Difficulty       *big.Int
+	ExtraData        []byte
+	GasLimit         uint64
+	GasUsed          uint64
+	Timestamp        uint64
+}
+
 type Block struct {
-	Number             uint64
-	Hash               Hash
-	ParentHash         Hash
-	Sha3Uncles         Hash
-	TransactionsRoot   Hash
-	StateRoot          Hash
-	ReceiptsRoot       Hash
-	Miner              Address
-	Difficulty         *big.Int
-	ExtraData          []byte
-	GasLimit           uint64
-	GasUsed            uint64
-	Timestamp          uint64
+	Header
 	Transactions       []*Transaction
 	TransactionsHashes []Hash
 	Uncles             []Hash
