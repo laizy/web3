@@ -160,6 +160,6 @@ func (l *L2) GetL1RelayMsgParams(msgIndex uint64) (*L1RelayMsgParams, error) {
 
 func (l *L2) GetL2RelayMsgParams(msgIndex uint64) (*L2RelayMsgParams, error) {
 	result := &L2RelayMsgParams{}
-	err := l.c.Call("l2_getL1RelayMsgParams", &result, msgIndex)
+	err := l.c.Call("l2_getL2RelayMsgParams", &result, msgIndex)
 	return result, err
 }
