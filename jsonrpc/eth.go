@@ -65,7 +65,7 @@ func (e *Eth) GetBlockByHash(hash web3.Hash, full bool) (*web3.Block, error) {
 	return b, nil
 }
 
-// GetHeaderByHash returns information about a block by hash.
+// GetHeaderByHash returns information about a header by hash.
 func (e *Eth) GetHeaderByHash(hash web3.Hash) (*web3.Header, error) {
 	b, err := e.GetBlockByHash(hash, false)
 	if err != nil {
@@ -74,7 +74,7 @@ func (e *Eth) GetHeaderByHash(hash web3.Hash) (*web3.Header, error) {
 	return &b.Header, nil
 }
 
-// GetHeaderByNumber returns information about a block by hash.
+// GetHeaderByNumber returns information about a header by number.
 func (e *Eth) GetHeaderByNumber(num web3.BlockNumber) (*web3.Header, error) {
 	b, err := e.GetBlockByNumber(num, false)
 	if err != nil {
