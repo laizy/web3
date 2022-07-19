@@ -116,9 +116,9 @@ func (l *L2) GetBatchState(batchNumber uint64) (*RPCBatchState, error) {
 }
 
 type BlockNumberOrHash struct {
-	BlockNumber      *uint64    `json:"blockNumber,omitempty"`
-	BlockHash        *web3.Hash `json:"blockHash,omitempty"`
-	RequireCanonical bool       `json:"requireCanonical,omitempty"`
+	BlockNumber      *web3.BlockNumber `json:"blockNumber,omitempty"`
+	BlockHash        *web3.Hash        `json:"blockHash,omitempty"`
+	RequireCanonical bool              `json:"requireCanonical,omitempty"`
 }
 
 func (l *L2) GetReadStorageProof(blockNumOrHash *BlockNumberOrHash) ([]string, error) {
