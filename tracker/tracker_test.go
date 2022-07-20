@@ -653,9 +653,9 @@ func (d *mockClient) addScenario(m mockList) {
 	for _, b := range m {
 		block := &web3.Block{
 			Header: web3.Header{
-				Hash:   b.Hash(),
 				Number: uint64(b.num),
 			},
+			Hash: b.Hash(),
 		}
 
 		if b.num != 0 {
@@ -856,9 +856,9 @@ func (m *mockBlock) Hash() web3.Hash {
 func (m *mockBlock) Block() *web3.Block {
 	b := &web3.Block{
 		Header: web3.Header{
-			Hash:   m.Hash(),
 			Number: uint64(m.num),
 		},
+		Hash: m.Hash(),
 	}
 	if m.num != 0 {
 		b.ParentHash = encodeHash(m.parent)
