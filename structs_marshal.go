@@ -71,7 +71,7 @@ func (t *Block) MarshalJSON() ([]byte, error) {
 	o.Set("gasUsed", a.NewString(fmt.Sprintf("0x%x", t.GasUsed)))
 	o.Set("timestamp", a.NewString(fmt.Sprintf("0x%x", t.Timestamp)))
 	o.Set("extraData", a.NewString("0x"+hex.EncodeToString(t.ExtraData)))
-	o.Set("mixHash", a.NewString(t.Hash.String()))
+	o.Set("mixHash", a.NewString(t.MixHash.String()))
 	o.Set("nonce", a.NewString("0x"+hex.EncodeToString(t.Nonce[:])))
 	o.Set("hash", a.NewString(t.Hash.String()))
 
