@@ -115,11 +115,11 @@ type Header struct {
 	ExtraData        []byte
 	MixHash          Hash
 	Nonce            [8]byte
-	Hash             Hash
 }
 
 type Block struct {
 	Header
+	Hash               Hash
 	Transactions       []*Transaction
 	TransactionsHashes []Hash
 	Uncles             []Hash
