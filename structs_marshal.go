@@ -58,19 +58,22 @@ func (t *Block) MarshalJSON() ([]byte, error) {
 	a := defaultArena.Get()
 
 	o := a.NewObject()
-	o.Set("number", a.NewString(fmt.Sprintf("0x%x", t.Number)))
-	o.Set("hash", a.NewString(t.Hash.String()))
 	o.Set("parentHash", a.NewString(t.ParentHash.String()))
 	o.Set("sha3Uncles", a.NewString(t.Sha3Uncles.String()))
-	o.Set("transactionsRoot", a.NewString(t.TransactionsRoot.String()))
-	o.Set("stateRoot", a.NewString(t.StateRoot.String()))
-	o.Set("receiptsRoot", a.NewString(t.ReceiptsRoot.String()))
 	o.Set("miner", a.NewString(t.Miner.String()))
+	o.Set("stateRoot", a.NewString(t.StateRoot.String()))
+	o.Set("transactionsRoot", a.NewString(t.TransactionsRoot.String()))
+	o.Set("receiptsRoot", a.NewString(t.ReceiptsRoot.String()))
+	o.Set("logsBloom", a.NewString("0x"+hex.EncodeToString(t.LogsBloom[:])))
+	o.Set("difficulty", a.NewString(fmt.Sprintf("0x%x", t.Difficulty)))
+	o.Set("number", a.NewString(fmt.Sprintf("0x%x", t.Number)))
 	o.Set("gasLimit", a.NewString(fmt.Sprintf("0x%x", t.GasLimit)))
 	o.Set("gasUsed", a.NewString(fmt.Sprintf("0x%x", t.GasUsed)))
 	o.Set("timestamp", a.NewString(fmt.Sprintf("0x%x", t.Timestamp)))
-	o.Set("difficulty", a.NewString(fmt.Sprintf("0x%x", t.Difficulty)))
 	o.Set("extraData", a.NewString("0x"+hex.EncodeToString(t.ExtraData)))
+	o.Set("mixHash", a.NewString(t.MixHash.String()))
+	o.Set("nonce", a.NewString("0x"+hex.EncodeToString(t.Nonce[:])))
+	o.Set("hash", a.NewString(t.Hash.String()))
 
 	// uncles
 	if len(t.Uncles) != 0 {

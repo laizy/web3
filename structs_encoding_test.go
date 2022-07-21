@@ -2,6 +2,7 @@ package web3
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -27,19 +28,22 @@ func TestJSONEncoding(t *testing.T) {
 	}{
 		{
 			Input: `{
-				"number": "0x1",
-				"hash": "{{.Hash1}}",
 				"parentHash": "{{.Hash2}}",
 				"sha3Uncles": "{{.Hash3}}",
-				"transactionsRoot": "{{.Hash1}}",
-				"stateRoot": "{{.Hash3}}",
-				"receiptsRoot": "{{.Hash2}}",
 				"miner": "{{.Addr1}}",
+				"stateRoot": "{{.Hash3}}",
+				"transactionsRoot": "{{.Hash1}}",
+				"receiptsRoot": "{{.Hash2}}",
+				"logsBloom": "{{.Bloom}}",
+				"difficulty": "0x5",
+				"number": "0x1",
 				"gasLimit": "0x2",
 				"gasUsed": "0x3",
 				"timestamp": "0x4",
-				"difficulty": "0x5",
 				"extraData": "0x01",
+				"mixHash": "{{.Hash2}}",
+				"nonce": "{{.Nonce}}",
+				"hash": "{{.Hash1}}",
 				"uncles": [
 					"{{.Hash1}}",
 					"{{.Hash2}}"
@@ -96,6 +100,8 @@ func TestJSONEncoding(t *testing.T) {
 			config[fmt.Sprintf("Hash%d", i)] = (Hash{byte(i)}).String()
 			config[fmt.Sprintf("Addr%d", i)] = (Address{byte(i)}).String()
 		}
+		config["Bloom"] = "0x" + hex.EncodeToString(make([]byte, 256))
+		config["Nonce"] = "0x" + hex.EncodeToString(make([]byte, 8))
 
 		buffer := new(bytes.Buffer)
 		assert.NoError(t, tmpl.Execute(buffer, config))

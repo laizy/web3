@@ -100,23 +100,26 @@ func (h Hash) Bytes() []byte {
 }
 
 type Header struct {
-	Number           uint64
-	Hash             Hash
 	ParentHash       Hash
 	Sha3Uncles       Hash
-	TransactionsRoot Hash
-	StateRoot        Hash
-	ReceiptsRoot     Hash
 	Miner            Address
+	StateRoot        Hash
+	TransactionsRoot Hash
+	ReceiptsRoot     Hash
+	LogsBloom        [256]byte
 	Difficulty       *big.Int
-	ExtraData        []byte
+	Number           uint64
 	GasLimit         uint64
 	GasUsed          uint64
 	Timestamp        uint64
+	ExtraData        []byte
+	MixHash          Hash
+	Nonce            [8]byte
 }
 
 type Block struct {
 	Header
+	Hash               Hash
 	Transactions       []*Transaction
 	TransactionsHashes []Hash
 	Uncles             []Hash

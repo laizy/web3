@@ -31,16 +31,22 @@ func (b *Block) UnmarshalJSON(buf []byte) error {
 	if err := decodeHash(&b.Sha3Uncles, v, "sha3Uncles"); err != nil {
 		return err
 	}
-	if err := decodeHash(&b.TransactionsRoot, v, "transactionsRoot"); err != nil {
+	if err := decodeAddr(&b.Miner, v, "miner"); err != nil {
 		return err
 	}
 	if err := decodeHash(&b.StateRoot, v, "stateRoot"); err != nil {
 		return err
 	}
+	if err := decodeHash(&b.TransactionsRoot, v, "transactionsRoot"); err != nil {
+		return err
+	}
 	if err := decodeHash(&b.ReceiptsRoot, v, "receiptsRoot"); err != nil {
 		return err
 	}
-	if err := decodeAddr(&b.Miner, v, "miner"); err != nil {
+	if err := decodeBloom(b.LogsBloom[:], v, "logsBloom"); err != nil {
+		return err
+	}
+	if b.Difficulty, err = decodeBigInt(b.Difficulty, v, "difficulty"); err != nil {
 		return err
 	}
 	if b.Number, err = decodeUint(v, "number"); err != nil {
@@ -55,10 +61,13 @@ func (b *Block) UnmarshalJSON(buf []byte) error {
 	if b.Timestamp, err = decodeUint(v, "timestamp"); err != nil {
 		return err
 	}
-	if b.Difficulty, err = decodeBigInt(b.Difficulty, v, "difficulty"); err != nil {
+	if b.ExtraData, err = decodeBytes(b.ExtraData[:0], v, "extraData"); err != nil {
 		return err
 	}
-	if b.ExtraData, err = decodeBytes(b.ExtraData[:0], v, "extraData"); err != nil {
+	if err := decodeHash(&b.MixHash, v, "mixHash"); err != nil {
+		return err
+	}
+	if err := decodeBlockNonce(b.Nonce[:], v, "nonce"); err != nil {
 		return err
 	}
 
@@ -382,6 +391,22 @@ func decodeHash(h *Hash, v *fastjson.Value, key string) error {
 	}
 	h.UnmarshalText(b)
 	return nil
+}
+
+func decodeBloom(h []byte, v *fastjson.Value, key string) error {
+	b := v.GetStringBytes(key)
+	if len(b) == 0 {
+		return fmt.Errorf("field '%s' not found", key)
+	}
+	return unmarshalTextByte(h, b, 256)
+}
+
+func decodeBlockNonce(h []byte, v *fastjson.Value, key string) error {
+	b := v.GetStringBytes(key)
+	if len(b) == 0 {
+		return fmt.Errorf("field '%s' not found", key)
+	}
+	return unmarshalTextByte(h, b, 8)
 }
 
 func decodeAddr(a *Address, v *fastjson.Value, key string) error {
