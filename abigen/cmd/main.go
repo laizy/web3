@@ -1,12 +1,15 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/laizy/web3/utils"
 
 	"github.com/laizy/web3/abigen"
 	"github.com/laizy/web3/compiler"
@@ -34,6 +37,11 @@ func main() {
 		Package: pckg,
 		Output:  output,
 		Name:    name,
+	}
+
+	if _, err := os.Stat(output); errors.Is(err, os.ErrNotExist) { //create dir if not exist
+		err := os.Mkdir(output, os.ModePerm)
+		utils.Ensure(err)
 	}
 
 	if source == "" {
