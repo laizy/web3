@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const url = "http://192.168.31.199:23333"
+const url = "http://192.168.6.142:23333"
 
 var l2 *L2
 
@@ -118,7 +118,7 @@ func TestL2_StateBatchNumber(t *testing.T) {
 }
 
 func TestL2_GetBatch(t *testing.T) {
-	batch, err := getL2Client(t).GetBatch(100, true)
+	batch, err := getL2Client(t).GetBatch(10, true)
 	if err != nil {
 		t.Skipf("skipping since client is not available")
 	}
@@ -164,7 +164,7 @@ func TestL2_GetReadStorageProof(t *testing.T) {
 }
 
 func TestL2_GetL2MMRProof(t *testing.T) {
-	proofs, err := getL2Client(t).GetL2MMRProof(0, 1)
+	proofs, err := getL2Client(t).GetL2MMRProof(1, 5)
 	if err != nil {
 		t.Skipf("skipping since client is not available")
 	}

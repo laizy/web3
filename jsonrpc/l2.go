@@ -18,7 +18,7 @@ func (c *Client) L2() *L2 {
 //tx batch data is already encoded as params of AppendBatch in RollupInputChain.sol, just add a func selector beyond it
 //to invoke the AppendBatch is fine.
 func (l *L2) GetPendingTxBatches() ([]byte, error) {
-	var out []byte
+	var out hexutil.Bytes
 	err := l.c.Call("l2_getPendingTxBatches", &out)
 	return out, err
 }
@@ -56,14 +56,14 @@ func (l *L2) GlobalInfo() (*GlobalInfo, error) {
 	return &out, err
 }
 
-func (l *L2) InputBatchNumber() (uint64, error) {
-	out := uint64(0)
+func (l *L2) InputBatchNumber() (hexutil.Uint64, error) {
+	out := hexutil.Uint64(0)
 	err := l.c.Call("l2_inputBatchNumber", &out)
 	return out, err
 }
 
-func (l *L2) StateBatchNumber() (uint64, error) {
-	out := uint64(0)
+func (l *L2) StateBatchNumber() (hexutil.Uint64, error) {
+	out := hexutil.Uint64(0)
 	err := l.c.Call("l2_stateBatchNumber", &out)
 	return out, err
 }
