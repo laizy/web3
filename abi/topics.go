@@ -92,6 +92,12 @@ func ParseTopic(t *Type, topic web3.Hash) (interface{}, error) {
 	case KindAddress:
 		return readAddr(topic[:])
 
+	case KindFixedBytes:
+		if t.Size() != 32 {
+			return web3.Hash{}, fmt.Errorf("not found")
+		}
+		return readFixedBytes(t, topic[:]), nil
+
 	default:
 		return nil, fmt.Errorf("Topic parsing for type %s not supported", t.String())
 	}
@@ -112,6 +118,11 @@ func encodeTopic(t *Type, val reflect.Value) (web3.Hash, error) {
 
 	case KindAddress:
 		return encodeTopicAddress(val)
+	case KindFixedBytes:
+		if t.Size() != 32 {
+			return web3.Hash{}, fmt.Errorf("not found")
+		}
+		return encodeTopicBytes32(val)
 
 	}
 	return web3.Hash{}, fmt.Errorf("not found")
@@ -128,6 +139,18 @@ func encodeTopicAddress(val reflect.Value) (res web3.Hash, err error) {
 	b, err = encodeAddress(val)
 	if err != nil {
 		return
+	}
+	copy(res[:], b[:])
+	return
+}
+
+func encodeTopicBytes32(val reflect.Value) (res web3.Hash, err error) {
+	b, err := encodeFixedBytes(val)
+	if err != nil {
+		return
+	}
+	if len(b) != 32 {
+		return web3.Hash{}, fmt.Errorf("wrong fixed bytes")
 	}
 	copy(res[:], b[:])
 	return
