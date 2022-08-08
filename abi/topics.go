@@ -96,7 +96,7 @@ func ParseTopic(t *Type, topic web3.Hash) (interface{}, error) {
 		if t.Size() != 32 {
 			return web3.Hash{}, fmt.Errorf("not found")
 		}
-		return readFixedBytes(t, topic[:]), nil
+		return readFixedBytes(t, topic[:])
 
 	default:
 		return nil, fmt.Errorf("Topic parsing for type %s not supported", t.String())
