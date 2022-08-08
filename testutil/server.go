@@ -83,6 +83,7 @@ type TestServer struct {
 	accounts []web3.Address
 	client   *ethClient
 	t        *testing.T
+	errCh    chan error
 }
 
 // NewTestServer creates a new Geth test server
@@ -117,27 +118,34 @@ func NewTestServer(t *testing.T, cb ServerConfigCallback) *TestServer {
 	args = append(args, "--datadir", dir)
 
 	// enable rpc
-	args = append(args, "--rpc", "--rpcport", config.HTTPPort)
+	args = append(args, "--http", "--http.port", config.HTTPPort)
 
 	// enable ws
-	args = append(args, "--ws", "--wsport", config.WSPort)
+	args = append(args, "--ws", "--ws.port", config.WSPort)
 
 	// Start the server
 	cmd := exec.Command(path, args...)
-	cmd.Stdout = nil
+	cmd.Stdout = os.Stdout
 	cmd.Stderr = nil
-	if err := cmd.Start(); err != nil {
-		t.Fatalf("err: %s", err)
-	}
+	ch := make(chan error, 1)
+	go func() {
+		ch <- cmd.Run()
+	}()
 
 	server := &TestServer{
 		t:      t,
 		cmd:    cmd,
 		config: config,
+		errCh:  ch,
 	}
 
 	// wait till the jsonrpc endpoint is running
 	for {
+		select {
+		case err := <-ch:
+			t.Fatal(err)
+		default:
+		}
 		if server.testHTTPEndpoint() {
 			break
 		}
