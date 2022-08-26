@@ -52,10 +52,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	fmt.Println("origin source: ", source)
 	sources := strings.Split(source, ", ")
 	for _, source := range sources {
-		fmt.Println("source: ", source)
 		matches, err := filepath.Glob(source)
 		if err != nil {
 			fmt.Printf("Failed to read files: %v", err)
@@ -73,7 +71,6 @@ func main() {
 				//ignore metadata file
 				continue
 			}
-			fmt.Println("match: ", source)
 			artifacts, err := process(source, config)
 			if err != nil {
 				fmt.Printf("Failed to parse sources: %v", err)
@@ -87,7 +84,7 @@ func main() {
 						os.Exit(1)
 					}
 					filename := filepath.Join(output, name+"_abi.json")
-					fmt.Println("write to: ", filename, "abi: ", v.Abi)
+					fmt.Println("write abi to: ", filename)
 					if err := ioutil.WriteFile(filename, []byte(v.Abi), 0644); err != nil {
 						panic(err)
 					}
