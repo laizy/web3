@@ -52,7 +52,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	sources := strings.Split(source, ", ")
+	sources := strings.Split(source, ",")
 	for _, source := range sources {
 		matches, err := filepath.Glob(source)
 		if err != nil {
