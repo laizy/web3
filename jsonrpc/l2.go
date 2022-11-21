@@ -15,8 +15,8 @@ func (c *Client) L2() *L2 {
 	return c.endpoints.l
 }
 
-//tx batch data is already encoded as params of AppendBatch in RollupInputChain.sol, just add a func selector beyond it
-//to invoke the AppendBatch is fine.
+// tx batch data is already encoded as params of AppendBatch in RollupInputChain.sol, just add a func selector beyond it
+// to invoke the AppendBatch is fine.
 func (l *L2) GetPendingTxBatches() ([]byte, error) {
 	var out hexutil.Bytes
 	err := l.c.Call("l2_getPendingTxBatches", &out)
@@ -48,8 +48,8 @@ type GlobalInfo struct {
 	L1SyncedTimestamp   *hexutil.Uint64
 }
 
-//tx batch data is already encoded as params of AppendBatch in RollupInputChain.sol, just add a func selector beyond it
-//to invoke the AppendBatch is fine.
+// tx batch data is already encoded as params of AppendBatch in RollupInputChain.sol, just add a func selector beyond it
+// to invoke the AppendBatch is fine.
 func (l *L2) GlobalInfo() (*GlobalInfo, error) {
 	var out GlobalInfo
 	err := l.c.Call("l2_globalInfo", &out)
@@ -115,15 +115,9 @@ func (l *L2) GetBatchState(batchNumber uint64) (*RPCBatchState, error) {
 	return &out, err
 }
 
-type BlockNumberOrHash struct {
-	BlockNumber      *web3.BlockNumber `json:"blockNumber,omitempty"`
-	BlockHash        *web3.Hash        `json:"blockHash,omitempty"`
-	RequireCanonical bool              `json:"requireCanonical,omitempty"`
-}
-
-func (l *L2) GetReadStorageProof(blockNumOrHash *BlockNumberOrHash) ([]string, error) {
+func (l *L2) GetReadStorageProof(batchIndex uint64) ([]string, error) {
 	result := make([]string, 0)
-	err := l.c.Call("debug_getReadStorageProofAtBlock", &result, blockNumOrHash)
+	err := l.c.Call("debug_getReadStorageProofAtBatch", &result, batchIndex)
 	return result, err
 }
 
