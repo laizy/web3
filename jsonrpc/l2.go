@@ -115,9 +115,9 @@ func (l *L2) GetBatchState(batchNumber uint64) (*RPCBatchState, error) {
 	return &out, err
 }
 
-func (l *L2) GetReadStorageProof(batchIndex uint64) ([]string, error) {
+func (l *L2) GetReadStorageProof(input []byte, parentBlockHash web3.Hash, batchIndex uint64) ([]string, error) {
 	result := make([]string, 0)
-	err := l.c.Call("debug_getReadStorageProofAtBatch", &result, batchIndex)
+	err := l.c.Call("debug_getReadStorageProofAtBatch", &result, encodeToHex(input), parentBlockHash, hexutil.Uint64(batchIndex))
 	return result, err
 }
 
