@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/laizy/web3"
 	"github.com/laizy/web3/utils/codec"
 	"github.com/stretchr/testify/assert"
 )
 
-const url = "http://192.168.6.142:23333"
+const url = "http://192.168.6.237:23333"
 
 var l2 *L2
 
@@ -151,13 +150,16 @@ func TestL2_GetBatchState(t *testing.T) {
 }
 
 func TestL2_GetReadStorageProof(t *testing.T) {
-	totalBlock, err := getL2Client(t).c.Eth().BlockNumber()
+	//totalBlock, err := getL2Client(t).c.Eth().BlockNumber()
+	//if err != nil {
+	//	t.Skipf("skipping since client is not available")
+	//}
+	// 986 0x3da, 958 0x3be
+	batchIndex := uint64(1)
+	proofs, err := getL2Client(t).GetReadStorageProof(batchIndex)
 	if err != nil {
 		t.Skipf("skipping since client is not available")
 	}
-	blk := web3.BlockNumber(totalBlock / 2)
-	proofs, err := getL2Client(t).GetReadStorageProof(&BlockNumberOrHash{BlockNumber: &blk})
-	assert.NoError(t, err)
 	for _, proof := range proofs {
 		t.Log(proof)
 	}
