@@ -3,6 +3,7 @@ package jsonrpc
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/laizy/web3"
 	"testing"
 
 	"github.com/laizy/web3/utils/codec"
@@ -156,7 +157,7 @@ func TestL2_GetReadStorageProof(t *testing.T) {
 	//}
 	// 986 0x3da, 958 0x3be
 	batchIndex := uint64(1)
-	proofs, err := getL2Client(t).GetReadStorageProof(batchIndex)
+	proofs, err := getL2Client(t).GetReadStorageProof(nil, web3.Hash{}, batchIndex)
 	if err != nil {
 		t.Skipf("skipping since client is not available")
 	}
