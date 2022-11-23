@@ -75,6 +75,7 @@ type RPCBatch struct {
 	QueueStart  hexutil.Uint64 `json:"queueStart"`
 	QueueNum    hexutil.Uint64 `json:"queueNum"`
 	SubBatches  []*RPCSubBatch `json:"subBatches"`
+	Version     hexutil.Uint64 `json:"version"` // version of encode type, 0 for normal rlp, 1 for brotli code of rlp
 }
 
 type RPCSubBatch struct {
