@@ -3,9 +3,9 @@ package jsonrpc
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/laizy/web3"
 	"testing"
 
+	"github.com/laizy/web3"
 	"github.com/laizy/web3/utils/codec"
 	"github.com/stretchr/testify/assert"
 )
