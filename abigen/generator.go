@@ -7,10 +7,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/laizy/web3/utils"
-
 	"github.com/laizy/web3/abi"
 	"github.com/laizy/web3/compiler"
+	"github.com/laizy/web3/utils"
 )
 
 type Generator struct {
@@ -44,8 +43,12 @@ func (g *Generator) Gen() (res Result, err error) {
 			return Result{}, err
 		}
 
-		for n, e := range abi.Events { //repalace old event to get event nil arg's name
+		for n, e := range abi.Events { //replace old event to get event nil arg's name
 			abi.Events[n] = optimizeEvent(e)
+		}
+		// replace old input to get input nil arg's name
+		for n, m := range abi.Methods {
+			abi.Methods[n] = optimizeInput(m)
 		}
 		fileName := strings.ToLower(name)
 		input := map[string]interface{}{

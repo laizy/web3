@@ -175,6 +175,17 @@ func optimizeEvent(event *abi.Event) *abi.Event {
 	return event
 }
 
+//optimizeInput change inner empty name to arg%d.
+func optimizeInput(m *abi.Method) *abi.Method {
+	m = m.Copy()
+	for j, e := range m.Inputs.TupleElems() {
+		if e.Name == "" {
+			e.Name = fmt.Sprintf("arg%d", j)
+		}
+	}
+	return m
+}
+
 func getTopicFilterParam(event *abi.Event) string {
 	var params []string
 	for _, v := range event.Inputs.TupleElems() {
