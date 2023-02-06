@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/laizy/web3/utils"
@@ -25,11 +26,13 @@ func main() {
 	var pckg string
 	var output string
 	var name string
+	var onlyAbi bool
 
 	flag.StringVar(&source, "source", "", "List of abi files")
 	flag.StringVar(&pckg, "package", "main", "Name of the package")
 	flag.StringVar(&output, "output", "", "Output directory")
 	flag.StringVar(&name, "name", "", "name of the contract")
+	flag.BoolVar(&onlyAbi, "abi", false, "only extract abi")
 
 	flag.Parse()
 
@@ -62,14 +65,35 @@ func main() {
 		}
 
 		for _, source := range matches {
+			is, err := regexp.Match(".*\\.metadata\\.json$", []byte(source))
+			utils.Ensure(err)
+			if is {
+				//ignore metadata file
+				continue
+			}
 			artifacts, err := process(source, config)
 			if err != nil {
 				fmt.Printf("Failed to parse sources: %v", err)
 				os.Exit(1)
 			}
-			if err := abigen.GenCode(artifacts, config); err != nil {
-				fmt.Printf("Failed to generate sources: %v", err)
-				os.Exit(1)
+			if onlyAbi {
+				for name, v := range artifacts {
+					fmt.Println("name: ", name)
+					if len(v.Abi) == 0 {
+						fmt.Printf("No abi from %s\n", name)
+						os.Exit(1)
+					}
+					filename := filepath.Join(output, name+"_abi.json")
+					fmt.Println("write abi to: ", filename)
+					if err := ioutil.WriteFile(filename, []byte(v.Abi), 0644); err != nil {
+						panic(err)
+					}
+				}
+			} else {
+				if err := abigen.GenCode(artifacts, config); err != nil {
+					fmt.Printf("Failed to generate sources: %v", err)
+					os.Exit(1)
+				}
 			}
 		}
 	}
