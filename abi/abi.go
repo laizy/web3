@@ -153,6 +153,16 @@ type Method struct {
 	Outputs *Type
 }
 
+//Copy is lightly copy inside inputs, do not modify inner pointer objects.
+func (m *Method) Copy() *Method {
+	return &Method{
+		m.Name,
+		m.Const,
+		m.Inputs.Copy(),
+		m.Outputs.Copy(),
+	}
+}
+
 // Sig returns the signature of the method
 func (m *Method) Sig() string {
 	return buildSignature(m.Name, m.Inputs)

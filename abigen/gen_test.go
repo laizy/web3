@@ -67,6 +67,8 @@ address
 		return haha;
 	}
 
+	function TestEmptyInputName(address,string memory,uint256,bytes memory)public view{}
+
     function getTxes(Transaction[] memory txes) external view returns (Transaction[] memory) {
         return txes;
     }
@@ -221,6 +223,21 @@ func (_a *Sample) Contract() *contract.Contract {
 }
 
 // calls
+
+// TestEmptyInputName calls the TestEmptyInputName method in the solidity contract
+func (_a *Sample) TestEmptyInputName(arg0 web3.Address, arg1 string, arg2 *big.Int, arg3 []byte, block ...web3.BlockNumber) (err error) {
+	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
+	out, err = _a.c.Call("TestEmptyInputName", web3.EncodeBlock(block...), arg0, arg1, arg2, arg3)
+	if err != nil {
+		return
+	}
+
+	// decode outputs
+
+	return
+}
 
 // TestOutPut calls the TestOutPut method in the solidity contract
 func (_a *Sample) TestOutPut(block ...web3.BlockNumber) (retval0 Output, err error) {
