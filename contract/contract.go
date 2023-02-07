@@ -71,6 +71,7 @@ func DeployContract(provider *jsonrpc.Client, from web3.Address, abiVal *abi.ABI
 // NewContract creates a new contract instance
 func NewContract(addr web3.Address, abi *abi.ABI, provider *jsonrpc.Client) *Contract {
 	registry.Instance().RegisterFromAbi(abi)
+	registry.ErrInstance().RegisterFromAbi(abi)
 	return &Contract{
 		addr:     addr,
 		Abi:      abi,

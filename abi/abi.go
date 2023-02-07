@@ -492,3 +492,19 @@ func NewABIFromList(humanReadableAbi []string) (*ABI, error) {
 	}
 	return res, nil
 }
+
+func DefaultError() []*Error {
+	ret := []*Error{
+		{Name: "Error", Inputs: &Type{
+			kind:  KindTuple,
+			raw:   "tuple",
+			tuple: []*TupleElem{&TupleElem{Name: "", Elem: MustNewType("string")}},
+		}},
+		{Name: "Panic", Inputs: &Type{
+			kind:  KindTuple,
+			raw:   "tuple",
+			tuple: []*TupleElem{&TupleElem{Name: "", Elem: MustNewType("uint256")}},
+		}},
+	}
+	return ret
+}

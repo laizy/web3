@@ -208,6 +208,7 @@ func RegisterProjectEvents() error {
 			return err
 		}
 		registry.Instance().RegisterFromAbi(artiAbi)
+		registry.ErrInstance().RegisterFromAbi(artiAbi)
 	}
 
 	return nil

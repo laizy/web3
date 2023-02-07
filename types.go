@@ -23,6 +23,7 @@ import (
 	"math/big"
 
 	"github.com/laizy/web3/evm/errors"
+	"github.com/laizy/web3/registry"
 	"github.com/laizy/web3/utils"
 	"github.com/laizy/web3/utils/common/hexutil"
 )
@@ -46,7 +47,7 @@ func NewExecutionResult(usedGas uint64, err error, ret []byte) *ExecutionResult 
 	if err != nil {
 		//result.RevertReson = "Transaction reverted silently"
 		result.RevertReason = err.Error()
-		if reason, ok := DecodeRevert(ret); ok {
+		if reason, err := registry.ErrInstance().ParseError(ret); err == nil {
 			result.RevertReason = reason
 		}
 	}
