@@ -6,6 +6,7 @@ import (
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/abi"
 	"github.com/laizy/web3/jsonrpc"
+	registry2 "github.com/laizy/web3/registry"
 	"github.com/laizy/web3/testutil"
 	"github.com/stretchr/testify/assert"
 )
@@ -116,4 +117,32 @@ func TestErr(t *testing.T) {
 	cc := NewContract(web3.HexToAddress("0x5fbdb2315678afecb367f032d93f642f64180aa3"), _abi, c)
 	_, err = cc.Call("expectErr", web3.Latest)
 	assert.Equal(t, err.Error(), "{\"code\":-32603,\"message\":\"Error: VM Exception while processing transaction: reverted with custom error 'CustomError(\\\"0x0000000000000000000000000000000000000001\\\", \\\"0x0000000000000000000000000000000000000002\\\")'\",\"data\":{\"data\":\"0x0ebdea3800000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002\",\"message\":\"Error: VM Exception while processing transaction: reverted with custom error 'CustomError(\\\"0x0000000000000000000000000000000000000001\\\", \\\"0x0000000000000000000000000000000000000002\\\")'\"},\"decoded_message\":\"CustomError(0x0000000000000000000000000000000000000001,0x0000000000000000000000000000000000000002)\"}")
+}
+
+func TestErrorRegistry(t *testing.T) {
+	abiStr := `[{
+     "inputs": [
+       {
+         "internalType": "address",
+         "name": "have",
+         "type": "address"
+       },
+       {
+         "internalType": "address",
+         "name": "want",
+         "type": "address"
+       }
+     ],
+     "name": "OnlyCoordinatorCanFulfill",
+     "type": "error"
+   }]`
+	registry := registry2.NewErrorRegistry()
+	_abi, err := abi.NewABI(abiStr)
+	assert.Nil(t, err)
+	registry.RegisterFromAbi(_abi)
+	data, err := _abi.Errors["OnlyCoordinatorCanFulfill"].EncodeIDAndInput(web3.Address{19: 1}, web3.Address{18: 1})
+	assert.Nil(t, err)
+	info, err := registry.ParseError(data)
+	assert.Nil(t, err)
+	t.Log(info)
 }
