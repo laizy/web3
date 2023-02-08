@@ -57,7 +57,7 @@ func (self *ErrorRegistry) ParseError(info []byte) (string, error) {
 		return "", fmt.Errorf("can not parse error with sig: %x", id)
 	}
 
-	errInterface, err := abi.Decode(e.Inputs, info[:])
+	errInterface, err := abi.Decode(e.Inputs, info[4:])
 	if err != nil {
 		return "", fmt.Errorf("can not parse err when decode: %s", err)
 	}
