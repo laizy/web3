@@ -1,4 +1,4 @@
-package registry
+package tests
 
 import (
 	"fmt"
@@ -6,11 +6,12 @@ import (
 
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/jsonrpc"
+	registry2 "github.com/laizy/web3/registry"
 	web32 "github.com/laizy/web3/utils"
 )
 
 func TestEventRegistry_DumpLog(t *testing.T) {
-	registry := &EventRegistry{}
+	registry := &registry2.EventRegistry{}
 	registry.RegisterPresetMainnet()
 
 	web3.RegisterParser(registry)
