@@ -4,8 +4,10 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"fmt"
 
-	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/btcec/v2"
+	btc_ecdsa "github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/laizy/web3"
 	"golang.org/x/crypto/sha3"
 )
@@ -24,7 +26,13 @@ func (k *Key) Address() web3.Address {
 }
 
 func (k *Key) MarshallPrivateKey() ([]byte, error) {
-	return (*btcec.PrivateKey)(k.priv).Serialize(), nil
+	// ecdsa.PrivateKey -> btcec.PrivateKey
+	var priv btcec.PrivateKey
+	if overflow := priv.Key.SetByteSlice(k.priv.D.Bytes()); overflow || priv.Key.IsZero() {
+		return nil, fmt.Errorf("invalid private key")
+	}
+	defer priv.Zero()
+	return priv.Serialize(), nil
 }
 
 func (k *Key) SignMsg(msg []byte) ([]byte, error) {
@@ -32,7 +40,13 @@ func (k *Key) SignMsg(msg []byte) ([]byte, error) {
 }
 
 func (k *Key) Sign(hash []byte) ([]byte, error) {
-	sig, err := btcec.SignCompact(S256, (*btcec.PrivateKey)(k.priv), hash, false)
+	// ecdsa.PrivateKey -> btcec.PrivateKey
+	var priv btcec.PrivateKey
+	if overflow := priv.Key.SetByteSlice(k.priv.D.Bytes()); overflow || priv.Key.IsZero() {
+		return nil, fmt.Errorf("invalid private key")
+	}
+	defer priv.Zero()
+	sig, err := btc_ecdsa.SignCompact(&priv, hash, false)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +100,7 @@ func RecoverPubkey(signature, hash []byte) (*ecdsa.PublicKey, error) {
 	}
 
 	sig := append([]byte{term}, signature[:size-1]...)
-	pub, _, err := btcec.RecoverCompact(S256, sig, hash)
+	pub, _, err := btc_ecdsa.RecoverCompact(sig, hash)
 	if err != nil {
 		return nil, err
 	}

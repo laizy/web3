@@ -1,14 +1,9 @@
 package wallet
 
 import (
-	"crypto/ecdsa"
 	"fmt"
 	"math/big"
 	"strings"
-
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcutil/hdkeychain"
-	bip39 "github.com/tyler-smith/go-bip39"
 )
 
 type DerivationPath []uint32
@@ -18,22 +13,6 @@ var decVal = big.NewInt(2147483648)
 
 // DefaultDerivationPath is the default derivation path for Ethereum addresses
 var DefaultDerivationPath = DerivationPath{0x80000000 + 44, 0x80000000 + 60, 0x80000000 + 0, 0, 0}
-
-func (d *DerivationPath) Derive(master *hdkeychain.ExtendedKey) (*ecdsa.PrivateKey, error) {
-	var err error
-	key := master
-	for _, n := range *d {
-		key, err = key.Derive(n)
-		if err != nil {
-			return nil, err
-		}
-	}
-	priv, err := key.ECPrivKey()
-	if err != nil {
-		return nil, err
-	}
-	return priv.ToECDSA(), nil
-}
 
 func parseDerivationPath(path string) (*DerivationPath, error) {
 	parts := strings.Split(path, "/")
@@ -73,20 +52,4 @@ func parseDerivationPath(path string) (*DerivationPath, error) {
 	}
 
 	return &result, nil
-}
-
-func NewWalletFromMnemonic(mnemonic string) (*Key, error) {
-	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
-	if err != nil {
-		return nil, err
-	}
-	masterKey, err := hdkeychain.NewMaster(seed, &chaincfg.MainNetParams)
-	if err != nil {
-		return nil, err
-	}
-	priv, err := DefaultDerivationPath.Derive(masterKey)
-	if err != nil {
-		return nil, err
-	}
-	return newKey(priv), nil
 }
