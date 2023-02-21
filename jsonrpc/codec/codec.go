@@ -3,6 +3,9 @@ package codec
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/laizy/web3/registry"
+	"github.com/laizy/web3/utils/common/hexutil"
 )
 
 // Request is a jsonrpc request
@@ -22,9 +25,10 @@ type Response struct {
 
 // ErrorObject is a jsonrpc error
 type ErrorObject struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Code           int         `json:"code"`
+	Message        string      `json:"message"`
+	Data           interface{} `json:"data,omitempty"`
+	DecodedMessage string      `json:"decoded_message,omitempty"`
 }
 
 // Subscription is a jsonrpc subscription
@@ -35,6 +39,10 @@ type Subscription struct {
 
 // Error implements error interface
 func (e *ErrorObject) Error() string {
+	info, err := registry.ErrInstance().ParseError(hexutil.MustDecode(e.Data.(map[string]interface{})["data"].(string)))
+	if err == nil {
+		e.DecodedMessage = info
+	}
 	data, err := json.Marshal(e)
 	if err != nil {
 		return fmt.Sprintf("jsonrpc.internal marshal error: %v", err)

@@ -56,6 +56,8 @@ address
         L1TOL2_QUEUE
     }
 
+	error OnlyCoordinatorCanFulfill(address have, address want);
+
 	 constructor(){ emit Deposit(msg.sender,msg.sender,100000,bytes("test")); emit noName(msg.sender,msg.sender);}
 
     function TestStruct(Transaction memory a,bytes memory b) public returns (bytes memory){

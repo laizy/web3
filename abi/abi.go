@@ -21,6 +21,7 @@ type ABI struct {
 	Methods      map[string]*Method
 	MethodsBySig map[string]*Method
 	Events       map[string]*Event
+	Errors       map[string]*Error
 }
 
 func (a *ABI) addEvent(e *Event) {
@@ -84,6 +85,7 @@ func (a *ABI) UnmarshalJSON(data []byte) error {
 
 	a.Methods = make(map[string]*Method)
 	a.Events = make(map[string]*Event)
+	a.Errors = make(map[string]*Error)
 
 	for _, field := range fields {
 		switch field.Type {
@@ -119,7 +121,11 @@ func (a *ABI) UnmarshalJSON(data []byte) error {
 		case "fallback":
 		case "receive":
 			// do nothing
-
+		case "error":
+			a.Errors[field.Name] = &Error{
+				field.Name,
+				field.Inputs.Type(),
+			}
 		default:
 			return fmt.Errorf("unknown field type '%s'", field.Type)
 		}
@@ -143,6 +149,42 @@ func (self *ABI) DecodeTxInput(input []byte) (map[string]interface{}, error) {
 	}
 
 	return nil, fmt.Errorf("no matched method")
+}
+
+type Error struct {
+	Name   string
+	Inputs *Type
+}
+
+//Copy is lightly copy inside inputs, do not modify inner pointer objects.
+func (e *Error) Copy() *Error {
+	return &Error{
+		Name:   e.Name,
+		Inputs: e.Inputs.Copy(),
+	}
+}
+
+func (e *Error) Sig() string {
+	return buildSignature(e.Name, e.Inputs)
+}
+
+// ID returns the id of the method
+func (e *Error) ID() []byte {
+	k := acquireKeccak()
+	sig := e.Sig()
+	k.Write([]byte(sig))
+	dst := k.Sum(nil)[:4]
+	releaseKeccak(k)
+	return dst
+}
+
+func (self *Error) EncodeIDAndInput(args ...interface{}) ([]byte, error) {
+	data, err := Encode(args, self.Inputs)
+	if err != nil {
+		return nil, err
+	}
+	data = append(self.ID(), data...)
+	return data, nil
 }
 
 // Method is a callable function in the contract
@@ -449,4 +491,20 @@ func NewABIFromList(humanReadableAbi []string) (*ABI, error) {
 		}
 	}
 	return res, nil
+}
+
+func DefaultError() []*Error {
+	ret := []*Error{
+		{Name: "Error", Inputs: &Type{
+			kind:  KindTuple,
+			raw:   "tuple",
+			tuple: []*TupleElem{&TupleElem{Name: "", Elem: MustNewType("string")}},
+		}},
+		{Name: "Panic", Inputs: &Type{
+			kind:  KindTuple,
+			raw:   "tuple",
+			tuple: []*TupleElem{&TupleElem{Name: "", Elem: MustNewType("uint256")}},
+		}},
+	}
+	return ret
 }

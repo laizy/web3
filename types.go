@@ -36,24 +36,6 @@ type ExecutionResult struct {
 	RevertReason string
 }
 
-func NewExecutionResult(usedGas uint64, err error, ret []byte) *ExecutionResult {
-	result := &ExecutionResult{
-		UsedGas:    usedGas,
-		Err:        err,
-		ReturnData: ret,
-	}
-
-	if err != nil {
-		//result.RevertReson = "Transaction reverted silently"
-		result.RevertReason = err.Error()
-		if reason, ok := DecodeRevert(ret); ok {
-			result.RevertReason = reason
-		}
-	}
-
-	return result
-}
-
 // revert data signature is: Error(string) (0x08c379a0)
 // https://ethereum.stackexchange.com/questions/83528/how-can-i-get-the-revert-reason-of-a-call-in-solidity-so-that-i-can-use-it-in-th
 func DecodeRevert(ret []byte) (string, bool) {

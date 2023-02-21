@@ -26,6 +26,7 @@ import (
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/evm"
 	"github.com/laizy/web3/evm/params"
+	"github.com/laizy/web3/registry"
 )
 
 // List of evm-call-message pre-checking errors. All state transition messages will
@@ -325,7 +326,7 @@ func (st *StateTransition) TransitionDb() (*web3.ExecutionResult, error) {
 	gAmount := new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice)
 	st.state.AddBalance(st.GasReceiver, gAmount)
 
-	return web3.NewExecutionResult(st.gasUsed(), vmerr, ret), nil
+	return NewExecutionResult(st.gasUsed(), vmerr, ret), nil
 }
 
 func (st *StateTransition) refundGas() {
@@ -344,4 +345,22 @@ func (st *StateTransition) refundGas() {
 // gasUsed returns the amount of gas used up by the state transition.
 func (st *StateTransition) gasUsed() uint64 {
 	return st.initialGas - st.gas
+}
+
+func NewExecutionResult(usedGas uint64, err error, ret []byte) *web3.ExecutionResult {
+	result := &web3.ExecutionResult{
+		UsedGas:    usedGas,
+		Err:        err,
+		ReturnData: ret,
+	}
+
+	if err != nil {
+		//result.RevertReson = "Transaction reverted silently"
+		result.RevertReason = err.Error()
+		if reason, err := registry.ErrInstance().ParseError(ret); err == nil {
+			result.RevertReason = reason
+		}
+	}
+
+	return result
 }
