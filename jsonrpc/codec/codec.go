@@ -40,9 +40,7 @@ type Subscription struct {
 // Error implements error interface
 func (e *ErrorObject) Error() string {
 	info, err := registry.ErrInstance().ParseError(hexutil.MustDecode(e.Data.(map[string]interface{})["data"].(string)))
-	if err != nil {
-		fmt.Println("try parse error failed: ", err)
-	} else {
+	if err == nil {
 		e.DecodedMessage = info
 	}
 	data, err := json.Marshal(e)
