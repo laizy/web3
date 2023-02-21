@@ -180,7 +180,7 @@ func optimizeInput(m *abi.Method) *abi.Method {
 	m = m.Copy()
 	for j, e := range m.Inputs.TupleElems() {
 		if e.Name == "" {
-			e.Name = fmt.Sprintf("arg%d", j)
+			e.Name = fmt.Sprintf("val%d", j)
 		}
 	}
 	return m
