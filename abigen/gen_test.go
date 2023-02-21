@@ -227,11 +227,11 @@ func (_a *Sample) Contract() *contract.Contract {
 // calls
 
 // TestEmptyInputName calls the TestEmptyInputName method in the solidity contract
-func (_a *Sample) TestEmptyInputName(arg0 web3.Address, arg1 string, arg2 *big.Int, arg3 []byte, block ...web3.BlockNumber) (err error) {
+func (_a *Sample) TestEmptyInputName(val0 web3.Address, val1 string, val2 *big.Int, val3 []byte, block ...web3.BlockNumber) (err error) {
 	var out map[string]interface{}
 	_ = out // avoid not used compiler error
 
-	out, err = _a.c.Call("TestEmptyInputName", web3.EncodeBlock(block...), arg0, arg1, arg2, arg3)
+	out, err = _a.c.Call("TestEmptyInputName", web3.EncodeBlock(block...), val0, val1, val2, val3)
 	if err != nil {
 		return
 	}
