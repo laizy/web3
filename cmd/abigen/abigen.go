@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
-
 	"path/filepath"
+	"strings"
 
 	"github.com/umbracle/ethgo/compiler"
 )
@@ -105,7 +104,7 @@ func processSolc(sources []string) (map[string]*compiler.Artifact, error) {
 	if err != nil {
 		return nil, err
 	}
-	res := map[string]*compiler.Artifact{}
+	res := make(map[string]*compiler.Artifact)
 	for rawName, entry := range raw.Contracts {
 		name := strings.Split(rawName, ":")[1]
 		res[strings.Title(name)] = entry
@@ -164,10 +163,7 @@ func processJson(sources []string) (map[string]*compiler.Artifact, error) {
 			return nil, err
 		}
 
-		artifacts[strings.Title(name)] = &compiler.Artifact{
-			Abi: string(art.Abi),
-			Bin: "0x" + art.Bytecode,
-		}
+		artifacts[strings.Title(name)] = compiler.NewArtifact(string(art.Abi), art.Bytecode, "")
 	}
 	return artifacts, nil
 }
