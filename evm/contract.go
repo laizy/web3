@@ -20,8 +20,8 @@ package evm
 import (
 	"math/big"
 
-	"github.com/holiman/uint256"
 	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/utils/common/uint256"
 )
 
 // ContractRef is a reference to the contract's backing object

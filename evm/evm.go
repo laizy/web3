@@ -22,11 +22,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/holiman/uint256"
 	"github.com/umbracle/ethgo"
 	"github.com/umbracle/ethgo/crypto"
 	"github.com/umbracle/ethgo/evm/errors"
 	"github.com/umbracle/ethgo/evm/params"
+	"github.com/umbracle/ethgo/utils/common/uint256"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already

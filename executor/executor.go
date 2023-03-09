@@ -1,6 +1,8 @@
 package executor
 
 import (
+	"os"
+
 	"github.com/umbracle/ethgo"
 	"github.com/umbracle/ethgo/evm"
 	"github.com/umbracle/ethgo/evm/params"

@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/laizy/web3/utils/common/uint256"
+	"github.com/umbracle/ethgo/utils/common/uint256"
 )
 
 var stackPool = sync.Pool{

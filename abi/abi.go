@@ -188,7 +188,7 @@ func (a *ABI) UnmarshalJSON(data []byte) error {
 
 func (self *ABI) DecodeTxInput(input []byte) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
-	for _, method := range self.MethodsBySig {
+	for _, method := range self.MethodsBySignature {
 		if bytes.Equal(method.ID(), input[:4]) {
 			value, err := Decode(method.Inputs, input[4:])
 			if err != nil {

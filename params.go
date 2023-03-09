@@ -1,3 +1,3 @@
-package web3
+package ethgo
 
 var TraceRpc = false // trace all rpc request response

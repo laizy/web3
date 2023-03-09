@@ -20,8 +20,8 @@ package evm
 import (
 	"fmt"
 
-	"github.com/holiman/uint256"
 	"github.com/umbracle/ethgo/evm/params"
+	"github.com/umbracle/ethgo/utils/common/uint256"
 )
 
 var activators = map[int]func(*JumpTable){

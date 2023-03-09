@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/umbracle/ethgo"
 	"github.com/umbracle/ethgo/jsonrpc/codec"
 	"github.com/valyala/fasthttp"
 )
@@ -53,7 +54,7 @@ func (h *HTTP) Call(method string, out interface{}, params ...interface{}) error
 	defer fasthttp.ReleaseRequest(req)
 	defer fasthttp.ReleaseResponse(res)
 
-	if web3.TraceRpc {
+	if ethgo.TraceRpc {
 		fmt.Printf("http eth rpc request: %s\n", string(raw))
 	}
 
@@ -72,7 +73,7 @@ func (h *HTTP) Call(method string, out interface{}, params ...interface{}) error
 	// Decode json-rpc response
 	var response codec.Response
 	body := res.Body()
-	if web3.TraceRpc {
+	if ethgo.TraceRpc {
 		fmt.Printf("http eth rpc response: %s\n", string(body))
 	}
 	if err := json.Unmarshal(body, &response); err != nil {

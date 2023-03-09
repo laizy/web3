@@ -18,8 +18,8 @@
 package evm
 
 import (
-	"github.com/holiman/uint256"
 	"github.com/umbracle/ethgo/evm/errors"
+	"github.com/umbracle/ethgo/utils/common/uint256"
 )
 
 // Gas costs

@@ -3,6 +3,7 @@ package u256
 import (
 	"math/big"
 
+	"github.com/holiman/uint256"
 	"github.com/umbracle/ethgo/utils"
 )
 

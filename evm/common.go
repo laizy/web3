@@ -20,8 +20,8 @@ package evm
 import (
 	"math"
 
-	"github.com/holiman/uint256"
 	"github.com/umbracle/ethgo/utils/common"
+	"github.com/umbracle/ethgo/utils/common/uint256"
 )
 
 // calcMemSize64 calculates the required memory size, and returns

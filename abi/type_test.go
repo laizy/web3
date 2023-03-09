@@ -1,17 +1,16 @@
 package abi
 
 import (
-	"reflect"
-	"math/big"
-	"testing"
 	"encoding/hex"
 	"fmt"
+	"math/big"
+	"reflect"
+	"testing"
 
-
-	"github.com/umbracle/ethgo
-	"github.com/umbracle/ethgo/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/umbracle/ethgo"
+	"github.com/umbracle/ethgo/utils"
 )
 
 func TestType(t *testing.T) {
@@ -445,23 +444,23 @@ func simpleType(s string) *ArgumentStr {
 }
 
 type LiquidityPoolView struct {
-	Pid             *big.Int     `json:"pid"`
+	Pid             *big.Int      `json:"pid"`
 	LpToken         ethgo.Address `json:"lpToken"`
-	AllocPoint      *big.Int     `json:"allocPoint"`
-	LastRewardBlock *big.Int     `json:"lastRewardBlock"`
-	RewardsPerBlock *big.Int     `json:"rewardsPerBlock"`
-	AccKstPerShare  *big.Int     `json:"accKstPerShare"`
-	AllocKstAmount  *big.Int     `json:"allocKstAmount"`
-	AccKstAmount    *big.Int     `json:"accKstAmount"`
-	TotalAmount     *big.Int     `json:"totalAmount"`
+	AllocPoint      *big.Int      `json:"allocPoint"`
+	LastRewardBlock *big.Int      `json:"lastRewardBlock"`
+	RewardsPerBlock *big.Int      `json:"rewardsPerBlock"`
+	AccKstPerShare  *big.Int      `json:"accKstPerShare"`
+	AllocKstAmount  *big.Int      `json:"allocKstAmount"`
+	AccKstAmount    *big.Int      `json:"accKstAmount"`
+	TotalAmount     *big.Int      `json:"totalAmount"`
 	Token0          ethgo.Address `json:"token0"`
-	Symbol0         string       `json:"symbol0"`
-	Name0           string       `json:"name0"`
-	Decimals0       uint8        `json:"decimals0"`
+	Symbol0         string        `json:"symbol0"`
+	Name0           string        `json:"name0"`
+	Decimals0       uint8         `json:"decimals0"`
 	Token1          ethgo.Address `json:"token1"`
-	Symbol1         string       `json:"symbol1"`
-	Name1           string       `json:"name1"`
-	Decimals1       uint8        `json:"decimals1"`
+	Symbol1         string        `json:"symbol1"`
+	Name1           string        `json:"name1"`
+	Decimals1       uint8         `json:"decimals1"`
 }
 
 var TypeStr = "tuple(tuple(uint256 pid, address lptoken, uint256 allocpoint, uint256 lastrewardblock, uint256 rewardsperblock, uint256 acckstpershare, uint256 allockstamount, uint256 acckstamount, uint256 totalamount, address token0, string symbol0, string name0, uint8 decimals0, address token1, string symbol1, string name1, uint8 decimals1)[] views)"

@@ -20,7 +20,7 @@ package evm
 import (
 	"fmt"
 
-	"github.com/laizy/web3/utils/common/uint256"
+	"github.com/umbracle/ethgo/utils/common/uint256"
 )
 
 // Memory implements a simple memory model for the ethereum virtual machine.

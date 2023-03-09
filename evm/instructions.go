@@ -19,10 +19,10 @@ package evm
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/holiman/uint256"
 	"github.com/umbracle/ethgo"
 	"github.com/umbracle/ethgo/evm/errors"
 	"github.com/umbracle/ethgo/evm/params"
+	"github.com/umbracle/ethgo/utils/common/uint256"
 	"golang.org/x/crypto/sha3"
 )
 
