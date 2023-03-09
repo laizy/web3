@@ -18,7 +18,13 @@
 package ethgo
 
 import (
+	"encoding/hex"
+	"fmt"
+	"math/big"
+
 	"github.com/umbracle/ethgo/evm/errors"
+	"github.com/umbracle/ethgo/utils"
+	"github.com/umbracle/ethgo/utils/common/hexutil"
 )
 
 // ExecutionResult includes all output after executing given evm

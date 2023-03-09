@@ -3,7 +3,7 @@ package u256
 import (
 	"math/big"
 
-	"github.com/umbracle/go-web3/utils"
+	"github.com/umbracle/ethgo/utils"
 )
 
 type Int struct {
