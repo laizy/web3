@@ -77,17 +77,6 @@ func DecodeBatch(b []byte) error {
 	return nil
 }
 
-func TestL2_GetPendingTxBatches(t *testing.T) {
-	batch, err := getL2Client(t).GetPendingTxBatches()
-	if err != nil {
-		t.Skipf("skipping since client is not available")
-	}
-	if len(batch) > 0 { // try to decode
-		err := DecodeBatch(batch)
-		assert.NoError(t, err)
-	}
-}
-
 func TestL2_GetRollupStateHash(t *testing.T) {
 	info, err := getL2Client(t).GlobalInfo()
 	if err != nil {

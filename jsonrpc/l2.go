@@ -15,14 +15,6 @@ func (c *Client) L2() *L2 {
 	return c.endpoints.l
 }
 
-// tx batch data is already encoded as params of AppendBatch in RollupInputChain.sol, just add a func selector beyond it
-// to invoke the AppendBatch is fine.
-func (l *L2) GetPendingTxBatches() ([]byte, error) {
-	var out hexutil.Bytes
-	err := l.c.Call("l2_getPendingTxBatches", &out)
-	return out, err
-}
-
 func (l *L2) GetRollupStateHash(batchIndex uint64) (web3.Hash, error) {
 	var out web3.Hash
 	err := l.c.Call("l2_getState", &out, batchIndex)
