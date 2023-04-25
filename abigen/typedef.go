@@ -65,6 +65,9 @@ func (self *StructDefExtractor) extractNormal(typ *abi.Type) string {
 	case abi.KindSlice:
 		return "[]" + self.ExtractFromType(typ.Elem())
 
+	case abi.KindArray:
+		return fmt.Sprintf("[%d]%s", typ.Size(), self.extractNormal(typ.Elem()))
+
 	default:
 		return fmt.Sprintf("input not done for type: %s", typ.String())
 	}
