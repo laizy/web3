@@ -74,6 +74,8 @@ address
     function getTxes(Transaction[] memory txes) external view returns (Transaction[] memory) {
         return txes;
     }
+
+	function testArray(bytes32[6][] memory _arr)external view returns (bytes32[6][] memory) {return _arr;}
 }
 `
 	solc := &compiler.Solidity{Path: "solc"}
@@ -266,6 +268,25 @@ func (_a *Sample) GetTxes(txes []Transaction, block ...web3.BlockNumber) (retval
 	_ = out // avoid not used compiler error
 
 	out, err = _a.c.Call("getTxes", web3.EncodeBlock(block...), txes)
+	if err != nil {
+		return
+	}
+
+	// decode outputs
+
+	if err = mapstructure.Decode(out["0"], &retval0); err != nil {
+		err = fmt.Errorf("failed to encode output at index 0")
+	}
+
+	return
+}
+
+// TestArray calls the testArray method in the solidity contract
+func (_a *Sample) TestArray(arr [][6][32]byte, block ...web3.BlockNumber) (retval0 [][6][32]byte, err error) {
+	var out map[string]interface{}
+	_ = out // avoid not used compiler error
+
+	out, err = _a.c.Call("testArray", web3.EncodeBlock(block...), arr)
 	if err != nil {
 		return
 	}

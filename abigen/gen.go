@@ -82,6 +82,9 @@ func encodeSimpleArg(typ *abi.Type) string {
 
 	case abi.KindTuple:
 		return typ.RawName()
+
+	case abi.KindArray:
+		return fmt.Sprintf("[%d]%s", typ.Size(), encodeSimpleArg(typ.Elem()))
 	default:
 		return fmt.Sprintf("input not done for type: %s", typ.String())
 	}
