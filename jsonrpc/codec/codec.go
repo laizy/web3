@@ -39,9 +39,11 @@ type Subscription struct {
 
 // Error implements error interface
 func (e *ErrorObject) Error() string {
-	info, err := registry.ErrInstance().ParseError(hexutil.MustDecode(e.Data.(map[string]interface{})["data"].(string)))
-	if err == nil {
-		e.DecodedMessage = info
+	if data := e.Data.(map[string]interface{})["data"]; data != nil {
+		info, err := registry.ErrInstance().ParseError(hexutil.MustDecode(data.(string)))
+		if err == nil {
+			e.DecodedMessage = info
+		}
 	}
 	data, err := json.Marshal(e)
 	if err != nil {
