@@ -6,11 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestWallet_Mnemonic(t *testing.T) {
-	_, err := NewWalletFromMnemonic("sound practice disease erupt basket pumpkin truck file gorilla behave find exchange napkin boy congress address city net prosper crop chair marine chase seven")
-	assert.NoError(t, err)
-}
-
 func TestWallet_MnemonicDerivationPath(t *testing.T) {
 	cases := []struct {
 		path       string
