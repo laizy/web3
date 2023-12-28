@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/utils/common/hexutil"
@@ -192,6 +193,9 @@ func (ec *Eth) GetStorage(account web3.Address, key web3.Hash, blockNumber web3.
 	var out string
 	if err := ec.c.Call("eth_getStorageAt", &out, account, slot, blockNumber.String()); err != nil {
 		return web3.Hash{}, err
+	}
+	if len(strings.TrimPrefix(out, "0x")) == 0 {
+		return web3.Hash{}, nil
 	}
 
 	return web3.HexToHash(out), nil

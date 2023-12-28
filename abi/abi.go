@@ -156,7 +156,7 @@ type Error struct {
 	Inputs *Type
 }
 
-//Copy is lightly copy inside inputs, do not modify inner pointer objects.
+// Copy is lightly copy inside inputs, do not modify inner pointer objects.
 func (e *Error) Copy() *Error {
 	return &Error{
 		Name:   e.Name,
@@ -195,7 +195,7 @@ type Method struct {
 	Outputs *Type
 }
 
-//Copy is lightly copy inside inputs, do not modify inner pointer objects.
+// Copy is lightly copy inside inputs, do not modify inner pointer objects.
 func (m *Method) Copy() *Method {
 	return &Method{
 		m.Name,
@@ -295,7 +295,7 @@ func (e *Event) Sig() string {
 	return buildSignature(e.Name, e.Inputs)
 }
 
-//Copy is lightly copy inside inputs, do not modify inner pointer objects.
+// Copy is lightly copy inside inputs, do not modify inner pointer objects.
 func (e *Event) Copy() *Event {
 	return &Event{
 		Name:      e.Name,
@@ -429,15 +429,12 @@ func (a *argument) UnmarshalJSON(data []byte) error {
 	}
 
 	t, err := NewTypeFromArgument(arg)
-	utils.Ensure(err)
+	utils.Ensure(err, string(data))
 	if t.kind == KindTuple {
 		if arg.InternalType == "" {
 			t.tupleName = ""
 		} else {
-			tuples := strings.Split(arg.InternalType, ".")
-			tuplename := tuples[len(tuples)-1]
-			tuplename = strings.Title(tuplename)
-			t.tupleName = tuplename
+			t.tupleName = strings.TrimSpace(internalTypeToArg(arg.InternalType))
 		}
 	}
 
