@@ -25,10 +25,10 @@ type Response struct {
 
 // ErrorObject is a jsonrpc error
 type ErrorObject struct {
-	Code           int         `json:"code"`
-	Message        string      `json:"message"`
-	Data           interface{} `json:"data,omitempty"`
-	DecodedMessage string      `json:"decoded_message,omitempty"`
+	Code           int    `json:"code"`
+	Message        string `json:"message"`
+	Data           string `json:"data,omitempty"`
+	DecodedMessage string `json:"decoded_message,omitempty"`
 }
 
 // Subscription is a jsonrpc subscription
@@ -39,8 +39,8 @@ type Subscription struct {
 
 // Error implements error interface
 func (e *ErrorObject) Error() string {
-	if data := e.Data.(map[string]interface{})["data"]; data != nil {
-		info, err := registry.ErrInstance().ParseError(hexutil.MustDecode(data.(string)))
+	if len(e.Data) != 0 {
+		info, err := registry.ErrInstance().ParseError(hexutil.MustDecode(e.Data))
 		if err == nil {
 			e.DecodedMessage = info
 		}

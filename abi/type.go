@@ -112,7 +112,7 @@ func (t *Type) RawName() string {
 	return t.tupleName
 }
 
-//just light copy
+// just light copy
 func (t *Type) Copy() *Type {
 	a := Type{
 		kind:      t.kind,
@@ -194,7 +194,7 @@ func (t *Type) isDynamicType() bool {
 }
 
 func internalTypeToArg(internalType string) string {
-	internalName := internalType
+	internalName := strings.TrimPrefix(internalType, "struct ")
 	internalNames := strings.Split(internalName, ".")
 	internalName = internalNames[len(internalNames)-1]
 	internalName = strings.Title(internalName)
@@ -243,7 +243,11 @@ func NewTypeFromArgument(arg *ArgumentStr) (*Type, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewType(str)
+	ty, err := NewType(str)
+	if err != nil {
+		return nil, fmt.Errorf("create type error: %s, %v", str, err)
+	}
+	return ty, nil
 }
 
 // NewType parses a type in string format

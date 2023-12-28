@@ -83,7 +83,7 @@ func genCodeToBytes(name string, funcMap template.FuncMap, temp string, input ma
 	}
 	b, err := format.Source(buffer.Bytes())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("format code error: %s, %v", string(buffer.Bytes()), err)
 	}
 	return b, nil
 }

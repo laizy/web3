@@ -8,9 +8,12 @@ import (
 	"strings"
 )
 
-func Ensure(err error) {
+func Ensure(err error, msg ...interface{}) {
 	if err != nil {
-		panic(err)
+		if len(msg) == 0 {
+			msg = []interface{}{""}
+		}
+		panic(fmt.Errorf("%v %v", err, msg[0]))
 	}
 }
 
