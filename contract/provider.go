@@ -7,10 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/laizy/web3/executor/remotedb"
-
 	"github.com/laizy/web3"
 	"github.com/laizy/web3/executor"
+	"github.com/laizy/web3/executor/remotedb"
 	"github.com/laizy/web3/jsonrpc"
 	"github.com/laizy/web3/utils"
 	"github.com/laizy/web3/wallet"
@@ -97,7 +96,7 @@ func (self *Signer) WaitTx(hs web3.Hash) *web3.Receipt {
 	}
 }
 
-func (self *Signer) TransferEther(to web3.Address, value *big.Int, msg string) *web3.Transaction {
+func (self *Signer) TransferEther(to web3.Address, value *big.Int, msg string) *Txn {
 	txn := &Txn{
 		from:     self.Address(),
 		to:       &to,
@@ -105,8 +104,8 @@ func (self *Signer) TransferEther(to web3.Address, value *big.Int, msg string) *
 		Data:     []byte(msg),
 		value:    value,
 	}
-	tx := txn.MustToTransaction()
-	return self.SignTx(tx)
+
+	return txn
 }
 
 func (e *Signer) GetNonce(blockNumber web3.BlockNumber) (uint64, error) {
