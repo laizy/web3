@@ -159,7 +159,7 @@ type Txn struct {
 	value    *big.Int
 	nonce    uint64
 	gasLimit uint64
-	gasPrice uint64
+	GasPrice uint64
 	Data     []byte
 	hash     web3.Hash
 }
@@ -182,7 +182,7 @@ func (t *Txn) EstimateGas() (uint64, error) {
 		To:       t.to,
 		Data:     t.Data,
 		Value:    t.value,
-		GasPrice: t.gasPrice,
+		GasPrice: t.GasPrice,
 	}
 	return t.provider.Eth().EstimateGas(msg)
 }
@@ -227,8 +227,8 @@ func (self *SignedTx) SendTransaction(signer *Signer) *web3.Receipt {
 func (t *Txn) ToTransaction() (*web3.Transaction, error) {
 	var err error
 	// estimate gas price
-	if t.gasPrice == 0 {
-		t.gasPrice, err = t.provider.Eth().GasPrice()
+	if t.GasPrice == 0 {
+		t.GasPrice, err = t.provider.Eth().GasPrice()
 		if err != nil {
 			return nil, err
 		}
@@ -254,7 +254,7 @@ func (t *Txn) ToTransaction() (*web3.Transaction, error) {
 	txn := &web3.Transaction{
 		From:     t.from,
 		Input:    t.Data,
-		GasPrice: t.gasPrice,
+		GasPrice: t.GasPrice,
 		Gas:      t.gasLimit,
 		Value:    t.value,
 		Nonce:    t.nonce,
@@ -282,7 +282,7 @@ func (t *Txn) Do() error {
 
 // SetGasPrice sets the gas price of the transaction
 func (t *Txn) SetGasPrice(gasPrice uint64) *Txn {
-	t.gasPrice = gasPrice
+	t.GasPrice = gasPrice
 	return t
 }
 

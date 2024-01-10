@@ -61,11 +61,11 @@ func newKey(priv *ecdsa.PrivateKey) *Key {
 	return &Key{
 		priv: priv,
 		pub:  &priv.PublicKey,
-		addr: pubKeyToAddress(&priv.PublicKey),
+		addr: PubKeyToAddress(&priv.PublicKey),
 	}
 }
 
-func pubKeyToAddress(pub *ecdsa.PublicKey) (addr web3.Address) {
+func PubKeyToAddress(pub *ecdsa.PublicKey) (addr web3.Address) {
 	b := keccak256(elliptic.Marshal(S256, pub.X, pub.Y)[1:])
 	copy(addr[:], b[12:])
 	return
@@ -89,7 +89,7 @@ func Ecrecover(hash, signature []byte) (web3.Address, error) {
 	if err != nil {
 		return web3.Address{}, err
 	}
-	return pubKeyToAddress(pub), nil
+	return PubKeyToAddress(pub), nil
 }
 
 func RecoverPubkey(signature, hash []byte) (*ecdsa.PublicKey, error) {
