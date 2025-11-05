@@ -93,6 +93,7 @@ func (self *Signer) WaitTx(hs web3.Hash) *web3.Receipt {
 		if receipt != nil {
 			return receipt
 		}
+		time.Sleep(time.Second)
 	}
 }
 
